@@ -1,0 +1,26 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Social Links</h2>
+    <button class="btn btn-primary" hx-get="/admin/social-links/new" hx-target="#form-container" hx-swap="innerHTML">
+        <i class="bi bi-plus-lg"></i> New Social Link
+    </button>
+</div>
+
+<div id="form-container" class="mb-4"></div>
+
+<div class="card border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Platform</th>
+                    <th>Label</th>
+                    <th>URL</th>
+                    <th>Order</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="social-list" hx-get="/admin/social-links/list" hx-trigger="load" hx-swap="innerHTML">
+            </tbody>
+        </table>
+    </div>
+</div>

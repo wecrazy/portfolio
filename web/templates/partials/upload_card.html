@@ -1,0 +1,18 @@
+<div class="col-md-4 col-sm-6 upload-card" id="upload-{{.Upload.ID}}">
+    <div class="card border-0 h-100">
+        <div class="card-body">
+            {{if contains .Upload.MimeType "image"}}
+            <img src="/uploads/{{.Upload.Category}}/{{.Upload.StoredName}}" class="img-fluid rounded mb-2" alt="{{.Upload.OriginalName}}" style="max-height: 120px; object-fit: cover; width: 100%;">
+            {{else}}
+            <div class="bg-secondary bg-opacity-10 rounded d-flex align-items-center justify-content-center mb-2" style="height: 80px;">
+                <i class="bi bi-file-earmark-pdf fs-2 text-danger"></i>
+            </div>
+            {{end}}
+            <p class="mb-1 small fw-semibold text-truncate">{{.Upload.OriginalName}}</p>
+            <p class="mb-1 text-muted" style="font-size: 0.75rem;">{{humanSize .Upload.FileSize}} &middot; {{.Upload.Category}}</p>
+            <button class="btn btn-sm btn-outline-danger w-100 mt-1" hx-delete="/admin/uploads/{{.Upload.ID}}" hx-target="#upload-{{.Upload.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>

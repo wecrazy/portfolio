@@ -1,0 +1,6 @@
+<div class="ms-4 border-start ps-3 mb-2 small">
+    <strong>{{.Reply.OAuthUser.DisplayName}}</strong>
+    {{if .Reply.IsOwnerReply}}<span class="badge bg-primary">Owner</span>{{end}}
+    <span class="text-muted">{{formatDateTime .Reply.CreatedAt}}</span>
+    <p class="mb-0 mt-1">{{.Reply.Body}}</p>
+</div>

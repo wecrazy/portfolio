@@ -1,0 +1,50 @@
+<div class="card border-0 mb-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3">{{if .Item.ID}}Edit Upcoming Item{{else}}New Upcoming Item{{end}}</h6>
+        <form {{if .Item.ID}}hx-put="/admin/upcoming/{{.Item.ID}}" hx-target="#upcoming-{{.Item.ID}}" hx-swap="outerHTML"{{else}}hx-post="/admin/upcoming" hx-target="#upcoming-list" hx-swap="beforeend"{{end}}>
+            <div class="row g-3">
+                <div class="col-md-8 mb-2">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" class="form-control" value="{{.Item.Title}}" required>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="project" {{if eq .Item.Type "project"}}selected{{end}}>Future Project</option>
+                        <option value="announcement" {{if eq .Item.Type "announcement"}}selected{{end}}>Announcement</option>
+                    </select>
+                </div>
+                <div class="col-12 mb-2">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3">{{.Item.Description}}</textarea>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="planned" {{if eq .Item.Status "planned"}}selected{{end}}>Planned</option>
+                        <option value="in-progress" {{if eq .Item.Status "in-progress"}}selected{{end}}>In Progress</option>
+                        <option value="coming-soon" {{if eq .Item.Status "coming-soon"}}selected{{end}}>Coming Soon</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Icon Class <small class="text-muted">(Font Awesome)</small></label>
+                    <input type="text" name="icon_class" class="form-control" value="{{.Item.IconClass}}" placeholder="fa-solid fa-rocket">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Sort Order</label>
+                    <input type="number" name="sort_order" class="form-control" value="{{.Item.SortOrder}}">
+                </div>
+                <div class="col-12 mb-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="is_visible" class="form-check-input" id="is_visible" {{if .Item.IsVisible}}checked{{end}}>
+                        <label class="form-check-label" for="is_visible">Visible on public site</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Save</button>
+                <button type="button" class="btn btn-secondary" onclick="this.closest('.card').remove()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

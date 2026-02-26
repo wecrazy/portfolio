@@ -1,0 +1,26 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Skills</h2>
+    <button class="btn btn-primary" hx-get="/admin/skills/new" hx-target="#form-container" hx-swap="innerHTML">
+        <i class="bi bi-plus-lg"></i> New Skill
+    </button>
+</div>
+
+<div id="form-container" class="mb-4"></div>
+
+<div class="card border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Proficiency</th>
+                    <th>Order</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="skills-list" hx-get="/admin/skills/list" hx-trigger="load" hx-swap="innerHTML">
+            </tbody>
+        </table>
+    </div>
+</div>

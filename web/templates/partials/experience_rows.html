@@ -1,0 +1,14 @@
+{{range .Experiences}}
+<tr id="experience-{{.ID}}">
+    <td>{{.Title}}</td>
+    <td>{{.Org}}</td>
+    <td><span class="badge bg-info">{{.Type}}</span></td>
+    <td>{{formatDate .StartDate}}</td>
+    <td>{{if .IsCurrent}}<span class="badge bg-success">Current</span>{{end}}</td>
+    <td>{{.SortOrder}}</td>
+    <td>
+        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/experience/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/experience/{{.ID}}" hx-target="#experience-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this experience?"><i class="bi bi-trash"></i></button>
+    </td>
+</tr>
+{{end}}
