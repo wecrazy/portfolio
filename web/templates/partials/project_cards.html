@@ -1,0 +1,44 @@
+{{range $i, $proj := .Projects}}
+<div class="col-md-6 col-lg-4" data-aos="zoom-in">
+    <div class="glass-card project-card h-100 d-flex flex-column">
+        {{if $proj.ThumbnailURL}}
+        <div class="project-thumbnail">
+            <img src="{{$proj.ThumbnailURL}}" alt="{{$proj.Title}}" class="img-fluid rounded-top-4" loading="lazy">
+        </div>
+        {{end}}
+        <div class="p-4 flex-grow-1 d-flex flex-column">
+            <h5 class="fw-bold mb-2">{{$proj.Title}}</h5>
+            {{if $proj.Description}}
+            <p class="text-muted small mb-3 flex-grow-1">{{$proj.Description}}</p>
+            {{end}}
+            {{if $proj.Tags}}
+            <div class="mb-3">
+                {{range split $proj.Tags ","}}
+                <span class="badge bg-glass me-1 mb-1">{{.}}</span>
+                {{end}}
+            </div>
+            {{end}}
+            <div class="d-flex gap-2 mt-auto">
+                {{if $proj.LiveURL}}
+                <a href="{{$proj.LiveURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-gradient">
+                    <i class="bi bi-box-arrow-up-right me-1"></i><span data-i18n="project.live">Live</span>
+                </a>
+                {{end}}
+                {{if $proj.RepoURL}}
+                <a href="{{$proj.RepoURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-github me-1"></i><span data-i18n="project.code">Code</span>
+                </a>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+{{if .HasMoreProjects}}
+<div id="load-more-projects" class="col-12 text-center py-4"
+     hx-get="/projects?page={{.NextPage}}" hx-trigger="revealed" hx-swap="outerHTML" hx-target="#load-more-projects">
+    <div class="spinner-border spinner-border-sm text-muted" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+{{end}}

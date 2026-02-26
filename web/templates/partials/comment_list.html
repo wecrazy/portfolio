@@ -1,0 +1,48 @@
+{{if .Comments}}
+{{range .Comments}}
+<div class="glass-card p-4 mb-3">
+    <div class="d-flex align-items-start gap-3">
+        {{if .OAuthUser.AvatarURL}}
+        <img src="{{.OAuthUser.AvatarURL}}" class="rounded-circle" width="40" height="40" alt="">
+        {{else}}
+        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+            <i class="bi bi-person text-white"></i>
+        </div>
+        {{end}}
+        <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <strong>{{.OAuthUser.DisplayName}}</strong>
+                <span class="badge bg-secondary bg-opacity-50 small">{{.OAuthUser.Provider}}</span>
+                <small class="text-muted ms-auto">{{formatDateTime .CreatedAt}}</small>
+            </div>
+            <p class="mb-2">{{.Body}}</p>
+
+            {{if .Replies}}
+            {{range .Replies}}
+            <div class="ms-3 ps-3 border-start border-glass mb-2">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    {{if .OAuthUser.AvatarURL}}
+                    <img src="{{.OAuthUser.AvatarURL}}" class="rounded-circle" width="24" height="24" alt="">
+                    {{else}}
+                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width:24px;height:24px;">
+                        <i class="bi bi-person-fill text-white small"></i>
+                    </div>
+                    {{end}}
+                    <strong class="small">{{.OAuthUser.DisplayName}}</strong>
+                    {{if .IsOwnerReply}}<span class="badge bg-primary small" data-i18n="comments.owner">Owner</span>{{end}}
+                    <small class="text-muted ms-auto">{{formatDateTime .CreatedAt}}</small>
+                </div>
+                <p class="mb-0 small">{{.Body}}</p>
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+</div>
+{{end}}
+{{else}}
+<div class="text-center text-muted py-4">
+    <i class="bi bi-chat-dots fs-3 d-block mb-2"></i>
+    <p class="mb-0" data-i18n="comments.empty">No comments yet. Be the first to comment!</p>
+</div>
+{{end}}

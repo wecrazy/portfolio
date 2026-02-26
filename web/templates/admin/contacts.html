@@ -1,0 +1,22 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Contact Messages</h2>
+</div>
+
+<div class="card border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="contacts-list" hx-get="/admin/contacts/list" hx-trigger="load" hx-swap="innerHTML">
+            </tbody>
+        </table>
+    </div>
+</div>
