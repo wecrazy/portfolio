@@ -1,0 +1,18 @@
+{{range .Contacts}}
+<tr id="contact-{{.ID}}">
+    <td>{{.Name}}</td>
+    <td><a href="mailto:{{.Email}}">{{.Email}}</a></td>
+    <td class="text-truncate" style="max-width: 200px;">{{.Subject}}</td>
+    <td>{{formatDateTime .CreatedAt}}</td>
+    <td id="contact-status-{{.ID}}">
+        {{if .IsRead}}<span class="badge bg-secondary">Read</span>
+        {{else}}<span class="badge bg-warning">Unread</span>{{end}}
+    </td>
+    <td>
+        {{if not .IsRead}}
+        <button class="btn btn-sm btn-outline-success" hx-put="/admin/contacts/{{.ID}}/read" hx-target="#contact-status-{{.ID}}" hx-swap="innerHTML"><i class="bi bi-check"></i></button>
+        {{end}}
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/contacts/{{.ID}}" hx-target="#contact-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?"><i class="bi bi-trash"></i></button>
+    </td>
+</tr>
+{{end}}

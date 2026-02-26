@@ -1,0 +1,17 @@
+<tr id="skill-{{.Skill.ID}}">
+    <td>{{.Skill.Name}}</td>
+    <td><span class="badge bg-info bg-opacity-25 text-info">{{.Skill.Category}}</span></td>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar bg-primary" style="width: {{.Skill.Proficiency}}%;"></div>
+            </div>
+            <small class="text-muted">{{.Skill.Proficiency}}%</small>
+        </div>
+    </td>
+    <td>{{.Skill.SortOrder}}</td>
+    <td>
+        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/skills/{{.Skill.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/skills/{{.Skill.ID}}" hx-target="#skill-{{.Skill.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?"><i class="bi bi-trash"></i></button>
+    </td>
+</tr>
