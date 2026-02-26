@@ -1,0 +1,121 @@
+<!-- ======================= BLOG LIST NAVBAR ======================= -->
+<nav class="navbar navbar-expand-lg fixed-top glass-nav" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand fw-bold gradient-text" href="/">{{.Owner.FullName}}</a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navContent">
+            <ul class="navbar-nav ms-auto me-3 mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="/#about" data-i18n="nav.about">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#projects" data-i18n="nav.projects">Projects</a></li>
+                <li class="nav-item"><a class="nav-link active fw-semibold" href="/blog" data-i18n="nav.blog">Blog</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#upcoming" data-i18n="nav.upcoming">What's Next</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#contact" data-i18n="nav.contact">Contact</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                {{if .Owner.ResumeFile}}
+                <a href="/resume" class="btn btn-outline-light btn-sm" target="_blank">
+                    <i class="bi bi-file-earmark-pdf me-1"></i><span data-i18n="nav.resume">Resume</span>
+                </a>
+                {{end}}
+                <div class="dropdown">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="langSwitcher" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-translate me-1"></i><span id="langLabel">EN</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langSwitcher" id="langMenu">
+                        {{range .SupportedLangs}}
+                        <li><a class="dropdown-item lang-option" href="#" data-lang="{{.}}">{{upper .}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+                <button class="btn btn-outline-light btn-sm theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <i class="bi bi-sun-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ======================= BLOG HERO ======================= -->
+<section class="hero-section d-flex align-items-center position-relative overflow-hidden" style="min-height: 35vh;">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="container position-relative z-1 text-center py-5 mt-5">
+        <h1 class="display-4 fw-bold gradient-text mb-3" data-aos="fade-down" data-i18n="section.blog">Blog &amp; Feeds</h1>
+        <p class="text-muted lead" data-aos="fade-up" data-aos-delay="100">Thoughts, guides, and updates from {{.Owner.FullName}}</p>
+    </div>
+</section>
+
+<!-- ======================= BLOG POSTS GRID ======================= -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row g-4" id="blog-grid">
+            {{range $i, $post := .Posts}}
+            <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+                <a href="/blog/{{$post.Slug}}" class="text-decoration-none">
+                    <div class="glass-card project-card h-100 d-flex flex-column">
+                        {{if $post.ThumbnailFile}}
+                        <div class="project-thumbnail">
+                            <img src="/uploads/images/{{$post.ThumbnailFile.StoredName}}" alt="{{$post.Title}}" class="img-fluid rounded-top-4" loading="lazy">
+                        </div>
+                        {{end}}
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <h5 class="fw-bold mb-2 text-body">{{$post.Title}}</h5>
+                            {{if $post.Excerpt}}
+                            <p class="text-muted small mb-3 flex-grow-1">{{$post.Excerpt}}</p>
+                            {{end}}
+                            {{if $post.Tags}}
+                            <div class="mb-3">
+                                {{range split $post.Tags ","}}
+                                <span class="badge bg-glass me-1 mb-1">{{.}}</span>
+                                {{end}}
+                            </div>
+                            {{end}}
+                            <div class="d-flex align-items-center justify-content-between mt-auto">
+                                {{if $post.PublishedAt}}
+                                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{formatDate (derefTime $post.PublishedAt)}}</small>
+                                {{end}}
+                                <span class="btn btn-sm btn-gradient">Read More <i class="bi bi-arrow-right ms-1"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {{end}}
+            {{if .HasMorePosts}}
+            <div id="load-more-posts" class="col-12 text-center py-4"
+                 hx-get="/blog/more?page={{.NextPage}}" hx-trigger="revealed" hx-swap="outerHTML" hx-target="#load-more-posts">
+                <div class="spinner-border spinner-border-sm text-muted" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            {{end}}
+            {{if not .Posts}}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-journal-text display-3 text-muted mb-3 d-block"></i>
+                <p class="text-muted" data-i18n="blog.empty">No posts yet. Check back soon!</p>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<!-- ======================= FOOTER ======================= -->
+<footer class="py-4 text-center border-top border-glass">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <p class="mb-0 text-muted small">&copy; {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span></p>
+            <a href="/" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left me-1"></i><span data-i18n="blog.back_portfolio">Back to Portfolio</span></a>
+            {{if .SocialLinks}}
+            <div class="d-flex gap-2">
+                {{range .SocialLinks}}
+                <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="text-muted" title="{{.Platform}}">
+                    <i class="{{.IconClass}}"></i>
+                </a>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+</footer>

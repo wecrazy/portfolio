@@ -1,0 +1,21 @@
+<tr id="techstack-{{.Tech.ID}}">
+    <td>
+        {{if .Tech.IconClass}}<i class="{{.Tech.IconClass}} fs-4"></i>
+        {{else if .Tech.IconURL}}<img src="{{.Tech.IconURL}}" width="28" height="28" alt="">
+        {{else}}<i class="bi bi-code-slash fs-4"></i>{{end}}
+    </td>
+    <td><strong>{{.Tech.Name}}</strong></td>
+    <td><span class="badge bg-info">{{.Tech.Category}}</span></td>
+    <td class="text-muted small">{{.Tech.Desc}}</td>
+    <td>{{.Tech.SortOrder}}</td>
+    <td>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary" hx-get="/admin/tech-stacks/{{.Tech.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-outline-danger" hx-delete="/admin/tech-stacks/{{.Tech.ID}}" hx-target="#techstack-{{.Tech.ID}}" hx-swap="outerHTML" hx-confirm="Delete this entry?">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>

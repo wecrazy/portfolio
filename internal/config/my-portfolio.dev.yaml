@@ -1,0 +1,82 @@
+app:
+  name: "My Portfolio"
+  version: "0.0.1"
+  host: "localhost"
+  port: 3000
+  base_url: "http://localhost:3000"
+  debug: true
+  log_level: "DEBUG"
+  secret_key: "change-me-to-a-random-32-char-string!"
+  static_dir: "./web"
+  upload_dir: "./uploads"
+  shutdown_timeout: 10
+
+database:
+  dsn: "./data/portfolio.db"
+  max_idle_conns: 5
+  max_open_conns: 10
+  conn_max_lifetime: 30
+  log_level: "error"
+
+admin:
+  default_username: "admin"
+  default_password: "admin123"
+  default_email: "admin@example.com"
+  session_ttl: 480
+  cookie_name: "portfolio_session"
+  cookie_secure: false
+  cookie_domain: ""
+
+oauth:
+  google:
+    client_id: "YOUR_GOOGLE_CLIENT_ID"
+    client_secret: "YOUR_GOOGLE_CLIENT_SECRET"
+    redirect_url: "http://localhost:3000/auth/google/callback"
+  github:
+    client_id: "YOUR_GITHUB_CLIENT_ID"
+    client_secret: "YOUR_GITHUB_CLIENT_SECRET"
+    redirect_url: "http://localhost:3000/auth/github/callback"
+
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  from: "Portfolio Contact <noreply@example.com>"
+  to: "owner@example.com"
+
+upload:
+  max_image_size: 5
+  max_resume_size: 10
+  allowed_image_types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/webp"
+  allowed_resume_types:
+    - "application/pdf"
+
+rate_limit:
+  enabled: true
+  contact_form: 5
+  comments: 20
+
+i18n:
+  default_lang: "en"
+  supported_langs:
+    - "en"
+    - "id"
+
+table_names:
+  admins: "admins"
+  owners: "owners"
+  projects: "projects"
+  experiences: "experiences"
+  skills: "skills"
+  social_links: "social_links"
+  uploaded_files: "uploaded_files"
+  oauth_users: "oauth_users"
+  comments: "comments"
+  contact_messages: "contact_messages"
+  tech_stacks: "tech_stacks"
+  posts: "posts"
+  upcoming_items: "upcoming_items"

@@ -1,0 +1,40 @@
+<div class="card mb-3">
+    <div class="card-body">
+        <form {{if .TechStack.ID}}hx-put="/admin/tech-stacks/{{.TechStack.ID}}" hx-target="#techstack-{{.TechStack.ID}}" hx-swap="outerHTML"{{else}}hx-post="/admin/tech-stacks" hx-target="#data-rows" hx-swap="beforeend"{{end}}>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="form-control" name="name" value="{{.TechStack.Name}}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Category</label>
+                    <input type="text" class="form-control" name="category" value="{{.TechStack.Category}}" required placeholder="e.g. Language, Framework, Tool">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sort Order</label>
+                    <input type="number" class="form-control" name="sort_order" value="{{.TechStack.SortOrder}}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Icon Class</label>
+                    <input type="text" class="form-control" name="icon_class" value="{{.TechStack.IconClass}}" placeholder="e.g. devicon-go-original-wordmark">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Icon URL (or use class)</label>
+                    <input type="text" class="form-control" name="icon_url" value="{{.TechStack.IconURL}}" placeholder="https://...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">URL</label>
+                    <input type="text" class="form-control" name="url" value="{{.TechStack.URL}}" placeholder="https://...">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" name="description" value="{{.TechStack.Desc}}" placeholder="Short description...">
+                </div>
+            </div>
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">{{if .TechStack.ID}}Update{{else}}Create{{end}}</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('form-container').innerHTML=''">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

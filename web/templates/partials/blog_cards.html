@@ -1,0 +1,40 @@
+{{range $i, $post := .Posts}}
+<div class="col-md-6 col-lg-4" data-aos="zoom-in">
+    <a href="/blog/{{$post.Slug}}" class="text-decoration-none">
+        <div class="glass-card project-card h-100 d-flex flex-column">
+            {{if $post.ThumbnailFile}}
+            <div class="project-thumbnail">
+                <img src="/uploads/images/{{$post.ThumbnailFile.StoredName}}" alt="{{$post.Title}}" class="img-fluid rounded-top-4" loading="lazy">
+            </div>
+            {{end}}
+            <div class="p-4 flex-grow-1 d-flex flex-column">
+                <h5 class="fw-bold mb-2 text-body">{{$post.Title}}</h5>
+                {{if $post.Excerpt}}
+                <p class="text-muted small mb-3 flex-grow-1">{{$post.Excerpt}}</p>
+                {{end}}
+                {{if $post.Tags}}
+                <div class="mb-3">
+                    {{range split $post.Tags ","}}
+                    <span class="badge bg-glass me-1 mb-1">{{.}}</span>
+                    {{end}}
+                </div>
+                {{end}}
+                <div class="d-flex align-items-center justify-content-between mt-auto">
+                    {{if $post.PublishedAt}}
+                    <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{formatDate (derefTime $post.PublishedAt)}}</small>
+                    {{end}}
+                    <span class="btn btn-sm btn-gradient">Read More <i class="bi bi-arrow-right ms-1"></i></span>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>
+{{end}}
+{{if .HasMorePosts}}
+<div id="load-more-posts" class="col-12 text-center py-4"
+     hx-get="/blog/more?page={{.NextPage}}" hx-trigger="revealed" hx-swap="outerHTML" hx-target="#load-more-posts">
+    <div class="spinner-border spinner-border-sm text-muted" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+{{end}}

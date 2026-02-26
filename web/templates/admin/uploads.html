@@ -1,0 +1,27 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Uploads</h2>
+</div>
+
+<div class="card border-0 mb-4">
+    <div class="card-body">
+        <form hx-post="/admin/uploads" hx-target="#uploads-grid" hx-swap="afterbegin" hx-encoding="multipart/form-data" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">File</label>
+                <input type="file" name="file" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    <option value="images">Image</option>
+                    <option value="resume">Resume / PDF</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-upload"></i> Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3" id="uploads-grid" hx-get="/admin/uploads/list" hx-trigger="load" hx-swap="innerHTML">
+</div>
