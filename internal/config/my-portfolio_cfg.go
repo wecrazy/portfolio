@@ -93,4 +93,14 @@ type TypeMyPortfolio struct {
 		Posts           string `yaml:"posts"`
 		UpcomingItems   string `yaml:"upcoming_items"`
 	} `yaml:"table_names"`
+
+	Owner struct {
+		Name         string `yaml:"name" validate:"required"`
+		Title        string `yaml:"title" validate:"required"`
+		Bio          string `yaml:"bio" validate:"required"`
+		ProfileImage string `yaml:"profile_image" validate:"required"`
+		Email        string `yaml:"email" validate:"required,email"`
+		Phone        string `yaml:"phone" validate:"required"`
+		Location     string `yaml:"location" validate:"required"`
+	} `yaml:"owner" validate:"required"`
 }

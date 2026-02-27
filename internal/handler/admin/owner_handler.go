@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
 
@@ -13,10 +14,13 @@ func OwnerEditPage(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/owner", fiber.Map{
-			"Title": "Owner Profile",
-			"Owner": owner,
-			"Admin": c.Locals("admin"),
+			"Title":          "Owner Profile",
+			"Owner":          owner,
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -38,10 +42,13 @@ func OwnerUpdate(db *gorm.DB) fiber.Handler {
 
 		c.Set("HX-Trigger", `{"showToast":"Profile updated successfully"}`)
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/owner", fiber.Map{
-			"Title": "Owner Profile",
-			"Owner": owner,
-			"Admin": c.Locals("admin"),
+			"Title":          "Owner Profile",
+			"Owner":          owner,
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }

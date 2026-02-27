@@ -2,21 +2,23 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/sanitize"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/microcosm-cc/bluemonday"
 	"gorm.io/gorm"
 )
-
-var commentSanitizer = bluemonday.StrictPolicy()
 
 // CommentListPage renders the comments moderation admin page.
 func CommentListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/comments", fiber.Map{
-			"Title": "Comments",
-			"Admin": c.Locals("admin"),
+			"Title":          "Comments",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -69,7 +71,7 @@ func CommentDelete(db *gorm.DB) fiber.Handler {
 func CommentReply(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		parentID := c.Params("id")
-		body := commentSanitizer.Sanitize(c.FormValue("body"))
+		body := sanitize.Strict(c.FormValue("body"))
 		if body == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Reply body is required")
 		}

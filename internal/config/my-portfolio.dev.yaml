@@ -80,3 +80,13 @@ table_names:
   tech_stacks: "tech_stacks"
   posts: "posts"
   upcoming_items: "upcoming_items"
+
+owner:
+  name: "Johnny Doe"
+  title: "Full Stack Developer"
+  # bio: "Passionate developer with experience in building web applications. Skilled in Go, React, and cloud technologies. Always eager to learn and take on new challenges."
+  bio: "Gak tau males pengen beli truck"
+  profile_image: "/static/images/profile.jpg"
+  email: "john.doe@example.com"
+  phone: "+1 (555) 123-4567"
+  location: "San Francisco, CA"

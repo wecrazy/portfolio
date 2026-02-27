@@ -15,6 +15,14 @@
                     <label class="form-label">Icon Class</label>
                     <input type="text" name="icon_class" class="form-control" value="{{.Skill.IconClass}}" placeholder="e.g. bi bi-code-slash">
                 </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Icon URL <small class="text-muted">(image)</small></label>
+                    <input type="text" name="icon_url" class="form-control" value="{{.Skill.IconURL}}" placeholder="https://cdn.../icon.svg">
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Icon URL Dark <small class="text-muted">(dark theme)</small></label>
+                    <input type="text" name="icon_url_dark" class="form-control" value="{{.Skill.IconURLDark}}" placeholder="https://cdn.../icon-dark.svg">
+                </div>
                 <div class="col-md-6 mb-2">
                     <label class="form-label">Proficiency: <span id="prof-val">{{.Skill.Proficiency}}</span>%</label>
                     <input type="range" name="proficiency" class="form-range" min="0" max="100" value="{{.Skill.Proficiency}}" oninput="document.getElementById('prof-val').textContent=this.value">

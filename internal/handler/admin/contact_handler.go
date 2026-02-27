@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -10,9 +12,12 @@ import (
 // ContactListPage renders the contact messages admin page.
 func ContactListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/contacts", fiber.Map{
-			"Title": "Contact Messages",
-			"Admin": c.Locals("admin"),
+			"Title":          "Contact Messages",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -20,9 +25,17 @@ func ContactListPage() fiber.Handler {
 // ContactListPartial returns the contact message rows as an HTMX partial.
 func ContactListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "created_at", []string{"created_at", "name", "email", "subject"})
+		if c.Query("sort_dir") == "" {
+			params.SortDir = "DESC"
+		}
 		var items []model.ContactMessage
-		db.Order("created_at DESC").Find(&items)
-		return c.Render("partials/contact_rows", fiber.Map{"Contacts": items})
+		query, pageResult := pagination.Paginate(db, &model.ContactMessage{}, params, []string{"name", "email", "subject", "message"})
+		query.Find(&items)
+		return c.Render("partials/contact_rows", fiber.Map{
+			"Contacts":   items,
+			"Pagination": pageResult,
+		})
 	}
 }
 

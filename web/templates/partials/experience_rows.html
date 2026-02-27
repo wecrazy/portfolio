@@ -7,8 +7,39 @@
     <td>{{if .IsCurrent}}<span class="badge bg-success">Current</span>{{end}}</td>
     <td>{{.SortOrder}}</td>
     <td>
+        {{if or .ImageURL .Image}}
+        <i class="bi bi-image text-success" title="Has image"></i>
+        {{else}}
+        <span class="text-muted">—</span>
+        {{end}}
+    </td>
+    <td>
         <button class="btn btn-sm btn-outline-primary" hx-get="/admin/experience/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
         <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/experience/{{.ID}}" hx-target="#experience-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this experience?"><i class="bi bi-trash"></i></button>
     </td>
 </tr>
+{{end}}
+{{if .Pagination}}
+{{if eq .Pagination.TotalItems 0}}
+<tr><td colspan="8" class="text-center text-muted py-4" data-i18n="admin.table.no_results">No results found.</td></tr>
+{{end}}
+{{if gt .Pagination.TotalPages 1}}
+<tr>
+    <td colspan="8">
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <span class="text-muted small">
+                <span data-i18n="admin.table.showing">Showing</span> {{.Pagination.Page}} <span data-i18n="admin.table.of">of</span> {{.Pagination.TotalPages}} ({{.Pagination.TotalItems}} <span data-i18n="admin.table.entries">entries</span>)
+            </span>
+            <div class="btn-group btn-group-sm">
+                {{if .Pagination.HasPrev}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('experience', {{sub .Pagination.Page 1}})" data-i18n="admin.table.previous">Previous</button>
+                {{end}}
+                {{if .Pagination.HasNext}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('experience', {{add .Pagination.Page 1}})" data-i18n="admin.table.next">Next</button>
+                {{end}}
+            </div>
+        </div>
+    </td>
+</tr>
+{{end}}
 {{end}}

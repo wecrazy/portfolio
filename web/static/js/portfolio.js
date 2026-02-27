@@ -42,7 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
             applyTranslations(i18nCache[lang]);
             return;
         }
-        fetch('/static/lang/' + lang + '.json')
+        var ver = document.documentElement.getAttribute('data-app-version') || '';
+        var langUrl = '/static/lang/' + lang + '.json' + (ver ? '?v=' + ver : '');
+        fetch(langUrl)
             .then(function (r) { return r.json(); })
             .then(function (dict) {
                 i18nCache[lang] = dict;
@@ -69,6 +71,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (i18nCache[currentLang]) {
             applyTranslations(i18nCache[currentLang]);
         }
+        initSeeMoreButtons();
+        swapThemeIcons(document.documentElement.getAttribute('data-bs-theme') || 'dark');
     });
 
     // ---------- Scroll Progress Bar ----------
@@ -177,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.documentElement.setAttribute('data-bs-theme', next);
             localStorage.setItem('portfolio-theme', next);
             updateThemeIcon(next);
+            swapThemeIcons(next);
         });
     }
 
@@ -191,6 +196,65 @@ document.addEventListener('DOMContentLoaded', function () {
             icon.className = 'bi bi-sun-fill';
         }
     }
+
+    // ---------- Theme-aware Icon Swapping ----------
+    function swapThemeIcons(theme) {
+        document.querySelectorAll('.theme-icon').forEach(function (img) {
+            var lightSrc = img.getAttribute('data-src-light');
+            var darkSrc = img.getAttribute('data-src-dark');
+            if (theme === 'light' && lightSrc) {
+                img.src = lightSrc;
+            } else if (theme === 'dark' && darkSrc) {
+                img.src = darkSrc;
+            }
+        });
+    }
+
+    // Apply on initial load.
+    var initialTheme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+    swapThemeIcons(initialTheme);
+
+    // ---------- See More / See Less Toggle ----------
+    function initSeeMoreButtons() {
+        document.querySelectorAll('.truncate-wrapper').forEach(function (wrapper) {
+            var textEl = wrapper.querySelector('.text-truncate-clamp');
+            var btn = wrapper.querySelector('.see-more-btn');
+            if (!textEl || !btn) return;
+            // Skip if already initialized.
+            if (btn.hasAttribute('data-initialized')) return;
+            btn.setAttribute('data-initialized', 'true');
+
+            // Check if text actually overflows.
+            if (textEl.scrollHeight > textEl.clientHeight + 1) {
+                btn.style.display = 'inline';
+            } else {
+                btn.style.display = 'none';
+                return;
+            }
+
+            btn.addEventListener('click', function () {
+                var isExpanded = textEl.classList.contains('expanded');
+                textEl.classList.toggle('expanded');
+                if (isExpanded) {
+                    btn.setAttribute('data-i18n', 'common.see_more');
+                    btn.textContent = 'See more';
+                } else {
+                    btn.setAttribute('data-i18n', 'common.see_less');
+                    btn.textContent = 'See less';
+                }
+                // Re-apply i18n for the button text.
+                if (i18nCache[currentLang]) {
+                    var key = btn.getAttribute('data-i18n');
+                    if (i18nCache[currentLang][key]) {
+                        btn.textContent = i18nCache[currentLang][key];
+                    }
+                }
+            });
+        });
+    }
+
+    // Delay init slightly to allow AOS animations to settle.
+    setTimeout(initSeeMoreButtons, 500);
 
     // ---------- Smooth Scroll for Anchor Links ----------
     document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {

@@ -86,6 +86,12 @@ func main() {
 	engine.AddFunc("isZeroTime", func(t time.Time) bool {
 		return t.IsZero()
 	})
+	engine.AddFunc("derefUint", func(p *uint) uint {
+		if p == nil {
+			return 0
+		}
+		return *p
+	})
 	engine.AddFunc("seq", func(n int) []int {
 		s := make([]int, n)
 		for i := range s {
@@ -95,6 +101,7 @@ func main() {
 	})
 	engine.AddFunc("add", func(a, b int) int { return a + b })
 	engine.AddFunc("sub", func(a, b int) int { return a - b })
+	engine.AddFunc("appVersion", func() string { return cfg.App.Version })
 	engine.AddFunc("humanSize", func(size int64) string {
 		if size < 1024 {
 			return fmt.Sprintf("%d B", size)

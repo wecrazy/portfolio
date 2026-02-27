@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -10,9 +12,12 @@ import (
 // SkillListPage renders the skills admin page.
 func SkillListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/skills", fiber.Map{
-			"Title": "Skills",
-			"Admin": c.Locals("admin"),
+			"Title":          "Skills",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -20,9 +25,14 @@ func SkillListPage() fiber.Handler {
 // SkillListPartial returns the skills table rows as an HTMX partial.
 func SkillListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "category", []string{"category", "sort_order", "name", "proficiency"})
 		var items []model.Skill
-		db.Order("category ASC, sort_order ASC").Find(&items)
-		return c.Render("partials/skill_rows", fiber.Map{"Skills": items})
+		query, pageResult := pagination.Paginate(db, &model.Skill{}, params, []string{"name", "category"})
+		query.Find(&items)
+		return c.Render("partials/skill_rows", fiber.Map{
+			"Skills":     items,
+			"Pagination": pageResult,
+		})
 	}
 }
 

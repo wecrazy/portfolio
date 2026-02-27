@@ -72,6 +72,7 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB) {
 	adm.Post("/experience", admin.ExperienceCreate(db))
 	adm.Put("/experience/:id", admin.ExperienceUpdate(db))
 	adm.Delete("/experience/:id", admin.ExperienceDelete(db))
+	adm.Post("/experience/upload-image", admin.ExperienceUploadImage(db))
 
 	// Skills CRUD
 	adm.Get("/skills", admin.SkillListPage())

@@ -80,15 +80,44 @@
 }
 
 .admin-sidebar .sidebar-footer {
-    padding: 16px 24px;
+    padding: 16px 12px;
     border-top: 1px solid var(--sidebar-border);
+}
+
+.admin-sidebar .sidebar-footer .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    color: #8888a8;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.admin-sidebar .sidebar-footer .nav-link:hover {
+    background: rgba(108, 99, 255, 0.1);
+    color: #e8e8f0;
+}
+
+/* ---------- Topbar ---------- */
+.admin-topbar {
+    background: rgba(15, 15, 42, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--sidebar-border);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    min-height: 56px;
 }
 
 /* ---------- Main Content ---------- */
 .admin-main {
     margin-left: var(--sidebar-width);
     min-height: 100vh;
-    padding: 24px 32px;
 }
 
 .admin-main .page-header {
@@ -328,4 +357,104 @@
     .stat-card .stat-value {
         font-size: 1.4rem;
     }
+}
+
+/* ===================================================
+   ADMIN LIGHT THEME OVERRIDES
+   =================================================== */
+[data-bs-theme="light"] {
+    --sidebar-bg: #f8f8fc;
+    --sidebar-border: rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="light"] .admin-sidebar .sidebar-brand {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="light"] .admin-sidebar .sidebar-nav .nav-link {
+    color: #666680;
+}
+
+[data-bs-theme="light"] .admin-sidebar .sidebar-nav .nav-link:hover {
+    background: rgba(108, 99, 255, 0.08);
+    color: #1a1a2e;
+}
+
+[data-bs-theme="light"] .admin-sidebar .sidebar-nav .nav-link.active {
+    background: rgba(108, 99, 255, 0.12);
+    color: var(--admin-primary);
+}
+
+[data-bs-theme="light"] .admin-sidebar .sidebar-footer .nav-link {
+    color: #666680;
+}
+
+[data-bs-theme="light"] .admin-sidebar .sidebar-footer .nav-link:hover {
+    background: rgba(108, 99, 255, 0.08);
+    color: #1a1a2e;
+}
+
+[data-bs-theme="light"] .admin-topbar {
+    background: rgba(248, 248, 252, 0.85);
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="light"] .stat-card {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-bs-theme="light"] .admin-table {
+    background: rgba(0, 0, 0, 0.01);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-bs-theme="light"] .admin-table .table thead th {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+    color: #666680;
+}
+
+[data-bs-theme="light"] .admin-table .table td {
+    border-color: rgba(0, 0, 0, 0.04);
+}
+
+[data-bs-theme="light"] .admin-table .table tbody tr:hover {
+    background: rgba(108, 99, 255, 0.04);
+}
+
+[data-bs-theme="light"] .admin-form .form-control,
+[data-bs-theme="light"] .admin-form .form-select {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1a1a2e;
+}
+
+[data-bs-theme="light"] .admin-form .form-control:focus,
+[data-bs-theme="light"] .admin-form .form-select:focus {
+    background: rgba(255, 255, 255, 0.8);
+    color: #1a1a2e;
+}
+
+[data-bs-theme="light"] .admin-form .form-label {
+    color: #666680;
+}
+
+[data-bs-theme="light"] .toast {
+    background: rgba(248, 248, 252, 0.97);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #1a1a2e;
+}
+
+[data-bs-theme="light"] .toast .btn-close {
+    filter: none;
+}
+
+[data-bs-theme="light"] .stat-card .stat-label {
+    color: #666680;
+}
+
+[data-bs-theme="light"] .sidebar-toggle {
+    background: var(--sidebar-bg);
+    border-color: var(--sidebar-border);
+    color: #1a1a2e;
 }

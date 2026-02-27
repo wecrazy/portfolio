@@ -2,13 +2,11 @@ package handler
 
 import (
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/sanitize"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/microcosm-cc/bluemonday"
 	"gorm.io/gorm"
 )
-
-var sanitizer = bluemonday.StrictPolicy()
 
 // GetComments returns the comments list as an HTML partial.
 func GetComments(db *gorm.DB) fiber.Handler {
@@ -36,7 +34,7 @@ func PostComment(db *gorm.DB) fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not authenticated"})
 		}
 
-		body := sanitizer.Sanitize(c.FormValue("body"))
+		body := sanitize.Strict(c.FormValue("body"))
 		if body == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Comment body is required")
 		}

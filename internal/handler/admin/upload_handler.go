@@ -3,8 +3,10 @@ package admin
 import (
 	"os"
 
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -13,9 +15,12 @@ import (
 // UploadListPage renders the uploads admin page.
 func UploadListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/uploads", fiber.Map{
-			"Title": "Uploads",
-			"Admin": c.Locals("admin"),
+			"Title":          "Uploads",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -23,9 +28,17 @@ func UploadListPage() fiber.Handler {
 // UploadListPartial returns the upload cards as an HTMX partial.
 func UploadListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "created_at", []string{"created_at", "original_name", "category", "mime_type"})
+		if c.Query("sort_dir") == "" {
+			params.SortDir = "DESC"
+		}
 		var items []model.UploadedFile
-		db.Order("created_at DESC").Find(&items)
-		return c.Render("partials/upload_rows", fiber.Map{"Uploads": items})
+		query, pageResult := pagination.Paginate(db, &model.UploadedFile{}, params, []string{"original_name", "category", "mime_type"})
+		query.Find(&items)
+		return c.Render("partials/upload_rows", fiber.Map{
+			"Uploads":    items,
+			"Pagination": pageResult,
+		})
 	}
 }
 

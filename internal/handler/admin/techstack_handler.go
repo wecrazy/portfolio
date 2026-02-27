@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -10,9 +12,12 @@ import (
 // TechStackListPage renders the tech stack admin page.
 func TechStackListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/tech_stacks", fiber.Map{
-			"Title": "Tech Stack",
-			"Admin": c.Locals("admin"),
+			"Title":          "Tech Stack",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -20,9 +25,14 @@ func TechStackListPage() fiber.Handler {
 // TechStackListPartial returns the tech stack table rows as an HTMX partial.
 func TechStackListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "category", []string{"category", "sort_order", "name"})
 		var items []model.TechStack
-		db.Order("category ASC, sort_order ASC").Find(&items)
-		return c.Render("partials/techstack_rows", fiber.Map{"TechStacks": items})
+		query, pageResult := pagination.Paginate(db, &model.TechStack{}, params, []string{"name", "category", "description"})
+		query.Find(&items)
+		return c.Render("partials/techstack_rows", fiber.Map{
+			"TechStacks": items,
+			"Pagination": pageResult,
+		})
 	}
 }
 

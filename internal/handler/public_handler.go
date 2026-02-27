@@ -24,7 +24,7 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 		db.Where("status = ?", "published").Order("sort_order ASC, created_at DESC").Limit(pageSize).Find(&projects)
 
 		var experiences []model.Experience
-		db.Order("sort_order ASC, start_date DESC").Find(&experiences)
+		db.Preload("Image").Order("sort_order ASC, start_date DESC").Find(&experiences)
 
 		var skills []model.Skill
 		db.Order("category ASC, sort_order ASC").Find(&skills)
