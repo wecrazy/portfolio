@@ -1,5 +1,5 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">Owner Profile</h2>
+    <h2 class="fw-bold" data-i18n="admin.owner.title">Owner Profile</h2>
 </div>
 
 <div class="row g-4">
@@ -12,13 +12,13 @@
                     <img src="/uploads/images/{{.Owner.ProfileImage.StoredName}}" class="img-fluid rounded" alt="Profile" style="max-height: 200px;">
                     {{else}}
                     <div class="bg-secondary bg-opacity-25 rounded d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class="bi bi-person-bounding-box fs-1 text-muted"></i>
+                        <i class="bx bx-user fs-1 text-muted"></i>
                     </div>
                     {{end}}
                 </div>
                 <form hx-post="/admin/owner/upload-image" hx-target="#image-preview" hx-encoding="multipart/form-data">
                     <input type="file" name="image" class="form-control form-control-sm mb-2" accept="image/*" required>
-                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-upload"></i> Upload Image</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bx bx-upload"></i> <span data-i18n="admin.action.upload">Upload</span></button>
                 </form>
             </div>
         </div>
@@ -28,7 +28,7 @@
                 <div id="resume-preview" class="mb-3">
                     {{if .Owner.ResumeFile}}
                     <a href="/resume" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-file-earmark-pdf"></i> {{.Owner.ResumeFile.OriginalName}}
+                        <i class="bx bx-file"></i> {{.Owner.ResumeFile.OriginalName}}
                     </a>
                     {{else}}
                     <span class="text-muted small">No resume uploaded</span>
@@ -36,7 +36,7 @@
                 </div>
                 <form hx-post="/admin/owner/upload-resume" hx-target="#resume-preview" hx-encoding="multipart/form-data">
                     <input type="file" name="resume" class="form-control form-control-sm mb-2" accept=".pdf" required>
-                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-upload"></i> Upload Resume</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bx bx-upload"></i> <span data-i18n="admin.action.upload">Upload</span></button>
                 </form>
             </div>
         </div>
@@ -71,7 +71,7 @@
                         <label class="form-label">Location</label>
                         <input type="text" name="location" class="form-control" value="{{.Owner.Location}}" placeholder="e.g. Jakarta, Indonesia">
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Profile</button>
+                    <button type="submit" class="btn btn-primary"><i class="bx bx-check"></i> <span data-i18n="admin.action.save">Save</span></button>
                 </form>
             </div>
         </div>

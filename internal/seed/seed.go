@@ -3,11 +3,17 @@ package seed
 
 import (
 	"log"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/fileutil"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -16,7 +22,7 @@ import (
 // they don't already exist. Safe to call on every startup.
 func SeedIfNeeded(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	seedAdmin(db, cfg)
-	seedOwner(db)
+	seedOwner(db, cfg)
 	seedDemoData(db)
 }
 
@@ -43,20 +49,125 @@ func seedAdmin(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	log.Printf("Seeded default admin user: %s", admin.Username)
 }
 
-func seedOwner(db *gorm.DB) {
+// linkImageRecord creates an UploadedFile DB record for an image already on disk.
+// It is intentionally kept in the seed package because it depends on internal/model.
+func linkImageRecord(db *gorm.DB, storedName, filePath string) *model.UploadedFile {
+	ext := strings.ToLower(filepath.Ext(storedName))
+	mimeType := fileutil.MimeByExt(ext)
+	if mimeType == "application/octet-stream" {
+		mimeType = "image/jpeg"
+	}
+	var size int64
+	if info, err := os.Stat(filePath); err == nil {
+		size = info.Size()
+	}
+	rec := &model.UploadedFile{
+		OriginalName: storedName,
+		StoredName:   storedName,
+		FilePath:     filePath,
+		MimeType:     mimeType,
+		FileSize:     size,
+		Category:     "images",
+	}
+	if err := db.Create(rec).Error; err != nil {
+		log.Printf("Warning: failed to create image DB record: %v", err)
+		return nil
+	}
+	return rec
+}
+
+// relinkUploadImage scans uploadDir for the newest allowed image and creates a
+// DB record for it. Returns nil when no suitable file is found.
+func relinkUploadImage(db *gorm.DB, uploadDir string, allowedExts map[string]bool) *model.UploadedFile {
+	entries, err := os.ReadDir(uploadDir)
+	if err != nil {
+		return nil
+	}
+
+	type candidate struct {
+		name    string
+		modTime time.Time
+	}
+	var candidates []candidate
+	for _, e := range entries {
+		if e.IsDir() || !allowedExts[strings.ToLower(filepath.Ext(e.Name()))] {
+			continue
+		}
+		if info, err := e.Info(); err == nil {
+			candidates = append(candidates, candidate{name: e.Name(), modTime: info.ModTime()})
+		}
+	}
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].modTime.After(candidates[j].modTime)
+	})
+	chosen := candidates[0]
+	rec := linkImageRecord(db, chosen.name, filepath.Join(uploadDir, chosen.name))
+	if rec != nil {
+		log.Printf("Re-linked existing profile image from uploads: %s", chosen.name)
+	}
+	return rec
+}
+
+// copyStaticImage copies the configured static profile image into uploadDir and
+// creates a DB record for it. Returns nil when the source is absent or invalid.
+func copyStaticImage(db *gorm.DB, cfg config.TypeMyPortfolio, uploadDir string, allowedExts map[string]bool) *model.UploadedFile {
+	if cfg.Owner.ProfileImage == "" {
+		return nil
+	}
+	srcPath := filepath.Join(cfg.App.StaticDir, strings.TrimPrefix(cfg.Owner.ProfileImage, "/"))
+	if !fileutil.Exists(srcPath) {
+		return nil
+	}
+	ext := strings.ToLower(filepath.Ext(srcPath))
+	if !allowedExts[ext] {
+		return nil
+	}
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return nil
+	}
+	storedName := uuid.New().String() + ext
+	dstPath := filepath.Join(uploadDir, storedName)
+	if err := fileutil.CopyFile(srcPath, dstPath); err != nil {
+		log.Printf("Warning: could not copy static profile image: %v", err)
+		return nil
+	}
+	rec := linkImageRecord(db, storedName, dstPath)
+	if rec != nil {
+		log.Printf("Copied static profile image to uploads: %s", storedName)
+	}
+	return rec
+}
+
+func seedOwner(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	var count int64
 	db.Model(&model.Owner{}).Count(&count)
 	if count > 0 {
 		return
 	}
 
+	allowedExts := fileutil.AllowedExts(cfg.Upload.AllowedImageTypes)
+	uploadDir := filepath.Join(cfg.App.UploadDir, "images")
+
+	// Priority 1: re-link the newest image already in uploads/images/ (survives db-reset).
+	imgProfile := relinkUploadImage(db, uploadDir, allowedExts)
+
+	// Priority 2: fall back to the static file declared in config, copy it into uploads/images/.
+	if imgProfile == nil {
+		imgProfile = copyStaticImage(db, cfg, uploadDir, allowedExts)
+	}
+
 	owner := model.Owner{
-		FullName: "John Doe",
-		Title:    "Full-Stack Developer",
-		Bio:      "Passionate full-stack developer with 5+ years of experience building modern web applications. I love turning complex problems into simple, beautiful, and intuitive solutions.",
-		Email:    "john@example.com",
-		Phone:    "+62 812 3456 7890",
-		Location: "Jakarta, Indonesia",
+		FullName:     cfg.Owner.Name,
+		Title:        cfg.Owner.Title,
+		Bio:          cfg.Owner.Bio,
+		ProfileImage: imgProfile,
+		Email:        cfg.Owner.Email,
+		Phone:        cfg.Owner.Phone,
+		Location:     cfg.Owner.Location,
 	}
 	if err := db.Create(&owner).Error; err != nil {
 		log.Fatalf("Failed to seed owner profile: %v", err)
@@ -141,9 +252,9 @@ func seedSkills(db *gorm.DB) {
 		{Name: "JavaScript", Category: "Languages", IconClass: "devicon-javascript-plain", Proficiency: 90, SortOrder: 4},
 		{Name: "React", Category: "Frontend", IconClass: "devicon-react-original", Proficiency: 85, SortOrder: 1},
 		{Name: "Vue.js", Category: "Frontend", IconClass: "devicon-vuejs-plain", Proficiency: 75, SortOrder: 2},
-		{Name: "HTMX", Category: "Frontend", IconClass: "bi bi-lightning-charge-fill", Proficiency: 90, SortOrder: 3},
+		{Name: "HTMX", Category: "Frontend", IconClass: "bxf bx-bolt-circle", Proficiency: 90, SortOrder: 3},
 		{Name: "Tailwind CSS", Category: "Frontend", IconClass: "devicon-tailwindcss-original", Proficiency: 85, SortOrder: 4},
-		{Name: "Fiber", Category: "Backend", IconClass: "bi bi-lightning-fill", Proficiency: 95, SortOrder: 1},
+		{Name: "Fiber", Category: "Backend", IconClass: "bxf bx-bolt-circle", Proficiency: 95, SortOrder: 1},
 		{Name: "PostgreSQL", Category: "Backend", IconClass: "devicon-postgresql-plain", Proficiency: 85, SortOrder: 2},
 		{Name: "Redis", Category: "Backend", IconClass: "devicon-redis-plain", Proficiency: 80, SortOrder: 3},
 		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", Proficiency: 85, SortOrder: 1},
@@ -155,10 +266,10 @@ func seedSkills(db *gorm.DB) {
 
 func seedSocialLinks(db *gorm.DB) {
 	links := []model.SocialLink{
-		{Platform: "GitHub", URL: "https://github.com/johndoe", IconClass: "fab fa-github", Label: "GitHub", SortOrder: 1},
-		{Platform: "LinkedIn", URL: "https://linkedin.com/in/johndoe", IconClass: "fab fa-linkedin", Label: "LinkedIn", SortOrder: 2},
-		{Platform: "Instagram", URL: "https://instagram.com/johndoe", IconClass: "fab fa-instagram", Label: "Instagram", SortOrder: 3},
-		{Platform: "Twitter", URL: "https://twitter.com/johndoe", IconClass: "fab fa-x-twitter", Label: "Twitter", SortOrder: 4},
+		{Platform: "GitHub", URL: "https://github.com/johndoe", IconClass: "bxl bx-github", Label: "GitHub", SortOrder: 1},
+		{Platform: "LinkedIn", URL: "https://linkedin.com/in/johndoe", IconClass: "bxl bx-linkedin", Label: "LinkedIn", SortOrder: 2},
+		{Platform: "Instagram", URL: "https://instagram.com/johndoe", IconClass: "bxl bx-instagram", Label: "Instagram", SortOrder: 3},
+		{Platform: "Twitter", URL: "https://twitter.com/johndoe", IconClass: "bxl bx-twitter-x", Label: "Twitter", SortOrder: 4},
 	}
 	db.Create(&links)
 }
@@ -168,7 +279,7 @@ func seedTechStacks(db *gorm.DB) {
 		{Name: "Go", Category: "Language", IconClass: "devicon-go-original-wordmark", Desc: "Primary backend language", SortOrder: 1},
 		{Name: "TypeScript", Category: "Language", IconClass: "devicon-typescript-plain", Desc: "Frontend & full-stack", SortOrder: 2},
 		{Name: "Python", Category: "Language", IconClass: "devicon-python-plain", Desc: "Scripting & automation", SortOrder: 3},
-		{Name: "Fiber", Category: "Framework", IconClass: "bi bi-lightning-fill", Desc: "Express-inspired Go web framework", URL: "https://gofiber.io", SortOrder: 1},
+		{Name: "Fiber", Category: "Framework", IconClass: "bxf bx-bolt-circle", Desc: "Express-inspired Go web framework", URL: "https://gofiber.io", SortOrder: 1},
 		{Name: "React", Category: "Framework", IconClass: "devicon-react-original", Desc: "UI component library", SortOrder: 2},
 		{Name: "Next.js", Category: "Framework", IconClass: "devicon-nextjs-plain", Desc: "React meta-framework", SortOrder: 3},
 		{Name: "PostgreSQL", Category: "Database", IconClass: "devicon-postgresql-plain", Desc: "Primary relational database", SortOrder: 1},
@@ -212,7 +323,7 @@ func seedPosts(db *gorm.DB) error {
 			Title:       "Getting Started with Go and Fiber",
 			Slug:        "getting-started-with-go-and-fiber",
 			Excerpt:     "A beginner-friendly guide to building fast web apps with Go and the Fiber framework — from zero to your first REST API.",
-			Content:     "## Why Go + Fiber?\n\nGo is one of the fastest-growing languages for backend development, and Fiber is an Express.js-inspired framework that makes it incredibly easy to get started.\n\n## Setting Up\n\nFirst, initialize your Go module:\n\n```bash\ngo mod init myapp\ngo get github.com/gofiber/fiber/v2\n```\n\n## Your First Route\n\n```go\napp := fiber.New()\napp.Get(\"/\", func(c *fiber.Ctx) error {\n    return c.SendString(\"Hello, World!\")\n})\napp.Listen(\":3000\")\n```\n\n## What's Next?\n\nFrom here you can add middleware, connect a database with GORM, and build a full REST API. Go's performance and simplicity make it a great choice for modern backends.",
+			Content:     "## Why Go + Fiber?\n\nGo is one of the fastest-growing languages for backend development, and Fiber is an Express.js-inspired framework that makes it incredibly easy to get started.\n\n## Setting Up\n\nFirst, initialize your Go module:\n\n```bash\ngo mod init myapp\ngo get github.com/gofiber/fiber/v2\n```\n\n## Your First Route\n\n```go\napp := fiber.New()\napp.Get(\"/\", func(c fiber.Ctx) error {\n    return c.SendString(\"Hello, World!\")\n})\napp.Listen(\":3000\")\n```\n\n## What's Next?\n\nFrom here you can add middleware, connect a database with GORM, and build a full REST API. Go's performance and simplicity make it a great choice for modern backends.",
 			Tags:        "Go,Fiber,Tutorial,Backend",
 			Status:      "published",
 			SortOrder:   1,
@@ -249,7 +360,7 @@ func seedUpcomingItems(db *gorm.DB) {
 			Description: "A developer productivity CLI written in Go — automates repetitive project scaffolding tasks and integrates with popular APIs.",
 			Type:        "project",
 			Status:      "in-progress",
-			IconClass:   "bi bi-terminal-fill",
+			IconClass:   "bxf bx-terminal",
 			SortOrder:   1,
 			IsVisible:   true,
 		},
@@ -258,7 +369,7 @@ func seedUpcomingItems(db *gorm.DB) {
 			Description: "A cross-platform mobile app built with Flutter to complement the portfolio. Includes push notifications and offline support.",
 			Type:        "project",
 			Status:      "planned",
-			IconClass:   "bi bi-phone-fill",
+			IconClass:   "bxf bx-phone",
 			SortOrder:   2,
 			IsVisible:   true,
 		},
@@ -267,7 +378,7 @@ func seedUpcomingItems(db *gorm.DB) {
 			Description: "Re-building the backend API layer with GraphQL on top of Go — type-safe, self-documenting, and ready for federation.",
 			Type:        "project",
 			Status:      "coming-soon",
-			IconClass:   "bi bi-braces",
+			IconClass:   "bx bx-code-curly",
 			SortOrder:   3,
 			IsVisible:   true,
 		},
@@ -276,7 +387,7 @@ func seedUpcomingItems(db *gorm.DB) {
 			Description: "This blog is going live with a dedicated series on Go, HTMX, and building side projects in public. Subscribe to get notified.",
 			Type:        "announcement",
 			Status:      "coming-soon",
-			IconClass:   "bi bi-megaphone-fill",
+			IconClass:   "bxf bx-megaphone",
 			SortOrder:   4,
 			IsVisible:   true,
 		},

@@ -4,10 +4,10 @@
         {{if eq .Project.Status "published"}}<span class="badge bg-success">Published</span>
         {{else}}<span class="badge bg-secondary">Draft</span>{{end}}
     </td>
-    <td>{{if .Project.Featured}}<i class="bi bi-star-fill text-warning"></i>{{end}}</td>
+    <td>{{if .Project.Featured}}<i class="bxf bx-star text-warning"></i>{{end}}</td>
     <td>{{.Project.SortOrder}}</td>
     <td>
-        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/projects/{{.Project.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/projects/{{.Project.ID}}" hx-target="#project-{{.Project.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this project?"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/projects/{{.Project.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/projects/{{.Project.ID}}" hx-target="#project-{{.Project.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this project?"><i class="bx bx-trash"></i></button>
     </td>
 </tr>

@@ -6,13 +6,13 @@ import (
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // PortfolioPage renders the public portfolio with all published content.
 func PortfolioPage(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
 
@@ -24,7 +24,7 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 		db.Where("status = ?", "published").Order("sort_order ASC, created_at DESC").Limit(pageSize).Find(&projects)
 
 		var experiences []model.Experience
-		db.Order("sort_order ASC, start_date DESC").Find(&experiences)
+		db.Preload("Image").Order("sort_order ASC, start_date DESC").Find(&experiences)
 
 		var skills []model.Skill
 		db.Order("category ASC, sort_order ASC").Find(&skills)
@@ -57,8 +57,25 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 			visitorLoggedIn = true
 		}
 
+		cfg := config.MyPortfolio.Get()
+		// Build OG image and description for social sharing.
+		ogImage := cfg.App.BaseURL + "/static/img/favicon.svg"
+		if owner.ProfileImage != nil {
+			ogImage = cfg.App.BaseURL + "/uploads/images/" + owner.ProfileImage.StoredName
+		}
+		ogDesc := owner.Bio
+		if len(ogDesc) > 160 {
+			ogDesc = ogDesc[:157] + "..."
+		}
+		if ogDesc == "" {
+			ogDesc = owner.Title
+		}
+
 		return c.Render("public/portfolio", fiber.Map{
 			"Title":            owner.FullName,
+			"BaseURL":          cfg.App.BaseURL,
+			"OGImage":          ogImage,
+			"OGDescription":    ogDesc,
 			"Owner":            owner,
 			"Projects":         projects,
 			"HasMoreProjects":  totalProjects > pageSize,
@@ -70,15 +87,15 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 			"SocialLinks":      socialLinks,
 			"UpcomingItems":    upcomingItems,
 			"VisitorLoggedIn":  visitorLoggedIn,
-			"SupportedLangs":   config.MyPortfolio.Get().I18n.SupportedLangs,
-			"DefaultLang":      config.MyPortfolio.Get().I18n.DefaultLang,
+			"SupportedLangs":   cfg.I18n.SupportedLangs,
+			"DefaultLang":      cfg.I18n.DefaultLang,
 		}, "layouts/public_base")
 	}
 }
 
 // ProjectsPage returns the next batch of projects as an HTMX partial.
 func ProjectsPage(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		const pageSize = 6
 		page, _ := strconv.Atoi(c.Query("page", "1"))
 		if page < 1 {

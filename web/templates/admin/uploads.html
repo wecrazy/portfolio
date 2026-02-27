@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">Uploads</h2>
+    <h2 class="fw-bold" data-i18n="admin.uploads.title">Uploads</h2>
 </div>
 
 <div class="card border-0 mb-4">
     <div class="card-body">
-        <form hx-post="/admin/uploads" hx-target="#uploads-grid" hx-swap="afterbegin" hx-encoding="multipart/form-data" class="row g-3 align-items-end">
+        <form hx-post="/admin/uploads" hx-target="#uploads-list" hx-swap="afterbegin" hx-encoding="multipart/form-data" class="row g-3 align-items-end">
             <div class="col-md-5">
                 <label class="form-label">File</label>
                 <input type="file" name="file" class="form-control" required>
@@ -17,11 +17,26 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-upload"></i> Upload</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="bx bx-upload"></i> <span data-i18n="admin.action.upload">Upload</span></button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="row g-3" id="uploads-grid" hx-get="/admin/uploads/list" hx-trigger="load" hx-swap="innerHTML">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <select id="uploads-per-page" class="form-select form-select-sm" style="width: auto;" onchange="reloadList('uploads')">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+        </select>
+        <span class="text-muted small" data-i18n="admin.table.per_page">per page</span>
+    </div>
+    <div>
+        <input type="text" id="uploads-search" class="form-control form-control-sm" data-i18n-placeholder="admin.table.search" placeholder="Search..." oninput="debounceReloadList('uploads')">
+    </div>
+</div>
+
+<div class="row g-3" id="uploads-list" data-list-url="/admin/uploads/list" hx-get="/admin/uploads/list" hx-trigger="load" hx-swap="innerHTML">
 </div>
