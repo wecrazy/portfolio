@@ -28,6 +28,7 @@ func GetComments(db *gorm.DB) fiber.Handler {
 }
 
 // PostComment creates a new comment (requires OAuth session via middleware).
+// Comments are created with IsApproved=false and must be approved by an admin.
 // On success it broadcasts a "comment" SSE event so live clients update.
 func PostComment(db *gorm.DB, h *hub.Hub) fiber.Handler {
 	return func(c fiber.Ctx) error {
@@ -40,11 +41,17 @@ func PostComment(db *gorm.DB, h *hub.Hub) fiber.Handler {
 		if body == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Comment body is required")
 		}
+		// Cap comment length to prevent storage abuse.
+		const maxCommentLen = 2000
+		if len(body) > maxCommentLen {
+			return c.Status(fiber.StatusBadRequest).SendString("Comment is too long (max 2000 characters)")
+		}
 
 		comment := model.Comment{
 			OAuthUserID: userID,
 			Body:        body,
-			IsApproved:  true,
+			// Require admin approval before comments appear publicly.
+			IsApproved: false,
 		}
 		if err := db.Create(&comment).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to post comment")
@@ -53,7 +60,7 @@ func PostComment(db *gorm.DB, h *hub.Hub) fiber.Handler {
 		// Reload with association for rendering.
 		db.Preload("OAuthUser").First(&comment, comment.ID)
 
-		// Notify all SSE clients that a new comment is available.
+		// Notify all SSE clients that a new comment is pending moderation.
 		h.Broadcast(hub.Event{
 			Type: hub.EventComment,
 			Data: map[string]any{

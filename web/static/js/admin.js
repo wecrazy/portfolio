@@ -15,6 +15,34 @@ document.addEventListener('DOMContentLoaded', function () {
         window.showToast(message, type);
     });
 
+    // ---------- HTMX Network / Server Error Toasts ----------
+    // Fired when the request never gets a response (server down, network loss, restart).
+    document.body.addEventListener('htmx:sendError', function (e) {
+        var dict = adminI18nCache[adminCurrentLang] || {};
+        var msg = dict['admin.toast.connection_lost'] || 'Connection lost — the server may be restarting. Please try again.';
+        window.showToast(msg, 'error');
+    });
+
+    // Fired when the server returns a non-2xx status (500, 503, 429, etc.).
+    document.body.addEventListener('htmx:responseError', function (e) {
+        var status = (e.detail && e.detail.xhr) ? e.detail.xhr.status : 0;
+        var dict = adminI18nCache[adminCurrentLang] || {};
+        var msg;
+        if (status === 503) {
+            msg = dict['admin.toast.server_overloaded'] || 'Server is temporarily overloaded. Please try again shortly.';
+        } else if (status === 429) {
+            msg = dict['admin.toast.rate_limited'] || 'Too many requests — please slow down.';
+        } else if (status >= 500) {
+            msg = dict['admin.toast.server_error'] || 'Server error (' + status + '). Please try again.';
+        } else if (status === 401 || status === 403) {
+            msg = dict['admin.toast.unauthorized'] || 'Session expired. Please log in again.';
+            setTimeout(function () { window.location.href = '/admin/login'; }, 2000);
+        } else {
+            msg = dict['admin.toast.request_failed'] || 'Request failed (' + status + '). Please try again.';
+        }
+        window.showToast(msg, 'error');
+    });
+
     // ---------- Admin i18n Engine ----------
     var adminI18nCache = {};
     var adminDefaultLang = document.documentElement.getAttribute('data-default-lang') || 'en';
