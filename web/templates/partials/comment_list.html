@@ -6,7 +6,7 @@
         <img src="{{.OAuthUser.AvatarURL}}" class="rounded-circle" width="40" height="40" alt="">
         {{else}}
         <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
-            <i class="bi bi-person text-white"></i>
+            <i class="bx bx-user text-white"></i>
         </div>
         {{end}}
         <div class="flex-grow-1">
@@ -25,7 +25,7 @@
                     <img src="{{.OAuthUser.AvatarURL}}" class="rounded-circle" width="24" height="24" alt="">
                     {{else}}
                     <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" style="width:24px;height:24px;">
-                        <i class="bi bi-person-fill text-white small"></i>
+                        <i class="bxf bx-user text-white small"></i>
                     </div>
                     {{end}}
                     <strong class="small">{{.OAuthUser.DisplayName}}</strong>
@@ -42,7 +42,7 @@
 {{end}}
 {{else}}
 <div class="text-center text-muted py-4">
-    <i class="bi bi-chat-dots fs-3 d-block mb-2"></i>
+    <i class="bx bx-message-dots fs-3 d-block mb-2"></i>
     <p class="mb-0" data-i18n="comments.empty">No comments yet. Be the first to comment!</p>
 </div>
 {{end}}

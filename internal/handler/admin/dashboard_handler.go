@@ -4,13 +4,13 @@ import (
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // Dashboard renders the admin dashboard overview page.
 func Dashboard(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var projectCount, commentCount, contactCount, unreadCount int64
 		db.Model(&model.Project{}).Count(&projectCount)
 		db.Model(&model.Comment{}).Where("parent_id IS NULL").Count(&commentCount)

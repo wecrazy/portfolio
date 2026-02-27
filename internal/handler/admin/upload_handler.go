@@ -8,13 +8,13 @@ import (
 	"my-portfolio/internal/service"
 	"my-portfolio/pkg/pagination"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // UploadListPage renders the uploads admin page.
 func UploadListPage() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/uploads", fiber.Map{
 			"Title":          "Uploads",
@@ -27,7 +27,7 @@ func UploadListPage() fiber.Handler {
 
 // UploadListPartial returns the upload cards as an HTMX partial.
 func UploadListPartial(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		params := pagination.ParseParams(c, "created_at", []string{"created_at", "original_name", "category", "mime_type"})
 		if c.Query("sort_dir") == "" {
 			params.SortDir = "DESC"
@@ -44,7 +44,7 @@ func UploadListPartial(db *gorm.DB) fiber.Handler {
 
 // UploadCreate handles uploading a new file.
 func UploadCreate(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		file, err := c.FormFile("file")
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("No file uploaded")
@@ -58,14 +58,14 @@ func UploadCreate(db *gorm.DB) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to save file")
 		}
 		db.Create(uploaded)
-		c.Set("HX-Trigger", `{"showToast":"File uploaded"}`)
+		setToast(c, "upload_success", "success")
 		return c.Render("partials/upload_card", fiber.Map{"Upload": *uploaded})
 	}
 }
 
 // UploadDelete handles deleting an uploaded file.
 func UploadDelete(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var item model.UploadedFile
 		if err := db.First(&item, c.Params("id")).Error; err != nil {
 			return c.Status(fiber.StatusNotFound).SendString("Not found")
@@ -73,7 +73,7 @@ func UploadDelete(db *gorm.DB) fiber.Handler {
 		// Remove from disk.
 		os.Remove(item.FilePath)
 		db.Delete(&item)
-		c.Set("HX-Trigger", `{"showToast":"File deleted"}`)
+		setToast(c, "file_deleted", "success")
 		return c.SendString("")
 	}
 }

@@ -3,13 +3,13 @@ package handler
 import (
 	"my-portfolio/internal/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // ServeResumePDF renders a page with an embedded PDF viewer.
 func ServeResumePDF(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ResumeFile").First(&owner)
 		if owner.ResumeFile == nil {
@@ -24,7 +24,7 @@ func ServeResumePDF(db *gorm.DB) fiber.Handler {
 
 // DownloadResumePDF forces a file download for the resume.
 func DownloadResumePDF(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ResumeFile").First(&owner)
 		if owner.ResumeFile == nil {

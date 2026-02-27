@@ -5,13 +5,13 @@ import (
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // OwnerEditPage renders the owner profile edit form.
 func OwnerEditPage(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
 		cfg := config.MyPortfolio.Get()
@@ -27,7 +27,7 @@ func OwnerEditPage(db *gorm.DB) fiber.Handler {
 
 // OwnerUpdate saves owner profile changes.
 func OwnerUpdate(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.First(&owner)
 
@@ -40,7 +40,7 @@ func OwnerUpdate(db *gorm.DB) fiber.Handler {
 
 		db.Save(&owner)
 
-		c.Set("HX-Trigger", `{"showToast":"Profile updated successfully"}`)
+		setToast(c, "owner_updated", "success")
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
 		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/owner", fiber.Map{
@@ -55,7 +55,7 @@ func OwnerUpdate(db *gorm.DB) fiber.Handler {
 
 // OwnerUploadImage handles profile image upload.
 func OwnerUploadImage(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		file, err := c.FormFile("image")
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("No file uploaded")
@@ -75,14 +75,14 @@ func OwnerUploadImage(db *gorm.DB) fiber.Handler {
 		db.First(&owner)
 		db.Model(&owner).Update("profile_image_id", uploaded.ID)
 
-		c.Set("HX-Trigger", `{"showToast":"Profile image updated"}`)
+		setToast(c, "owner_image_updated", "success")
 		return c.SendString(`<img src="/uploads/images/` + uploaded.StoredName + `" class="img-fluid rounded" alt="Profile">`)
 	}
 }
 
 // OwnerUploadResume handles resume PDF upload.
 func OwnerUploadResume(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		file, err := c.FormFile("resume")
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("No file uploaded")
@@ -102,7 +102,7 @@ func OwnerUploadResume(db *gorm.DB) fiber.Handler {
 		db.First(&owner)
 		db.Model(&owner).Update("resume_file_id", uploaded.ID)
 
-		c.Set("HX-Trigger", `{"showToast":"Resume uploaded successfully"}`)
+		setToast(c, "resume_uploaded", "success")
 		return c.SendString(`<a href="/resume" target="_blank" class="btn btn-sm btn-outline-primary">` + uploaded.OriginalName + `</a>`)
 	}
 }

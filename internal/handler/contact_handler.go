@@ -3,16 +3,17 @@ package handler
 import (
 	"log"
 
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // SubmitContact processes the public contact form: saves message and sends email.
 func SubmitContact(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		name := c.FormValue("name")
 		email := c.FormValue("email")
 		subject := c.FormValue("subject")
@@ -38,8 +39,12 @@ func SubmitContact(db *gorm.DB) fiber.Handler {
 
 		// Return success partial or redirect.
 		if c.Get("HX-Request") == "true" {
-			return c.SendString(`<div class="alert alert-success">Thank you! Your message has been sent.</div>`)
+			msg, _ := appI18n.T.Localize(c, "contact_sent")
+			if msg == "" {
+				msg = "Your message has been sent successfully."
+			}
+			return c.SendString(`<div class="alert alert-success">` + msg + `</div>`)
 		}
-		return c.Redirect("/#contact")
+		return c.Redirect().To("/#contact")
 	}
 }

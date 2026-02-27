@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold" data-i18n="admin.social.title">Social Links</h2>
     <button class="btn btn-primary" hx-get="/admin/social-links/new" hx-target="#form-container" hx-swap="innerHTML">
-        <i class="bi bi-plus-lg"></i> <span data-i18n="admin.social.new">New Social Link</span>
+        <i class="bx bx-plus"></i> <span data-i18n="admin.social.new">New Social Link</span>
     </button>
 </div>
 
@@ -27,10 +27,10 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th onclick="sortList('social','platform')" style="cursor:pointer"><span data-i18n="admin.col.platform">Platform</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
-                    <th onclick="sortList('social','label')" style="cursor:pointer"><span data-i18n="admin.col.label">Label</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('social','platform')" style="cursor:pointer"><span data-i18n="admin.col.platform">Platform</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th onclick="sortList('social','label')" style="cursor:pointer"><span data-i18n="admin.col.label">Label</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
                     <th><span data-i18n="admin.col.url">URL</span></th>
-                    <th onclick="sortList('social','sort_order')" style="cursor:pointer"><span data-i18n="admin.col.order">Order</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('social','sort_order')" style="cursor:pointer"><span data-i18n="admin.col.order">Order</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
                     <th><span data-i18n="admin.col.actions">Actions</span></th>
                 </tr>
             </thead>

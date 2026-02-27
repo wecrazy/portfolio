@@ -5,7 +5,7 @@ import (
 
 	"my-portfolio/internal/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 // VisitorSessions maps session token → OAuthUser ID.
@@ -15,7 +15,7 @@ var VisitorSessions sync.Map
 // OAuthAuth checks for a valid visitor OAuth session cookie and loads the
 // OAuthUser into c.Locals("oauth_user"). Returns 401 when not authenticated.
 func OAuthAuth() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		token := c.Cookies("visitor_session")
 		if token == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

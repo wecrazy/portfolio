@@ -1,16 +1,17 @@
 package handler
 
 import (
+	"my-portfolio/internal/hub"
 	"my-portfolio/internal/model"
 	"my-portfolio/pkg/sanitize"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // GetComments returns the comments list as an HTML partial.
 func GetComments(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var comments []model.Comment
 		db.Where("parent_id IS NULL AND is_approved = ?", true).
 			Preload("OAuthUser").
@@ -27,8 +28,9 @@ func GetComments(db *gorm.DB) fiber.Handler {
 }
 
 // PostComment creates a new comment (requires OAuth session via middleware).
-func PostComment(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+// On success it broadcasts a "comment" SSE event so live clients update.
+func PostComment(db *gorm.DB, h *hub.Hub) fiber.Handler {
+	return func(c fiber.Ctx) error {
 		userID, ok := c.Locals("oauth_user_id").(uint)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Not authenticated"})
@@ -50,6 +52,16 @@ func PostComment(db *gorm.DB) fiber.Handler {
 
 		// Reload with association for rendering.
 		db.Preload("OAuthUser").First(&comment, comment.ID)
+
+		// Notify all SSE clients that a new comment is available.
+		h.Broadcast(hub.Event{
+			Type: hub.EventComment,
+			Data: map[string]any{
+				"id":      comment.ID,
+				"user":    comment.OAuthUser.DisplayName,
+				"refresh": true,
+			},
+		})
 
 		return c.Render("partials/comment_card", fiber.Map{
 			"Comment": comment,
