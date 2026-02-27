@@ -93,4 +93,32 @@ type TypeMyPortfolio struct {
 		Posts           string `yaml:"posts"`
 		UpcomingItems   string `yaml:"upcoming_items"`
 	} `yaml:"table_names"`
+
+	HCaptcha struct {
+		SiteKey string `yaml:"site_key"`
+		Secret  string `yaml:"secret"`
+		// Enabled controls whether hcaptcha is verified on admin login.
+		// Set to false in dev to skip verification.
+		Enabled bool `yaml:"enabled"`
+	} `yaml:"hcaptcha"`
+
+	Log struct {
+		Dir        string `yaml:"dir" validate:"required"`
+		Filename   string `yaml:"filename" validate:"required"`
+		MaxSizeMB  int    `yaml:"max_size_mb" validate:"required"`
+		MaxBackups int    `yaml:"max_backups" validate:"required"`
+		MaxAgeDays int    `yaml:"max_age_days" validate:"required"`
+		Compress   bool   `yaml:"compress"`
+		Stdout     bool   `yaml:"stdout"`
+	} `yaml:"log" validate:"required"`
+
+	Owner struct {
+		Name         string `yaml:"name" validate:"required"`
+		Title        string `yaml:"title" validate:"required"`
+		Bio          string `yaml:"bio" validate:"required"`
+		ProfileImage string `yaml:"profile_image" validate:"required"`
+		Email        string `yaml:"email" validate:"required,email"`
+		Phone        string `yaml:"phone" validate:"required"`
+		Location     string `yaml:"location" validate:"required"`
+	} `yaml:"owner" validate:"required"`
 }

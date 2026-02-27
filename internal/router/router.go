@@ -1,141 +1,121 @@
-// Package router registers all application routes.
+// Package router registers all application routes and global middleware.
 package router
 
 import (
-	"my-portfolio/internal/handler"
-	"my-portfolio/internal/handler/admin"
-	"my-portfolio/internal/middleware"
+	"strings"
+	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"my-portfolio/internal/config"
+	"my-portfolio/internal/hub"
+
+	contribcb "github.com/gofiber/contrib/v3/circuitbreaker"
+	contribloadshed "github.com/gofiber/contrib/v3/loadshed"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
+	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"gorm.io/gorm"
 )
 
-// RegisterRoutes wires up every route in the application.
-func RegisterRoutes(app *fiber.App, db *gorm.DB) {
-	// ── Public routes ──────────────────────────────────────────────
-	app.Get("/", handler.PortfolioPage(db))
-	app.Get("/resume", handler.ServeResumePDF(db))
-	app.Get("/resume/download", handler.DownloadResumePDF(db))
+// RegisterRoutes wires up every route and middleware in the application.
+func RegisterRoutes(app *fiber.App, db *gorm.DB, h *hub.Hub) {
+	cfg := config.MyPortfolio.Get()
 
-	// OAuth
-	app.Get("/auth/google", handler.GoogleLogin())
-	app.Get("/auth/google/callback", handler.GoogleCallback(db))
-	app.Get("/auth/github", handler.GitHubLogin())
-	app.Get("/auth/github/callback", handler.GitHubCallback(db))
-	app.Get("/auth/logout", handler.OAuthLogout())
+	// ── 1. Load shedding ───────────────────────────────────────────
+	// Shed requests when CPU > 90%; skip health, static and WebSocket paths.
+	app.Use(contribloadshed.New(contribloadshed.Config{
+		Criteria: &contribloadshed.CPULoadCriteria{
+			LowerThreshold: 0.75,
+			UpperThreshold: 0.90,
+			Interval:       500 * time.Millisecond,
+			Getter:         &contribloadshed.DefaultCPUPercentGetter{},
+		},
+		Next: func(c fiber.Ctx) bool {
+			p := c.Path()
+			return p == healthcheck.LivenessEndpoint ||
+				p == healthcheck.ReadinessEndpoint ||
+				strings.HasPrefix(p, "/static") ||
+				strings.HasPrefix(p, "/uploads") ||
+				strings.HasPrefix(p, "/ws")
+		},
+		OnShed: func(c fiber.Ctx) error {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":       "Server is temporarily overloaded",
+				"retry_after": 5,
+			})
+		},
+	}))
 
-	// Comments (public)
-	app.Get("/comments", handler.GetComments(db))
-	app.Post("/comments", middleware.OAuthAuth(), handler.PostComment(db))
+	// ── 2. Rate limiting ───────────────────────────────────────────
+	// makeLimiter builds an IP-keyed rate limiter with a standard 429 response.
+	makeLimiter := func(maxReqs int, exp time.Duration) fiber.Handler {
+		return limiter.New(limiter.Config{
+			Max:          maxReqs,
+			Expiration:   exp,
+			KeyGenerator: func(c fiber.Ctx) string { return c.IP() },
+			LimitReached: func(c fiber.Ctx) error {
+				c.Set("Retry-After", exp.String())
+				return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+					"error":       "Too many requests — please slow down",
+					"retry_after": int(exp.Seconds()),
+				})
+			},
+		})
+	}
 
-	// Projects pagination (HTMX lazy load)
-	app.Get("/projects", handler.ProjectsPage(db))
+	// Global: 200 req/min per IP. Static assets / health endpoints are exempt.
+	app.Use(limiter.New(limiter.Config{
+		Max:          200,
+		Expiration:   1 * time.Minute,
+		KeyGenerator: func(c fiber.Ctx) string { return c.IP() },
+		Next: func(c fiber.Ctx) bool {
+			p := c.Path()
+			return strings.HasPrefix(p, "/static") ||
+				strings.HasPrefix(p, "/uploads") ||
+				p == healthcheck.LivenessEndpoint ||
+				p == healthcheck.ReadinessEndpoint
+		},
+		LimitReached: func(c fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error":       "Too many requests — please slow down",
+				"retry_after": 60,
+			})
+		},
+	}))
 
-	// Blog
-	app.Get("/blog/more", handler.BlogPostsPartial(db))
-	app.Get("/blog", handler.BlogListPage(db))
-	app.Get("/blog/:slug", handler.BlogPostPage(db))
+	contactMax := cfg.RateLimit.ContactForm
+	if contactMax <= 0 {
+		contactMax = 5
+	}
+	commentMax := cfg.RateLimit.Comments
+	if commentMax <= 0 {
+		commentMax = 20
+	}
 
-	// Contact
-	app.Post("/contact", handler.SubmitContact(db))
+	contactLimiter := makeLimiter(contactMax, 1*time.Minute)
+	commentLimiter := makeLimiter(commentMax, 1*time.Minute)
+	// Admin login: strict brute-force guard — 10 attempts per 15 minutes per IP.
+	loginLimiter := makeLimiter(10, 15*time.Minute)
 
-	// ── Admin auth (no middleware) ─────────────────────────────────
-	app.Get("/admin/login", handler.AdminLoginPage())
-	app.Post("/admin/login", handler.AdminLoginSubmit(db))
-	app.Post("/admin/logout", handler.AdminLogout())
+	// ── 3. Circuit breaker ─────────────────────────────────────────
+	cb := contribcb.New(contribcb.Config{
+		FailureThreshold: 5,
+		Timeout:          10 * time.Second,
+		SuccessThreshold: 2,
+		OnOpen: func(c fiber.Ctx) error {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":       "Service temporarily unavailable",
+				"retry_after": 10,
+			})
+		},
+	})
+	app.Hooks().OnPreShutdown(func() error {
+		cb.Stop()
+		return nil
+	})
+	cbMiddleware := contribcb.Middleware(cb)
 
-	// ── Admin routes (protected) ───────────────────────────────────
-	adm := app.Group("/admin", middleware.AdminAuth(db))
-
-	adm.Get("/", admin.Dashboard(db))
-
-	// Owner / About
-	adm.Get("/owner", admin.OwnerEditPage(db))
-	adm.Put("/owner", admin.OwnerUpdate(db))
-	adm.Post("/owner/upload-image", admin.OwnerUploadImage(db))
-	adm.Post("/owner/upload-resume", admin.OwnerUploadResume(db))
-
-	// Projects CRUD
-	adm.Get("/projects", admin.ProjectListPage())
-	adm.Get("/projects/list", admin.ProjectListPartial(db))
-	adm.Get("/projects/new", admin.ProjectNewForm())
-	adm.Get("/projects/:id/edit", admin.ProjectEditForm(db))
-	adm.Post("/projects", admin.ProjectCreate(db))
-	adm.Put("/projects/:id", admin.ProjectUpdate(db))
-	adm.Delete("/projects/:id", admin.ProjectDelete(db))
-
-	// Experience CRUD
-	adm.Get("/experience", admin.ExperienceListPage())
-	adm.Get("/experience/list", admin.ExperienceListPartial(db))
-	adm.Get("/experience/new", admin.ExperienceNewForm())
-	adm.Get("/experience/:id/edit", admin.ExperienceEditForm(db))
-	adm.Post("/experience", admin.ExperienceCreate(db))
-	adm.Put("/experience/:id", admin.ExperienceUpdate(db))
-	adm.Delete("/experience/:id", admin.ExperienceDelete(db))
-
-	// Skills CRUD
-	adm.Get("/skills", admin.SkillListPage())
-	adm.Get("/skills/list", admin.SkillListPartial(db))
-	adm.Get("/skills/new", admin.SkillNewForm())
-	adm.Get("/skills/:id/edit", admin.SkillEditForm(db))
-	adm.Post("/skills", admin.SkillCreate(db))
-	adm.Put("/skills/:id", admin.SkillUpdate(db))
-	adm.Delete("/skills/:id", admin.SkillDelete(db))
-
-	// Social Links CRUD
-	adm.Get("/social-links", admin.SocialListPage())
-	adm.Get("/social-links/list", admin.SocialListPartial(db))
-	adm.Get("/social-links/new", admin.SocialNewForm())
-	adm.Get("/social-links/:id/edit", admin.SocialEditForm(db))
-	adm.Post("/social-links", admin.SocialCreate(db))
-	adm.Put("/social-links/:id", admin.SocialUpdate(db))
-	adm.Delete("/social-links/:id", admin.SocialDelete(db))
-
-	// Uploads
-	adm.Get("/uploads", admin.UploadListPage())
-	adm.Get("/uploads/list", admin.UploadListPartial(db))
-	adm.Post("/uploads", admin.UploadCreate(db))
-	adm.Delete("/uploads/:id", admin.UploadDelete(db))
-
-	// Comment moderation
-	adm.Get("/comments", admin.CommentListPage())
-	adm.Get("/comments/list", admin.CommentListPartial(db))
-	adm.Put("/comments/:id/approve", admin.CommentApprove(db))
-	adm.Put("/comments/:id/reject", admin.CommentReject(db))
-	adm.Delete("/comments/:id", admin.CommentDelete(db))
-	adm.Post("/comments/:id/reply", admin.CommentReply(db))
-
-	// Contact messages
-	adm.Get("/contacts", admin.ContactListPage())
-	adm.Get("/contacts/list", admin.ContactListPartial(db))
-	adm.Put("/contacts/:id/read", admin.ContactMarkRead(db))
-	adm.Delete("/contacts/:id", admin.ContactDelete(db))
-
-	// Tech Stack CRUD
-	adm.Get("/tech-stacks", admin.TechStackListPage())
-	adm.Get("/tech-stacks/list", admin.TechStackListPartial(db))
-	adm.Get("/tech-stacks/new", admin.TechStackNewForm())
-	adm.Get("/tech-stacks/:id/edit", admin.TechStackEditForm(db))
-	adm.Post("/tech-stacks", admin.TechStackCreate(db))
-	adm.Put("/tech-stacks/:id", admin.TechStackUpdate(db))
-	adm.Delete("/tech-stacks/:id", admin.TechStackDelete(db))
-
-	// Blog Posts CRUD
-	adm.Get("/posts", admin.PostListPage())
-	adm.Get("/posts/list", admin.PostListPartial(db))
-	adm.Get("/posts/new", admin.PostNewForm())
-	adm.Get("/posts/:id/edit", admin.PostEditForm(db))
-	adm.Post("/posts", admin.PostCreate(db))
-	adm.Put("/posts/:id", admin.PostUpdate(db))
-	adm.Delete("/posts/:id", admin.PostDelete(db))
-	adm.Post("/posts/upload-thumbnail", admin.PostUploadThumbnail(db))
-
-	// Upcoming Items CRUD
-	adm.Get("/upcoming", admin.UpcomingListPage())
-	adm.Get("/upcoming/list", admin.UpcomingListPartial(db))
-	adm.Get("/upcoming/new", admin.UpcomingNewForm())
-	adm.Get("/upcoming/:id/edit", admin.UpcomingEditForm(db))
-	adm.Post("/upcoming", admin.UpcomingCreate(db))
-	adm.Put("/upcoming/:id", admin.UpcomingUpdate(db))
-	adm.Delete("/upcoming/:id", admin.UpcomingDelete(db))
+	// ── 4. Route groups ────────────────────────────────────────────
+	registerPublicRoutes(app, db, h, cbMiddleware, contactLimiter, commentLimiter)
+	registerAuthRoutes(app, db, loginLimiter)
+	registerAdminRoutes(app, db)
 }

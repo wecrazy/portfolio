@@ -3,7 +3,7 @@
     <td>
         {{if .IconClass}}<i class="{{.IconClass}} fs-4"></i>
         {{else if .IconURL}}<img src="{{.IconURL}}" width="28" height="28" alt="">
-        {{else}}<i class="bi bi-code-slash fs-4"></i>{{end}}
+        {{else}}<i class="bx bx-code-alt fs-4"></i>{{end}}
     </td>
     <td><strong>{{.Name}}</strong></td>
     <td><span class="badge bg-info">{{.Category}}</span></td>
@@ -12,12 +12,36 @@
     <td>
         <div class="btn-group btn-group-sm">
             <button class="btn btn-outline-primary" hx-get="/admin/tech-stacks/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML">
-                <i class="bi bi-pencil"></i>
+                <i class="bx bx-edit"></i>
             </button>
             <button class="btn btn-outline-danger" hx-delete="/admin/tech-stacks/{{.ID}}" hx-target="#techstack-{{.ID}}" hx-swap="outerHTML" hx-confirm="Delete this entry?">
-                <i class="bi bi-trash"></i>
+                <i class="bx bx-trash"></i>
             </button>
         </div>
     </td>
 </tr>
+{{end}}
+{{if .Pagination}}
+{{if eq .Pagination.TotalItems 0}}
+<tr><td colspan="6" class="text-center text-muted py-4" data-i18n="admin.table.no_results">No results found.</td></tr>
+{{end}}
+{{if gt .Pagination.TotalPages 1}}
+<tr>
+    <td colspan="6">
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <span class="text-muted small">
+                <span data-i18n="admin.table.showing">Showing</span> {{.Pagination.Page}} <span data-i18n="admin.table.of">of</span> {{.Pagination.TotalPages}} ({{.Pagination.TotalItems}} <span data-i18n="admin.table.entries">entries</span>)
+            </span>
+            <div class="btn-group btn-group-sm">
+                {{if .Pagination.HasPrev}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('techstacks', {{sub .Pagination.Page 1}})" data-i18n="admin.table.previous">Previous</button>
+                {{end}}
+                {{if .Pagination.HasNext}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('techstacks', {{add .Pagination.Page 1}})" data-i18n="admin.table.next">Next</button>
+                {{end}}
+            </div>
+        </div>
+    </td>
+</tr>
+{{end}}
 {{end}}

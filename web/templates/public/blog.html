@@ -16,21 +16,21 @@
             <div class="d-flex align-items-center gap-2">
                 {{if .Owner.ResumeFile}}
                 <a href="/resume" class="btn btn-outline-light btn-sm" target="_blank">
-                    <i class="bi bi-file-earmark-pdf me-1"></i><span data-i18n="nav.resume">Resume</span>
+                    <i class="bx bx-file me-1"></i><span data-i18n="nav.resume">Resume</span>
                 </a>
                 {{end}}
                 <div class="dropdown">
                     <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="langSwitcher" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-translate me-1"></i><span id="langLabel">EN</span>
+                        <i class="bx bx-globe me-1"></i><span id="langLabel">EN</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langSwitcher" id="langMenu">
                         {{range .SupportedLangs}}
-                        <li><a class="dropdown-item lang-option" href="#" data-lang="{{.}}">{{upper .}}</a></li>
+                        <li><a class="dropdown-item lang-option" href="#" data-lang="{{.}}" data-i18n="lang.{{.}}">{{upper .}}</a></li>
                         {{end}}
                     </ul>
                 </div>
                 <button class="btn btn-outline-light btn-sm theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                    <i class="bi bi-sun-fill"></i>
+                    <i class="bxf bx-sun"></i>
                 </button>
             </div>
         </div>
@@ -74,9 +74,9 @@
                             {{end}}
                             <div class="d-flex align-items-center justify-content-between mt-auto">
                                 {{if $post.PublishedAt}}
-                                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{formatDate (derefTime $post.PublishedAt)}}</small>
+                                <small class="text-muted"><i class="bx bx-calendar me-1"></i>{{formatDate (derefTime $post.PublishedAt)}}</small>
                                 {{end}}
-                                <span class="btn btn-sm btn-gradient">Read More <i class="bi bi-arrow-right ms-1"></i></span>
+                                <span class="btn btn-sm btn-gradient"><span data-i18n="blog.read_more">Read More</span> <i class="bx bx-arrow-right ms-1"></i></span>
                             </div>
                         </div>
                     </div>
@@ -93,7 +93,7 @@
             {{end}}
             {{if not .Posts}}
             <div class="col-12 text-center py-5">
-                <i class="bi bi-journal-text display-3 text-muted mb-3 d-block"></i>
+                <i class="bx bx-book-content display-3 text-muted mb-3 d-block"></i>
                 <p class="text-muted" data-i18n="blog.empty">No posts yet. Check back soon!</p>
             </div>
             {{end}}
@@ -106,7 +106,7 @@
     <div class="container">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <p class="mb-0 text-muted small">&copy; {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span></p>
-            <a href="/" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left me-1"></i><span data-i18n="blog.back_portfolio">Back to Portfolio</span></a>
+            <a href="/" class="btn btn-sm btn-outline-light"><i class="bx bx-arrow-left me-1"></i><span data-i18n="blog.back_portfolio">Back to Portfolio</span></a>
             {{if .SocialLinks}}
             <div class="d-flex gap-2">
                 {{range .SocialLinks}}

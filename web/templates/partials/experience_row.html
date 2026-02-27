@@ -6,7 +6,14 @@
     <td>{{if .Experience.IsCurrent}}<span class="badge bg-success">Current</span>{{end}}</td>
     <td>{{.Experience.SortOrder}}</td>
     <td>
-        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/experience/{{.Experience.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/experience/{{.Experience.ID}}" hx-target="#experience-{{.Experience.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?"><i class="bi bi-trash"></i></button>
+        {{if or .Experience.ImageURL .Experience.Image}}
+        <i class="bx bx-image text-success" title="Has image"></i>
+        {{else}}
+        <span class="text-muted">—</span>
+        {{end}}
+    </td>
+    <td>
+        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/experience/{{.Experience.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/experience/{{.Experience.ID}}" hx-target="#experience-{{.Experience.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?"><i class="bx bx-trash"></i></button>
     </td>
 </tr>

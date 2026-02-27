@@ -5,11 +5,35 @@
         {{if eq .Status "published"}}<span class="badge bg-success">Published</span>
         {{else}}<span class="badge bg-secondary">Draft</span>{{end}}
     </td>
-    <td>{{if .Featured}}<i class="bi bi-star-fill text-warning"></i>{{end}}</td>
+    <td>{{if .Featured}}<i class="bxf bx-star text-warning"></i>{{end}}</td>
     <td>{{.SortOrder}}</td>
     <td>
-        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/projects/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/projects/{{.ID}}" hx-target="#project-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this project?"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/projects/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/projects/{{.ID}}" hx-target="#project-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this project?"><i class="bx bx-trash"></i></button>
     </td>
 </tr>
+{{end}}
+{{if .Pagination}}
+{{if eq .Pagination.TotalItems 0}}
+<tr><td colspan="5" class="text-center text-muted py-4" data-i18n="admin.table.no_results">No results found.</td></tr>
+{{end}}
+{{if gt .Pagination.TotalPages 1}}
+<tr>
+    <td colspan="5">
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <span class="text-muted small">
+                <span data-i18n="admin.table.showing">Showing</span> {{.Pagination.Page}} <span data-i18n="admin.table.of">of</span> {{.Pagination.TotalPages}} ({{.Pagination.TotalItems}} <span data-i18n="admin.table.entries">entries</span>)
+            </span>
+            <div class="btn-group btn-group-sm">
+                {{if .Pagination.HasPrev}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('projects', {{sub .Pagination.Page 1}})" data-i18n="admin.table.previous">Previous</button>
+                {{end}}
+                {{if .Pagination.HasNext}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('projects', {{add .Pagination.Page 1}})" data-i18n="admin.table.next">Next</button>
+                {{end}}
+            </div>
+        </div>
+    </td>
+</tr>
+{{end}}
 {{end}}

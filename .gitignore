@@ -38,3 +38,6 @@ uploads/resume/*
 # Editor/IDE
 # .idea/
 # .vscode/
+
+*.fiber.gz
+log/
