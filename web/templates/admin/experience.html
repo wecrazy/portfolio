@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold" data-i18n="admin.experience.title">Experience</h2>
     <button class="btn btn-primary" hx-get="/admin/experience/new" hx-target="#form-container" hx-swap="innerHTML">
-        <i class="bi bi-plus-lg"></i> <span data-i18n="admin.experience.new">New Experience</span>
+        <i class="bx bx-plus"></i> <span data-i18n="admin.experience.new">New Experience</span>
     </button>
 </div>
 
@@ -27,12 +27,12 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th onclick="sortList('experience','title')" style="cursor:pointer"><span data-i18n="admin.col.title">Title</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
-                    <th onclick="sortList('experience','org')" style="cursor:pointer"><span data-i18n="admin.col.organization">Organization</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
-                    <th onclick="sortList('experience','type')" style="cursor:pointer"><span data-i18n="admin.col.type">Type</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
-                    <th onclick="sortList('experience','start_date')" style="cursor:pointer"><span data-i18n="admin.col.start">Start</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('experience','title')" style="cursor:pointer"><span data-i18n="admin.col.title">Title</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th onclick="sortList('experience','org')" style="cursor:pointer"><span data-i18n="admin.col.organization">Organization</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th onclick="sortList('experience','type')" style="cursor:pointer"><span data-i18n="admin.col.type">Type</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th onclick="sortList('experience','start_date')" style="cursor:pointer"><span data-i18n="admin.col.start">Start</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
                     <th><span data-i18n="admin.col.current">Current</span></th>
-                    <th onclick="sortList('experience','sort_order')" style="cursor:pointer"><span data-i18n="admin.col.order">Order</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('experience','sort_order')" style="cursor:pointer"><span data-i18n="admin.col.order">Order</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
                     <th><span data-i18n="admin.col.image">Image</span></th>
                     <th><span data-i18n="admin.col.actions">Actions</span></th>
                 </tr>

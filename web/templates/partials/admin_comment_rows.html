@@ -21,9 +21,9 @@
         </div>
         <p class="mb-2">{{.Body}}</p>
         <div class="d-flex gap-1 mb-2">
-            <button class="btn btn-sm btn-outline-success" hx-put="/admin/comments/{{.ID}}/approve" hx-target="#status-{{.ID}}" hx-swap="innerHTML"><i class="bi bi-check"></i> Approve</button>
-            <button class="btn btn-sm btn-outline-warning" hx-put="/admin/comments/{{.ID}}/reject" hx-target="#status-{{.ID}}" hx-swap="innerHTML"><i class="bi bi-x"></i> Reject</button>
-            <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/comments/{{.ID}}" hx-target="#admin-comment-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this comment and all replies?"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-outline-success" hx-put="/admin/comments/{{.ID}}/approve" hx-target="#status-{{.ID}}" hx-swap="innerHTML"><i class="bx bx-check"></i> Approve</button>
+            <button class="btn btn-sm btn-outline-warning" hx-put="/admin/comments/{{.ID}}/reject" hx-target="#status-{{.ID}}" hx-swap="innerHTML"><i class="bx bx-x"></i> Reject</button>
+            <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/comments/{{.ID}}" hx-target="#admin-comment-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this comment and all replies?"><i class="bx bx-trash"></i></button>
         </div>
 
         {{if .Replies}}
@@ -42,7 +42,7 @@
         <div class="mt-2" id="reply-area-{{.ID}}">
             <form hx-post="/admin/comments/{{.ID}}/reply" hx-target="#reply-area-{{.ID}}" hx-swap="beforebegin" class="d-flex gap-2">
                 <input type="text" name="body" class="form-control form-control-sm" placeholder="Reply as owner..." required>
-                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-reply"></i></button>
+                <button type="submit" class="btn btn-sm btn-primary"><i class="bx bx-reply"></i></button>
             </form>
         </div>
     </div>

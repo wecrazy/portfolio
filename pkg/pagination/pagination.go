@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
@@ -38,7 +38,7 @@ type Result struct {
 //
 //   - defaultSort is the column used when the sort_by param is absent or invalid.
 //   - allowedSorts is the whitelist of column names accepted for sort_by.
-func ParseParams(c *fiber.Ctx, defaultSort string, allowedSorts []string) Params {
+func ParseParams(c fiber.Ctx, defaultSort string, allowedSorts []string) Params {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	if page < 1 {
 		page = 1

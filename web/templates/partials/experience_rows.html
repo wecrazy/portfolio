@@ -8,14 +8,14 @@
     <td>{{.SortOrder}}</td>
     <td>
         {{if or .ImageURL .Image}}
-        <i class="bi bi-image text-success" title="Has image"></i>
+        <i class="bx bx-image text-success" title="Has image"></i>
         {{else}}
         <span class="text-muted">—</span>
         {{end}}
     </td>
     <td>
-        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/experience/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/experience/{{.ID}}" hx-target="#experience-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this experience?"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-sm btn-outline-primary" hx-get="/admin/experience/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/experience/{{.ID}}" hx-target="#experience-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete this experience?"><i class="bx bx-trash"></i></button>
     </td>
 </tr>
 {{end}}

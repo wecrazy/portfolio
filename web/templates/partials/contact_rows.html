@@ -10,9 +10,9 @@
     </td>
     <td>
         {{if not .IsRead}}
-        <button class="btn btn-sm btn-outline-success" hx-put="/admin/contacts/{{.ID}}/read" hx-target="#contact-status-{{.ID}}" hx-swap="innerHTML"><i class="bi bi-check"></i></button>
+        <button class="btn btn-sm btn-outline-success" hx-put="/admin/contacts/{{.ID}}/read" hx-target="#contact-status-{{.ID}}" hx-swap="innerHTML"><i class="bx bx-check"></i></button>
         {{end}}
-        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/contacts/{{.ID}}" hx-target="#contact-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-sm btn-outline-danger" hx-delete="/admin/contacts/{{.ID}}" hx-target="#contact-{{.ID}}" hx-swap="outerHTML swap:0.3s" hx-confirm="Delete?"><i class="bx bx-trash"></i></button>
     </td>
 </tr>
 {{end}}

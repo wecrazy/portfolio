@@ -3,7 +3,7 @@
     <td>
         {{if .IconClass}}<i class="{{.IconClass}} fs-4"></i>
         {{else if .IconURL}}<img src="{{.IconURL}}" width="28" height="28" alt="">
-        {{else}}<i class="bi bi-code-slash fs-4"></i>{{end}}
+        {{else}}<i class="bx bx-code-alt fs-4"></i>{{end}}
     </td>
     <td><strong>{{.Name}}</strong></td>
     <td><span class="badge bg-info">{{.Category}}</span></td>
@@ -12,10 +12,10 @@
     <td>
         <div class="btn-group btn-group-sm">
             <button class="btn btn-outline-primary" hx-get="/admin/tech-stacks/{{.ID}}/edit" hx-target="#form-container" hx-swap="innerHTML">
-                <i class="bi bi-pencil"></i>
+                <i class="bx bx-edit"></i>
             </button>
             <button class="btn btn-outline-danger" hx-delete="/admin/tech-stacks/{{.ID}}" hx-target="#techstack-{{.ID}}" hx-swap="outerHTML" hx-confirm="Delete this entry?">
-                <i class="bi bi-trash"></i>
+                <i class="bx bx-trash"></i>
             </button>
         </div>
     </td>

@@ -6,7 +6,7 @@ import (
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +21,7 @@ func blogPageData(db *gorm.DB) (model.Owner, []model.SocialLink) {
 
 // BlogListPage renders the public blog listing page.
 func BlogListPage(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		const pageSize = 6
 		owner, socialLinks := blogPageData(db)
 
@@ -36,22 +36,31 @@ func BlogListPage(db *gorm.DB) fiber.Handler {
 
 		hasMore := total > pageSize
 
+		cfg := config.MyPortfolio.Get()
+		ogImage := cfg.App.BaseURL + "/static/img/favicon.svg"
+		if owner.ProfileImage != nil {
+			ogImage = cfg.App.BaseURL + "/uploads/images/" + owner.ProfileImage.StoredName
+		}
+
 		return c.Render("public/blog", fiber.Map{
-			"Title":          "Blog",
+			"Title":          "Blog — " + owner.FullName,
+			"BaseURL":        cfg.App.BaseURL,
+			"OGImage":        ogImage,
+			"OGDescription":  "Tech blog covering software development, projects and ideas by " + owner.FullName + ".",
 			"Owner":          owner,
 			"SocialLinks":    socialLinks,
 			"Posts":          posts,
 			"HasMorePosts":   hasMore,
 			"NextPage":       2,
-			"SupportedLangs": config.MyPortfolio.Get().I18n.SupportedLangs,
-			"DefaultLang":    config.MyPortfolio.Get().I18n.DefaultLang,
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/public_base")
 	}
 }
 
 // BlogPostsPartial returns the next batch of posts as an HTMX partial (load more).
 func BlogPostsPartial(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		const pageSize = 6
 		page, _ := strconv.Atoi(c.Query("page", "1"))
 		if page < 1 {
@@ -80,7 +89,7 @@ func BlogPostsPartial(db *gorm.DB) fiber.Handler {
 
 // BlogPostPage renders a single blog post detail page.
 func BlogPostPage(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		owner, socialLinks := blogPageData(db)
 
 		var post model.Post
@@ -90,13 +99,31 @@ func BlogPostPage(db *gorm.DB) fiber.Handler {
 			return fiber.NewError(fiber.StatusNotFound, "Post not found")
 		}
 
+		cfg := config.MyPortfolio.Get()
+		ogImage := cfg.App.BaseURL + "/static/img/favicon.svg"
+		if post.ThumbnailFile != nil {
+			ogImage = cfg.App.BaseURL + "/uploads/images/" + post.ThumbnailFile.StoredName
+		} else if owner.ProfileImage != nil {
+			ogImage = cfg.App.BaseURL + "/uploads/images/" + owner.ProfileImage.StoredName
+		}
+		ogDesc := post.Excerpt
+		if len(ogDesc) > 160 {
+			ogDesc = ogDesc[:157] + "..."
+		}
+		if ogDesc == "" {
+			ogDesc = post.Title
+		}
+
 		return c.Render("public/blog_post", fiber.Map{
 			"Title":          post.Title,
+			"BaseURL":        cfg.App.BaseURL,
+			"OGImage":        ogImage,
+			"OGDescription":  ogDesc,
 			"Owner":          owner,
 			"SocialLinks":    socialLinks,
 			"Post":           post,
-			"SupportedLangs": config.MyPortfolio.Get().I18n.SupportedLangs,
-			"DefaultLang":    config.MyPortfolio.Get().I18n.DefaultLang,
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/public_base")
 	}
 }

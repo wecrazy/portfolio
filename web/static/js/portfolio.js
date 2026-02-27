@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 el.setAttribute('placeholder', dict[key]);
             }
         });
-        // Update the lang dropdown label.
+        // Update the lang dropdown label with full localized language name.
         var langLabel = document.getElementById('langLabel');
         if (langLabel) {
-            langLabel.textContent = currentLang.toUpperCase();
+            langLabel.textContent = dict['lang.' + currentLang] || currentLang.toUpperCase();
         }
         // Mark active option in dropdown.
         document.querySelectorAll('.lang-option').forEach(function (opt) {
@@ -38,16 +38,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function setLanguage(lang) {
         currentLang = lang;
         localStorage.setItem('portfolio-lang', lang);
+        document.cookie = 'lang=' + lang + '; path=/; SameSite=Lax; max-age=31536000';
         if (i18nCache[lang]) {
             applyTranslations(i18nCache[lang]);
             return;
         }
         var ver = document.documentElement.getAttribute('data-app-version') || '';
-        var langUrl = '/static/lang/' + lang + '.json' + (ver ? '?v=' + ver : '');
+        var langUrl = '/lang/' + lang + (ver ? '?v=' + ver : '');
         fetch(langUrl)
             .then(function (r) { return r.json(); })
             .then(function (dict) {
                 i18nCache[lang] = dict;
+                // Guard: user may have switched language while this fetch was in-flight.
+                if (lang !== currentLang) return;
                 applyTranslations(dict);
             })
             .catch(function () {
@@ -191,9 +194,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var icon = toggle.querySelector('i');
         if (!icon) return;
         if (theme === 'light') {
-            icon.className = 'bi bi-moon-fill';
+            icon.className = 'bxf bx-moon';
         } else {
-            icon.className = 'bi bi-sun-fill';
+            icon.className = 'bxf bx-sun';
         }
     }
 

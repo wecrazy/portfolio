@@ -1,59 +1,18 @@
 /* ===================================================
-   ADMIN JS -- Theme, i18n, Toasts, Sidebar, Datatables
+   ADMIN JS -- Theme, i18n, Sidebar, Datatables
+   Toast & Confirm are handled by toast.js (SweetAlert2)
    =================================================== */
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ---------- Toast System ----------
-    function showToast(message, type) {
-        var container = document.querySelector('.toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
-
-        var toast = document.createElement('div');
-        toast.className = 'toast toast-' + type + ' show';
-        toast.setAttribute('role', 'alert');
-        toast.innerHTML =
-            '<div class="toast-body d-flex align-items-center justify-content-between py-3 px-4">' +
-                '<span>' + message + '</span>' +
-                '<button type="button" class="btn-close btn-close-white ms-3" aria-label="Close"></button>' +
-            '</div>';
-
-        container.appendChild(toast);
-
-        var closeBtn = toast.querySelector('.btn-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function () {
-                removeToast(toast);
-            });
-        }
-
-        setTimeout(function () {
-            removeToast(toast);
-        }, 4000);
-    }
-
-    function removeToast(toast) {
-        if (!toast || !toast.parentNode) return;
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100%)';
-        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        setTimeout(function () {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 300);
-    }
-
     // ---------- HTMX Toast Events ----------
+    // Server-side can fire HX-Trigger headers like:
+    //   HX-Trigger: {"showToast":{"message":"Saved!","type":"success"}}
     document.body.addEventListener('showToast', function (e) {
         var detail = e.detail || {};
         var message = detail.message || 'Action completed';
         var type = detail.type || 'success';
-        showToast(message, type);
+        window.showToast(message, type);
     });
 
     // ---------- Admin i18n Engine ----------
@@ -76,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         var langLabel = document.getElementById('adminLangLabel');
         if (langLabel) {
-            langLabel.textContent = adminCurrentLang.toUpperCase();
+            langLabel.textContent = dict['lang.' + adminCurrentLang] || adminCurrentLang.toUpperCase();
         }
         document.querySelectorAll('.admin-lang-option').forEach(function (opt) {
             opt.classList.toggle('active', opt.getAttribute('data-lang') === adminCurrentLang);
@@ -87,16 +46,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function adminSetLanguage(lang) {
         adminCurrentLang = lang;
         localStorage.setItem('admin-lang', lang);
+        document.cookie = 'lang=' + lang + '; path=/; SameSite=Lax; max-age=31536000';
         if (adminI18nCache[lang]) {
             adminApplyTranslations(adminI18nCache[lang]);
             return;
         }
         var ver = document.documentElement.getAttribute('data-app-version') || '';
-        var langUrl = '/static/lang/' + lang + '.json' + (ver ? '?v=' + ver : '');
+        var langUrl = '/lang/' + lang + (ver ? '?v=' + ver : '');
         fetch(langUrl)
             .then(function (r) { return r.json(); })
             .then(function (dict) {
                 adminI18nCache[lang] = dict;
+                // Guard: user may have switched language while this fetch was in-flight.
+                if (lang !== adminCurrentLang) return;
                 adminApplyTranslations(dict);
             })
             .catch(function () { /* silent fallback */ });
@@ -123,14 +85,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 'logout_success': 'You have been logged out.'
             };
             var msg = messages[toastKey] || toastKey;
-            // Use i18n if available
             if (adminI18nCache[adminCurrentLang]) {
                 var i18nKey = 'admin.toast.' + toastKey;
                 if (adminI18nCache[adminCurrentLang][i18nKey]) {
                     msg = adminI18nCache[adminCurrentLang][i18nKey];
                 }
             }
-            setTimeout(function () { showToast(msg, 'success'); }, 100);
+            var toastType = toastKey === 'logout_success' ? 'info' : 'success';
+            setTimeout(function () { window.showToast(msg, toastType); }, 150);
             var url = new URL(window.location);
             url.searchParams.delete('toast');
             window.history.replaceState({}, '', url.pathname + url.search);
@@ -156,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!toggle) return;
         var icon = toggle.querySelector('i');
         if (!icon) return;
-        icon.className = theme === 'light' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+        icon.className = theme === 'light' ? 'bxf bx-moon' : 'bxf bx-sun';
     }
 
     // ---------- Sidebar Active Link ----------
@@ -171,16 +133,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ---------- Sidebar Toggle (Mobile) ----------
+    // ---------- Sidebar Toggle (desktop collapse / mobile slide) ----------
     var sidebarToggle = document.getElementById('sidebar-toggle');
     var sidebar = document.getElementById('admin-sidebar');
+    var adminMain = document.querySelector('.admin-main');
     var overlay = document.getElementById('sidebar-overlay');
+
+    function isDesktop() { return window.innerWidth >= 992; }
+
+    // Restore desktop collapsed state on load.
+    if (isDesktop() && localStorage.getItem('admin-sidebar-collapsed') === 'true') {
+        sidebar.classList.add('collapsed');
+        if (adminMain) adminMain.classList.add('sidebar-collapsed');
+    }
 
     if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function () {
-            sidebar.classList.toggle('show');
-            if (overlay) {
-                overlay.classList.toggle('show');
+            if (isDesktop()) {
+                var collapsed = sidebar.classList.toggle('collapsed');
+                if (adminMain) adminMain.classList.toggle('sidebar-collapsed', collapsed);
+                localStorage.setItem('admin-sidebar-collapsed', collapsed);
+            } else {
+                sidebar.classList.toggle('show');
+                if (overlay) overlay.classList.toggle('show');
             }
         });
 
@@ -192,25 +167,46 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // ---------- Confirm Modal Integration ----------
+    // On resize: sync state — no collapsed class on mobile, no show class on desktop.
+    window.addEventListener('resize', function () {
+        if (isDesktop()) {
+            sidebar.classList.remove('show');
+            if (overlay) overlay.classList.remove('show');
+            var savedCollapsed = localStorage.getItem('admin-sidebar-collapsed') === 'true';
+            sidebar.classList.toggle('collapsed', savedCollapsed);
+            if (adminMain) adminMain.classList.toggle('sidebar-collapsed', savedCollapsed);
+        } else {
+            sidebar.classList.remove('collapsed');
+            if (adminMain) adminMain.classList.remove('sidebar-collapsed');
+        }
+    });
+
+    // ---------- HTMX Confirm (Swal2 dialog) ----------
     document.body.addEventListener('htmx:confirm', function (e) {
         var trigger = e.detail.elt;
         var confirmMsg = trigger.getAttribute('data-confirm');
         if (confirmMsg) {
             e.preventDefault();
-            if (window.confirm(confirmMsg)) {
-                e.detail.issueRequest();
-            }
+            var dict = adminI18nCache[adminCurrentLang] || {};
+            var title = dict['admin.confirm.title'] || 'Are you sure?';
+            var btnText = dict['admin.confirm.delete_btn'] || 'Yes, delete';
+            window.confirmDialog(
+                title,
+                confirmMsg,
+                function () { e.detail.issueRequest(); },
+                {
+                    confirmButtonText: btnText,
+                    confirmButtonColor: '#ef4444',
+                }
+            );
         }
     });
 
     // ---------- Re-apply i18n after HTMX swaps ----------
     document.body.addEventListener('htmx:afterSettle', function () {
         if (adminI18nCache[adminCurrentLang]) {
-            // Cache warm — apply instantly
             adminApplyTranslations(adminI18nCache[adminCurrentLang]);
         } else {
-            // Lang JSON still in-flight; re-trigger so translations apply once fetch resolves
             adminSetLanguage(adminCurrentLang);
         }
     });

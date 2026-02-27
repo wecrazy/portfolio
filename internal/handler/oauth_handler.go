@@ -12,13 +12,13 @@ import (
 	"my-portfolio/internal/service"
 	"my-portfolio/pkg/cryptoutil"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // GoogleLogin redirects the user to Google's consent screen.
 func GoogleLogin() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		oauthCfg := service.GoogleOAuthConfig()
 		state := cryptoutil.RandomHex(16)
 		c.Cookie(&fiber.Cookie{
@@ -29,13 +29,13 @@ func GoogleLogin() fiber.Handler {
 			MaxAge:   300,
 		})
 		url := oauthCfg.AuthCodeURL(state)
-		return c.Redirect(url)
+		return c.Redirect().To(url)
 	}
 }
 
 // GoogleCallback handles the OAuth2 callback from Google.
 func GoogleCallback(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		savedState := c.Cookies("oauth_state")
 		if c.Query("state") != savedState || savedState == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid OAuth state")
@@ -65,13 +65,13 @@ func GoogleCallback(db *gorm.DB) fiber.Handler {
 
 		user := upsertOAuthUser(db, "google", userInfo.ID, userInfo.Email, userInfo.Name, userInfo.Picture)
 		setVisitorSessionCookie(c, user)
-		return c.Redirect("/#comments")
+		return c.Redirect().To("/#comments")
 	}
 }
 
 // GitHubLogin redirects the user to GitHub's consent screen.
 func GitHubLogin() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		oauthCfg := service.GitHubOAuthConfig()
 		state := cryptoutil.RandomHex(16)
 		c.Cookie(&fiber.Cookie{
@@ -82,13 +82,13 @@ func GitHubLogin() fiber.Handler {
 			MaxAge:   300,
 		})
 		url := oauthCfg.AuthCodeURL(state)
-		return c.Redirect(url)
+		return c.Redirect().To(url)
 	}
 }
 
 // GitHubCallback handles the OAuth2 callback from GitHub.
 func GitHubCallback(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		savedState := c.Cookies("oauth_state")
 		if c.Query("state") != savedState || savedState == "" {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid OAuth state")
@@ -133,13 +133,13 @@ func GitHubCallback(db *gorm.DB) fiber.Handler {
 		providerID := fmt.Sprintf("%d", ghUser.ID)
 		user := upsertOAuthUser(db, "github", providerID, email, displayName, ghUser.AvatarURL)
 		setVisitorSessionCookie(c, user)
-		return c.Redirect("/#comments")
+		return c.Redirect().To("/#comments")
 	}
 }
 
 // OAuthLogout clears the visitor session.
 func OAuthLogout() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		token := c.Cookies("visitor_session")
 		if token != "" {
 			middleware.DeleteVisitorSession(token)
@@ -150,7 +150,7 @@ func OAuthLogout() fiber.Handler {
 			HTTPOnly: true,
 			MaxAge:   -1,
 		})
-		return c.Redirect("/")
+		return c.Redirect().To("/")
 	}
 }
 
@@ -178,7 +178,7 @@ func upsertOAuthUser(db *gorm.DB, provider, providerID, email, name, avatar stri
 	return user
 }
 
-func setVisitorSessionCookie(c *fiber.Ctx, user model.OAuthUser) {
+func setVisitorSessionCookie(c fiber.Ctx, user model.OAuthUser) {
 	token := cryptoutil.RandomHex(16)
 	middleware.SetVisitorSession(token, user)
 	c.Cookie(&fiber.Cookie{

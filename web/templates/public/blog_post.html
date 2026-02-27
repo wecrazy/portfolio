@@ -16,21 +16,21 @@
             <div class="d-flex align-items-center gap-2">
                 {{if .Owner.ResumeFile}}
                 <a href="/resume" class="btn btn-outline-light btn-sm" target="_blank">
-                    <i class="bi bi-file-earmark-pdf me-1"></i><span data-i18n="nav.resume">Resume</span>
+                    <i class="bx bx-file me-1"></i><span data-i18n="nav.resume">Resume</span>
                 </a>
                 {{end}}
                 <div class="dropdown">
                     <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="langSwitcher" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-translate me-1"></i><span id="langLabel">EN</span>
+                        <i class="bx bx-globe me-1"></i><span id="langLabel">EN</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langSwitcher" id="langMenu">
                         {{range .SupportedLangs}}
-                        <li><a class="dropdown-item lang-option" href="#" data-lang="{{.}}">{{upper .}}</a></li>
+                        <li><a class="dropdown-item lang-option" href="#" data-lang="{{.}}" data-i18n="lang.{{.}}">{{upper .}}</a></li>
                         {{end}}
                     </ul>
                 </div>
                 <button class="btn btn-outline-light btn-sm theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                    <i class="bi bi-sun-fill"></i>
+                    <i class="bxf bx-sun"></i>
                 </button>
             </div>
         </div>
@@ -47,7 +47,7 @@
             <h1 class="display-5 fw-bold text-white mb-2">{{.Post.Title}}</h1>
             <div class="d-flex flex-wrap gap-3 align-items-center">
                 {{if .Post.PublishedAt}}
-                <span class="text-white-50 small"><i class="bi bi-calendar3 me-1"></i>{{formatDate (derefTime .Post.PublishedAt)}}</span>
+                <span class="text-white-50 small"><i class="bx bx-calendar me-1"></i>{{formatDate (derefTime .Post.PublishedAt)}}</span>
                 {{end}}
                 {{if .Post.Tags}}
                 <div>
@@ -66,7 +66,7 @@
         <h1 class="display-5 fw-bold gradient-text mb-3" data-aos="fade-down">{{.Post.Title}}</h1>
         <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
             {{if .Post.PublishedAt}}
-            <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{formatDate (derefTime .Post.PublishedAt)}}</span>
+            <span class="text-muted small"><i class="bx bx-calendar me-1"></i>{{formatDate (derefTime .Post.PublishedAt)}}</span>
             {{end}}
             {{if .Post.Tags}}
             <div>
@@ -91,7 +91,7 @@
                 <div class="post-content text-body" style="white-space: pre-wrap; line-height: 1.8; font-size: 1.05rem;">{{.Post.Content}}</div>
                 <hr class="border-glass my-5">
                 <div class="d-flex justify-content-between align-items-center">
-                    <a href="/blog" class="btn btn-outline-light"><i class="bi bi-arrow-left me-2"></i><span data-i18n="blog.back">Back to Blog</span></a>
+                    <a href="/blog" class="btn btn-outline-light"><i class="bx bx-arrow-left me-2"></i><span data-i18n="blog.back">Back to Blog</span></a>
                     {{if .SocialLinks}}
                     <div class="d-flex gap-2">
                         {{range .SocialLinks}}
@@ -112,7 +112,7 @@
     <div class="container">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <p class="mb-0 text-muted small">&copy; {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span></p>
-            <a href="/" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left me-1"></i><span data-i18n="blog.back_portfolio">Back to Portfolio</span></a>
+            <a href="/" class="btn btn-sm btn-outline-light"><i class="bx bx-arrow-left me-1"></i><span data-i18n="blog.back_portfolio">Back to Portfolio</span></a>
         </div>
     </div>
 </footer>

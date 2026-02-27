@@ -1,18 +1,98 @@
-// Package router registers all application routes.
+// Package router registers all application routes and global middleware.
 package router
 
 import (
+	"errors"
+	"strings"
+	"time"
+
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/handler"
 	"my-portfolio/internal/handler/admin"
+	"my-portfolio/internal/hub"
 	"my-portfolio/internal/middleware"
 
-	"github.com/gofiber/fiber/v2"
+	contribcb "github.com/gofiber/contrib/v3/circuitbreaker"
+	contribfgprof "github.com/gofiber/contrib/v3/fgprof"
+	contribhcaptcha "github.com/gofiber/contrib/v3/hcaptcha"
+	contribloadshed "github.com/gofiber/contrib/v3/loadshed"
+	contribmonitor "github.com/gofiber/contrib/v3/monitor"
+	contribswaggo "github.com/gofiber/contrib/v3/swaggo"
+	contribws "github.com/gofiber/contrib/v3/websocket"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"gorm.io/gorm"
 )
 
-// RegisterRoutes wires up every route in the application.
-func RegisterRoutes(app *fiber.App, db *gorm.DB) {
-	// ── Public routes ──────────────────────────────────────────────
+// RegisterRoutes wires up every route and middleware in the application.
+func RegisterRoutes(app *fiber.App, db *gorm.DB, h *hub.Hub) {
+	cfg := config.MyPortfolio.Get()
+
+	// ── 1. Load shedding ───────────────────────────────────────────
+	// Shed requests when CPU > 90%; skip health, static and WebSocket paths.
+	app.Use(contribloadshed.New(contribloadshed.Config{
+		Criteria: &contribloadshed.CPULoadCriteria{
+			LowerThreshold: 0.75,
+			UpperThreshold: 0.90,
+			Interval:       500 * time.Millisecond,
+			Getter:         &contribloadshed.DefaultCPUPercentGetter{},
+		},
+		Next: func(c fiber.Ctx) bool {
+			p := c.Path()
+			return p == healthcheck.LivenessEndpoint ||
+				p == healthcheck.ReadinessEndpoint ||
+				strings.HasPrefix(p, "/static") ||
+				strings.HasPrefix(p, "/uploads") ||
+				strings.HasPrefix(p, "/ws")
+		},
+		OnShed: func(c fiber.Ctx) error {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":       "Server is temporarily overloaded",
+				"retry_after": 5,
+			})
+		},
+	}))
+
+	// ── 2. Health checks ───────────────────────────────────────────
+	app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
+	app.Get(healthcheck.ReadinessEndpoint, healthcheck.New(healthcheck.Config{
+		Probe: func(_ fiber.Ctx) bool { return db != nil },
+	}))
+
+	// ── 3. Swagger UI (/swagger/*) ─────────────────────────────────
+	app.Get("/swagger/*", contribswaggo.HandlerDefault)
+
+	// ── 4. Circuit breaker for public API routes ───────────────────
+	cb := contribcb.New(contribcb.Config{
+		FailureThreshold: 5,
+		Timeout:          10 * time.Second,
+		SuccessThreshold: 2,
+		OnOpen: func(c fiber.Ctx) error {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":       "Service temporarily unavailable",
+				"retry_after": 10,
+			})
+		},
+	})
+	// Stop the circuit breaker when the server shuts down.
+	app.Hooks().OnPreShutdown(func() error {
+		cb.Stop()
+		return nil
+	})
+
+	// ── 5. WebSocket upgrade + real-time comments ──────────────────
+	app.Use("/ws", func(c fiber.Ctx) error {
+		if contribws.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+	app.Get("/ws/comments", handler.WSComments(h))
+
+	// ── 6. Public routes ───────────────────────────────────────────
+	// Locale JSON — single source of truth from web/locales/*.yaml
+	app.Get("/lang/:code", handler.LangJSON("web/locales"))
+
 	app.Get("/", handler.PortfolioPage(db))
 	app.Get("/resume", handler.ServeResumePDF(db))
 	app.Get("/resume/download", handler.DownloadResumePDF(db))
@@ -24,30 +104,76 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB) {
 	app.Get("/auth/github/callback", handler.GitHubCallback(db))
 	app.Get("/auth/logout", handler.OAuthLogout())
 
-	// Comments (public)
-	app.Get("/comments", handler.GetComments(db))
-	app.Post("/comments", middleware.OAuthAuth(), handler.PostComment(db))
+	// Comments (circuit-breaker protected)
+	app.Get("/comments", contribcb.Middleware(cb), handler.GetComments(db))
+	app.Post("/comments", contribcb.Middleware(cb), middleware.OAuthAuth(), handler.PostComment(db, h))
 
-	// Projects pagination (HTMX lazy load)
+	// Projects (HTMX lazy load)
 	app.Get("/projects", handler.ProjectsPage(db))
 
-	// Blog
-	app.Get("/blog/more", handler.BlogPostsPartial(db))
+	// Blog (circuit-breaker protected)
+	app.Get("/blog/more", contribcb.Middleware(cb), handler.BlogPostsPartial(db))
 	app.Get("/blog", handler.BlogListPage(db))
 	app.Get("/blog/:slug", handler.BlogPostPage(db))
 
-	// Contact
-	app.Post("/contact", handler.SubmitContact(db))
+	// Contact (circuit-breaker protected)
+	app.Post("/contact", contribcb.Middleware(cb), handler.SubmitContact(db))
 
-	// ── Admin auth (no middleware) ─────────────────────────────────
+	// ── 7. Admin auth (unauthenticated) ───────────────────────────
 	app.Get("/admin/login", handler.AdminLoginPage())
-	app.Post("/admin/login", handler.AdminLoginSubmit(db))
+
+	// hCaptcha middleware on the login POST — always registered.
+	// The wrapper checks live config at request-time so toggling enabled/disabled
+	// via hot-reload takes effect without a server restart.
+	hcaptchaHandler := contribhcaptcha.New(contribhcaptcha.Config{
+		SecretKey: cfg.HCaptcha.Secret,
+		// Read the token from the HTML form field (not default JSON body).
+		ResponseKeyFunc: func(c fiber.Ctx) (string, error) {
+			return c.FormValue("h-captcha-response"), nil
+		},
+		// On failure: re-render the login page with an error.
+		// Must return a non-nil error so the middleware does NOT call c.Next().
+		ValidateFunc: func(success bool, c fiber.Ctx) error {
+			if !success {
+				liveCfg := config.MyPortfolio.Get()
+				// Write the response body first, then return a sentinel error.
+				// The middleware sees the body is non-empty and returns nil,
+				// skipping c.Next() so AdminLoginSubmit never runs.
+				_ = c.Render("admin/login", fiber.Map{
+					"Title":          "Admin Login",
+					"Error":          "Captcha verification failed. Please try again.",
+					"HCaptchaKey":    liveCfg.HCaptcha.SiteKey,
+					"HCaptchaEnable": true,
+				})
+				return errors.New("captcha failed")
+			}
+			// Return nil → middleware calls c.Next() → AdminLoginSubmit runs.
+			return nil
+		},
+	})
+	app.Post("/admin/login",
+		func(c fiber.Ctx) error {
+			if !config.MyPortfolio.Get().HCaptcha.Enabled {
+				return c.Next()
+			}
+			return hcaptchaHandler(c)
+		},
+		handler.AdminLoginSubmit(db),
+	)
 	app.Post("/admin/logout", handler.AdminLogout())
 
-	// ── Admin routes (protected) ───────────────────────────────────
+	// ── 8. Admin routes (session-protected) ───────────────────────
 	adm := app.Group("/admin", middleware.AdminAuth(db))
 
 	adm.Get("/", admin.Dashboard(db))
+
+	// Server monitor (live metrics dashboard)
+	adm.Get("/monitor", contribmonitor.New(contribmonitor.Config{
+		Title: "Portfolio · Server Monitor",
+	}))
+
+	// Full goroutine-aware profiler — access /admin/debug/fgprof?seconds=10
+	adm.Use(contribfgprof.New(contribfgprof.Config{Prefix: "/admin"}))
 
 	// Owner / About
 	adm.Get("/owner", admin.OwnerEditPage(db))

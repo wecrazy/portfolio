@@ -2,8 +2,8 @@ app:
   name: "My Portfolio"
   version: "0.0.1"
   host: "localhost"
-  port: 3000
-  base_url: "http://localhost:3000"
+  port: 6969
+  base_url: "http://localhost:6969"
   debug: true
   log_level: "DEBUG"
   secret_key: "change-me-to-a-random-32-char-string!"
@@ -31,11 +31,11 @@ oauth:
   google:
     client_id: "YOUR_GOOGLE_CLIENT_ID"
     client_secret: "YOUR_GOOGLE_CLIENT_SECRET"
-    redirect_url: "http://localhost:3000/auth/google/callback"
+    redirect_url: "http://localhost:6969/auth/google/callback"
   github:
     client_id: "YOUR_GITHUB_CLIENT_ID"
     client_secret: "YOUR_GITHUB_CLIENT_SECRET"
-    redirect_url: "http://localhost:3000/auth/github/callback"
+    redirect_url: "http://localhost:6969/auth/github/callback"
 
 smtp:
   host: "smtp.gmail.com"
@@ -54,6 +54,22 @@ upload:
     - "image/webp"
   allowed_resume_types:
     - "application/pdf"
+
+log:
+  dir: "./log"
+  filename: "app.log"
+  max_size_mb: 100
+  max_backups: 7
+  max_age_days: 30
+  compress: true
+  stdout: false
+
+hcaptcha:
+  enabled: true
+  # site_key: "10000000-ffff-ffff-ffff-000000000001" # hcaptcha always-pass test key
+  # secret: "0x0000000000000000000000000000000000000000" # hcaptcha always-pass test secret
+  site_key: "92c24736-8aea-4202-8e0c-f5505ea6ba24"
+  secret: "ES_6efa37a92e224b2a89779abf4351b866"
 
 rate_limit:
   enabled: true

@@ -6,13 +6,13 @@ import (
 	"my-portfolio/internal/model"
 	"my-portfolio/pkg/sanitize"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
 
 // CommentListPage renders the comments moderation admin page.
 func CommentListPage() fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/comments", fiber.Map{
 			"Title":          "Comments",
@@ -25,7 +25,7 @@ func CommentListPage() fiber.Handler {
 
 // CommentListPartial returns the comment cards as an HTMX partial.
 func CommentListPartial(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		var comments []model.Comment
 		db.Where("parent_id IS NULL").
 			Preload("OAuthUser").
@@ -40,36 +40,36 @@ func CommentListPartial(db *gorm.DB) fiber.Handler {
 
 // CommentApprove marks a comment as approved.
 func CommentApprove(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		db.Model(&model.Comment{}).Where("id = ?", c.Params("id")).Update("is_approved", true)
-		c.Set("HX-Trigger", `{"showToast":"Comment approved"}`)
+		setToast(c, "comment_approved", "success")
 		return c.SendString(`<span class="badge bg-success">Approved</span>`)
 	}
 }
 
 // CommentReject marks a comment as rejected.
 func CommentReject(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		db.Model(&model.Comment{}).Where("id = ?", c.Params("id")).Update("is_approved", false)
-		c.Set("HX-Trigger", `{"showToast":"Comment rejected"}`)
+		setToast(c, "comment_rejected", "warning")
 		return c.SendString(`<span class="badge bg-warning">Rejected</span>`)
 	}
 }
 
 // CommentDelete handles deleting a comment and its replies.
 func CommentDelete(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		// Delete replies first, then the comment.
 		db.Where("parent_id = ?", c.Params("id")).Delete(&model.Comment{})
 		db.Delete(&model.Comment{}, c.Params("id"))
-		c.Set("HX-Trigger", `{"showToast":"Comment deleted"}`)
+		setToast(c, "comment_deleted", "success")
 		return c.SendString("")
 	}
 }
 
 // CommentReply handles posting an owner reply to a comment.
 func CommentReply(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		parentID := c.Params("id")
 		body := sanitize.Strict(c.FormValue("body"))
 		if body == "" {
@@ -104,7 +104,7 @@ func CommentReply(db *gorm.DB) fiber.Handler {
 		db.Create(&reply)
 		db.Preload("OAuthUser").First(&reply, reply.ID)
 
-		c.Set("HX-Trigger", `{"showToast":"Reply posted"}`)
+		setToast(c, "reply_posted", "success")
 		return c.Render("partials/comment_reply", fiber.Map{"Reply": reply})
 	}
 }
