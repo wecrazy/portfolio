@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -10,9 +12,12 @@ import (
 // SocialListPage renders the social links admin page.
 func SocialListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/social_links", fiber.Map{
-			"Title": "Social Links",
-			"Admin": c.Locals("admin"),
+			"Title":          "Social Links",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -20,9 +25,14 @@ func SocialListPage() fiber.Handler {
 // SocialListPartial returns the social links table rows as an HTMX partial.
 func SocialListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "sort_order", []string{"sort_order", "platform", "label"})
 		var items []model.SocialLink
-		db.Order("sort_order ASC").Find(&items)
-		return c.Render("partials/social_rows", fiber.Map{"SocialLinks": items})
+		query, pageResult := pagination.Paginate(db, &model.SocialLink{}, params, []string{"platform", "label", "url"})
+		query.Find(&items)
+		return c.Render("partials/social_rows", fiber.Map{
+			"SocialLinks": items,
+			"Pagination":  pageResult,
+		})
 	}
 }
 

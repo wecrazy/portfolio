@@ -1,25 +1,40 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">Skills</h2>
+    <h2 class="fw-bold" data-i18n="admin.skills.title">Skills</h2>
     <button class="btn btn-primary" hx-get="/admin/skills/new" hx-target="#form-container" hx-swap="innerHTML">
-        <i class="bi bi-plus-lg"></i> New Skill
+        <i class="bi bi-plus-lg"></i> <span data-i18n="admin.skills.new">New Skill</span>
     </button>
 </div>
 
 <div id="form-container" class="mb-4"></div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <select id="skills-per-page" class="form-select form-select-sm" style="width: auto;" onchange="reloadList('skills')">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+        </select>
+        <span class="text-muted small" data-i18n="admin.table.per_page">per page</span>
+    </div>
+    <div>
+        <input type="text" id="skills-search" class="form-control form-control-sm" data-i18n-placeholder="admin.table.search" placeholder="Search..." oninput="debounceReloadList('skills')">
+    </div>
+</div>
 
 <div class="card border-0">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Proficiency</th>
-                    <th>Order</th>
-                    <th>Actions</th>
+                    <th onclick="sortList('skills','name')" style="cursor:pointer"><span data-i18n="admin.col.name">Name</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('skills','category')" style="cursor:pointer"><span data-i18n="admin.col.category">Category</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('skills','proficiency')" style="cursor:pointer"><span data-i18n="admin.col.proficiency">Proficiency</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th onclick="sortList('skills','sort_order')" style="cursor:pointer"><span data-i18n="admin.col.order">Order</span> <i class="bi bi-arrow-down-up text-muted small"></i></th>
+                    <th><span data-i18n="admin.col.actions">Actions</span></th>
                 </tr>
             </thead>
-            <tbody id="skills-list" hx-get="/admin/skills/list" hx-trigger="load" hx-swap="innerHTML">
+            <tbody id="skills-list" data-list-url="/admin/skills/list" hx-get="/admin/skills/list" hx-trigger="load" hx-swap="innerHTML">
             </tbody>
         </table>
     </div>

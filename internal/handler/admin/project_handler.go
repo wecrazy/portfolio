@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gosimple/slug"
@@ -11,9 +13,12 @@ import (
 // ProjectListPage renders the projects admin page.
 func ProjectListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/projects", fiber.Map{
-			"Title": "Projects",
-			"Admin": c.Locals("admin"),
+			"Title":          "Projects",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -21,9 +26,14 @@ func ProjectListPage() fiber.Handler {
 // ProjectListPartial returns the projects table rows as an HTMX partial.
 func ProjectListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "sort_order", []string{"sort_order", "title", "status", "created_at"})
 		var projects []model.Project
-		db.Order("sort_order ASC, created_at DESC").Find(&projects)
-		return c.Render("partials/project_rows", fiber.Map{"Projects": projects})
+		query, pageResult := pagination.Paginate(db, &model.Project{}, params, []string{"title", "description", "tags"})
+		query.Find(&projects)
+		return c.Render("partials/project_rows", fiber.Map{
+			"Projects":   projects,
+			"Pagination": pageResult,
+		})
 	}
 }
 

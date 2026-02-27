@@ -10,3 +10,27 @@
     </td>
 </tr>
 {{end}}
+{{if .Pagination}}
+{{if eq .Pagination.TotalItems 0}}
+<tr><td colspan="5" class="text-center text-muted py-4" data-i18n="admin.table.no_results">No results found.</td></tr>
+{{end}}
+{{if gt .Pagination.TotalPages 1}}
+<tr>
+    <td colspan="5">
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <span class="text-muted small">
+                <span data-i18n="admin.table.showing">Showing</span> {{.Pagination.Page}} <span data-i18n="admin.table.of">of</span> {{.Pagination.TotalPages}} ({{.Pagination.TotalItems}} <span data-i18n="admin.table.entries">entries</span>)
+            </span>
+            <div class="btn-group btn-group-sm">
+                {{if .Pagination.HasPrev}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('social', {{sub .Pagination.Page 1}})" data-i18n="admin.table.previous">Previous</button>
+                {{end}}
+                {{if .Pagination.HasNext}}
+                <button class="btn btn-outline-secondary" onclick="loadPage('social', {{add .Pagination.Page 1}})" data-i18n="admin.table.next">Next</button>
+                {{end}}
+            </div>
+        </div>
+    </td>
+</tr>
+{{end}}
+{{end}}

@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +10,7 @@ import (
 	"my-portfolio/internal/middleware"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
+	"my-portfolio/pkg/cryptoutil"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -21,7 +20,7 @@ import (
 func GoogleLogin() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		oauthCfg := service.GoogleOAuthConfig()
-		state := generateState()
+		state := cryptoutil.RandomHex(16)
 		c.Cookie(&fiber.Cookie{
 			Name:     "oauth_state",
 			Value:    state,
@@ -74,7 +73,7 @@ func GoogleCallback(db *gorm.DB) fiber.Handler {
 func GitHubLogin() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		oauthCfg := service.GitHubOAuthConfig()
-		state := generateState()
+		state := cryptoutil.RandomHex(16)
 		c.Cookie(&fiber.Cookie{
 			Name:     "oauth_state",
 			Value:    state,
@@ -180,7 +179,7 @@ func upsertOAuthUser(db *gorm.DB, provider, providerID, email, name, avatar stri
 }
 
 func setVisitorSessionCookie(c *fiber.Ctx, user model.OAuthUser) {
-	token := generateState()
+	token := cryptoutil.RandomHex(16)
 	middleware.SetVisitorSession(token, user)
 	c.Cookie(&fiber.Cookie{
 		Name:     "visitor_session",
@@ -190,12 +189,6 @@ func setVisitorSessionCookie(c *fiber.Ctx, user model.OAuthUser) {
 		SameSite: "Lax",
 		MaxAge:   86400 * 7, // 7 days
 	})
-}
-
-func generateState() string {
-	b := make([]byte, 16)
-	rand.Read(b)
-	return hex.EncodeToString(b)
 }
 
 func fetchGitHubPrimaryEmail(client *http.Client) string {

@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">Dashboard</h2>
-    <span class="text-muted small">Welcome back!</span>
+    <h2 class="fw-bold" data-i18n="admin.dashboard.title">Dashboard</h2>
+    <span class="text-muted small" data-i18n="admin.welcome">Welcome back!</span>
 </div>
 
 <div class="row g-4 mb-4">
@@ -12,11 +12,11 @@
                 </div>
                 <div>
                     <div class="stat-value fs-3 fw-bold">{{.ProjectCount}}</div>
-                    <div class="text-muted small">Projects</div>
+                    <div class="text-muted small" data-i18n="admin.dashboard.projects">Projects</div>
                 </div>
             </div>
             <a href="/admin/projects" class="card-footer text-decoration-none text-muted small d-flex justify-content-between align-items-center">
-                Manage <i class="bi bi-arrow-right"></i>
+                <span data-i18n="admin.dashboard.manage">Manage</span> <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
@@ -28,11 +28,11 @@
                 </div>
                 <div>
                     <div class="stat-value fs-3 fw-bold">{{.CommentCount}}</div>
-                    <div class="text-muted small">Comments</div>
+                    <div class="text-muted small" data-i18n="admin.dashboard.comments">Comments</div>
                 </div>
             </div>
             <a href="/admin/comments" class="card-footer text-decoration-none text-muted small d-flex justify-content-between align-items-center">
-                Moderate <i class="bi bi-arrow-right"></i>
+                <span data-i18n="admin.dashboard.moderate">Moderate</span> <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
@@ -44,11 +44,11 @@
                 </div>
                 <div>
                     <div class="stat-value fs-3 fw-bold">{{.ContactCount}}</div>
-                    <div class="text-muted small">Messages</div>
+                    <div class="text-muted small" data-i18n="admin.dashboard.messages">Messages</div>
                 </div>
             </div>
             <a href="/admin/contacts" class="card-footer text-decoration-none text-muted small d-flex justify-content-between align-items-center">
-                View <i class="bi bi-arrow-right"></i>
+                <span data-i18n="admin.dashboard.view">View</span> <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
@@ -60,11 +60,11 @@
                 </div>
                 <div>
                     <div class="stat-value fs-3 fw-bold">{{.UnreadCount}}</div>
-                    <div class="text-muted small">Unread</div>
+                    <div class="text-muted small" data-i18n="admin.dashboard.unread">Unread</div>
                 </div>
             </div>
             <a href="/admin/contacts" class="card-footer text-decoration-none text-muted small d-flex justify-content-between align-items-center">
-                Read <i class="bi bi-arrow-right"></i>
+                <span data-i18n="admin.dashboard.read">Read</span> <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>

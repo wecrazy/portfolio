@@ -146,31 +146,45 @@
             {{range $i, $exp := .Experiences}}
             <div class="timeline-item {{if eq (sub (add $i 1) (sub (add $i 1) 1)) 1}}timeline-left{{end}}" data-aos="fade-up" data-aos-delay="{{add (sub $i $i) 100}}">
                 <div class="timeline-dot"></div>
-                <div class="timeline-content glass-card p-4">
-                    <span class="badge bg-gradient-primary mb-2">{{$exp.Type}}</span>
-                    <h4 class="mb-1">{{$exp.Title}}</h4>
-                    <h6 class="text-secondary mb-2">{{$exp.Org}}</h6>
-                    <p class="small text-muted mb-2">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        {{formatDate $exp.StartDate}} &ndash;
-                        {{if $exp.IsCurrent}}
-                            <span class="badge bg-success" data-i18n="experience.present">Present</span>
+                <div class="timeline-content glass-card p-4" style="position: relative; overflow: hidden;">
+                    {{if or $exp.ImageURL $exp.Image}}
+                    <div class="experience-bg-image">
+                        {{if $exp.Image}}
+                        <img src="/uploads/images/{{$exp.Image.StoredName}}" alt="" loading="lazy">
                         {{else}}
-                            {{if not (isZeroTime (derefTime $exp.EndDate))}}
-                                {{formatDate (derefTime $exp.EndDate)}}
-                            {{else}}
-                                <span class="badge bg-success" data-i18n="experience.present">Present</span>
-                            {{end}}
+                        <img src="{{$exp.ImageURL}}" alt="" loading="lazy">
                         {{end}}
-                    </p>
-                    {{if $exp.Location}}
-                    <p class="small text-muted mb-2">
-                        <i class="bi bi-geo-alt me-1"></i>{{$exp.Location}}
-                    </p>
+                    </div>
                     {{end}}
-                    {{if $exp.Description}}
-                    <p class="mb-0 text-muted">{{$exp.Description}}</p>
-                    {{end}}
+                    <div class="experience-content">
+                        <span class="badge bg-gradient-primary mb-2">{{$exp.Type}}</span>
+                        <h4 class="mb-1">{{$exp.Title}}</h4>
+                        <h6 class="text-secondary mb-2">{{$exp.Org}}</h6>
+                        <p class="small text-muted mb-2">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{formatDate $exp.StartDate}} &ndash;
+                            {{if $exp.IsCurrent}}
+                                <span class="badge bg-success" data-i18n="experience.present">Present</span>
+                            {{else}}
+                                {{if not (isZeroTime (derefTime $exp.EndDate))}}
+                                    {{formatDate (derefTime $exp.EndDate)}}
+                                {{else}}
+                                    <span class="badge bg-success" data-i18n="experience.present">Present</span>
+                                {{end}}
+                            {{end}}
+                        </p>
+                        {{if $exp.Location}}
+                        <p class="small text-muted mb-2">
+                            <i class="bi bi-geo-alt me-1"></i>{{$exp.Location}}
+                        </p>
+                        {{end}}
+                        {{if $exp.Description}}
+                        <div class="truncate-wrapper">
+                            <p class="mb-0 text-muted text-truncate-clamp">{{$exp.Description}}</p>
+                            <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+                        </div>
+                        {{end}}
+                    </div>
                 </div>
             </div>
             {{end}}
@@ -192,6 +206,12 @@
                         <div class="d-flex align-items-center mb-2">
                             {{if .IconClass}}
                             <i class="{{.IconClass}} fs-5 me-2 gradient-text"></i>
+                            {{else if .IconURL}}
+                                {{if .IconURLDark}}
+                                <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}" class="theme-icon me-2" width="24" height="24" alt="{{.Name}}" loading="lazy">
+                                {{else}}
+                                <img src="{{.IconURL}}" class="icon-auto-theme me-2" width="24" height="24" alt="{{.Name}}" loading="lazy">
+                                {{end}}
                             {{end}}
                             <span class="fw-semibold">{{.Name}}</span>
                             <span class="ms-auto small text-muted">{{.Proficiency}}%</span>
@@ -224,7 +244,11 @@
                             {{if .IconClass}}
                             <i class="{{.IconClass}} fs-1 gradient-text"></i>
                             {{else if .IconURL}}
-                            <img src="{{.IconURL}}" width="48" height="48" alt="{{.Name}}" loading="lazy">
+                                {{if .IconURLDark}}
+                                <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}" class="theme-icon" width="48" height="48" alt="{{.Name}}" loading="lazy">
+                                {{else}}
+                                <img src="{{.IconURL}}" class="icon-auto-theme" width="48" height="48" alt="{{.Name}}" loading="lazy">
+                                {{end}}
                             {{else}}
                             <i class="bi bi-code-slash fs-1 gradient-text"></i>
                             {{end}}
@@ -316,23 +340,26 @@
                         <div class="flex-grow-1">
                             <div class="mb-1">
                                 {{if eq .Type "project"}}
-                                <span class="badge bg-primary me-1">Future Project</span>
+                                <span class="badge bg-primary me-1" data-i18n="upcoming.type.project">Future Project</span>
                                 {{else}}
-                                <span class="badge bg-info text-dark me-1">Announcement</span>
+                                <span class="badge bg-info text-dark me-1" data-i18n="upcoming.type.announcement">Announcement</span>
                                 {{end}}
                                 {{if eq .Status "in-progress"}}
-                                <span class="badge bg-success">In Progress</span>
+                                <span class="badge bg-success" data-i18n="upcoming.status.in_progress">In Progress</span>
                                 {{else if eq .Status "coming-soon"}}
-                                <span class="badge bg-warning text-dark">Coming Soon</span>
+                                <span class="badge bg-warning text-dark" data-i18n="upcoming.status.coming_soon">Coming Soon</span>
                                 {{else}}
-                                <span class="badge bg-secondary">Planned</span>
+                                <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
                                 {{end}}
                             </div>
                             <h5 class="fw-bold mb-0">{{.Title}}</h5>
                         </div>
                     </div>
                     {{if .Description}}
-                    <p class="text-muted small mb-0">{{.Description}}</p>
+                    <div class="truncate-wrapper">
+                        <p class="text-muted small mb-0 text-truncate-clamp">{{.Description}}</p>
+                        <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+                    </div>
                     {{end}}
                 </div>
             </div>

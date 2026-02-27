@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gosimple/slug"
@@ -15,9 +17,12 @@ import (
 // PostListPage renders the posts admin page.
 func PostListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/posts", fiber.Map{
-			"Title": "Blog Posts",
-			"Admin": c.Locals("admin"),
+			"Title":          "Blog Posts",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -25,9 +30,14 @@ func PostListPage() fiber.Handler {
 // PostListPartial returns the posts table rows as an HTMX partial.
 func PostListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "sort_order", []string{"sort_order", "title", "status", "created_at"})
 		var posts []model.Post
-		db.Order("sort_order ASC, created_at DESC").Find(&posts)
-		return c.Render("partials/post_rows", fiber.Map{"Posts": posts})
+		query, pageResult := pagination.Paginate(db, &model.Post{}, params, []string{"title", "excerpt", "tags"})
+		query.Find(&posts)
+		return c.Render("partials/post_rows", fiber.Map{
+			"Posts":      posts,
+			"Pagination": pageResult,
+		})
 	}
 }
 

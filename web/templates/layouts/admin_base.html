@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark" data-default-lang="{{.DefaultLang}}" data-app-version="{{appVersion}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,39 +9,58 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <link rel="stylesheet" href="/static/css/admin.css">
+    <script>
+    (function(){
+        var t = localStorage.getItem('admin-theme');
+        if (t) document.documentElement.setAttribute('data-bs-theme', t);
+    })();
+    </script>
 </head>
 <body>
     <aside class="admin-sidebar" id="admin-sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-briefcase-fill"></i> Portfolio Admin
+            <i class="bi bi-briefcase-fill"></i> <span data-i18n="admin.sidebar.brand">Portfolio Admin</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="/admin" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a href="/admin/owner" class="sidebar-link"><i class="bi bi-person-circle"></i> Owner Profile</a>
-            <a href="/admin/projects" class="sidebar-link"><i class="bi bi-folder2-open"></i> Projects</a>
-            <a href="/admin/experience" class="sidebar-link"><i class="bi bi-clock-history"></i> Experience</a>
-            <a href="/admin/skills" class="sidebar-link"><i class="bi bi-stars"></i> Skills</a>
-            <a href="/admin/social-links" class="sidebar-link"><i class="bi bi-share-fill"></i> Social Links</a>
-            <a href="/admin/uploads" class="sidebar-link"><i class="bi bi-cloud-upload"></i> Uploads</a>
-            <a href="/admin/comments" class="sidebar-link"><i class="bi bi-chat-dots"></i> Comments</a>
-            <a href="/admin/contacts" class="sidebar-link"><i class="bi bi-envelope"></i> Contacts</a>
-            <a href="/admin/posts" class="sidebar-link"><i class="bi bi-journal-text"></i> Blog Posts</a>
-            <a href="/admin/upcoming" class="sidebar-link"><i class="bi bi-rocket-takeoff"></i> Upcoming</a>
+            <a href="/admin" class="nav-link"><i class="bi bi-speedometer2"></i> <span data-i18n="admin.nav.dashboard">Dashboard</span></a>
+            <a href="/admin/owner" class="nav-link"><i class="bi bi-person-circle"></i> <span data-i18n="admin.nav.owner">Owner Profile</span></a>
+            <a href="/admin/projects" class="nav-link"><i class="bi bi-folder2-open"></i> <span data-i18n="admin.nav.projects">Projects</span></a>
+            <a href="/admin/experience" class="nav-link"><i class="bi bi-clock-history"></i> <span data-i18n="admin.nav.experience">Experience</span></a>
+            <a href="/admin/skills" class="nav-link"><i class="bi bi-stars"></i> <span data-i18n="admin.nav.skills">Skills</span></a>
+            <a href="/admin/tech-stacks" class="nav-link"><i class="bi bi-stack"></i> <span data-i18n="admin.nav.tech_stacks">Tech Stack</span></a>
+            <a href="/admin/social-links" class="nav-link"><i class="bi bi-share-fill"></i> <span data-i18n="admin.nav.social_links">Social Links</span></a>
+            <a href="/admin/uploads" class="nav-link"><i class="bi bi-cloud-upload"></i> <span data-i18n="admin.nav.uploads">Uploads</span></a>
+            <a href="/admin/comments" class="nav-link"><i class="bi bi-chat-dots"></i> <span data-i18n="admin.nav.comments">Comments</span></a>
+            <a href="/admin/contacts" class="nav-link"><i class="bi bi-envelope"></i> <span data-i18n="admin.nav.contacts">Contacts</span></a>
+            <a href="/admin/posts" class="nav-link"><i class="bi bi-journal-text"></i> <span data-i18n="admin.nav.posts">Blog Posts</span></a>
+            <a href="/admin/upcoming" class="nav-link"><i class="bi bi-rocket-takeoff"></i> <span data-i18n="admin.nav.upcoming">Upcoming</span></a>
         </nav>
         <div class="sidebar-footer">
-            <a href="/" target="_blank" class="sidebar-link"><i class="bi bi-box-arrow-up-right"></i> View Site</a>
+            <a href="/" target="_blank" class="nav-link"><i class="bi bi-box-arrow-up-right"></i> <span data-i18n="admin.nav.view_site">View Site</span></a>
         </div>
     </aside>
 
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <button class="sidebar-toggle" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+
     <div class="admin-main">
         <nav class="admin-topbar d-flex justify-content-between align-items-center px-4 py-2">
-            <button class="btn btn-sm btn-outline-secondary d-lg-none" id="sidebar-toggle">
-                <i class="bi bi-list"></i>
-            </button>
+            <div class="d-lg-none" style="width:40px"></div>
             <div class="ms-auto d-flex align-items-center gap-3">
-                <span class="text-muted small"><i class="bi bi-person"></i> Admin</span>
+                <button class="btn btn-sm btn-outline-secondary rounded-circle" id="adminThemeToggle" title="Toggle theme" style="width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-sun-fill"></i>
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" id="adminLangLabel">EN</button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {{range .SupportedLangs}}
+                        <li><a class="dropdown-item admin-lang-option" href="#" data-lang="{{.}}">{{upper .}}</a></li>
+                        {{end}}
+                    </ul>
+                </div>
+                <span class="text-muted small"><i class="bi bi-person"></i> {{if .Admin}}{{.Admin.Username}}{{else}}Admin{{end}}</span>
                 <form action="/admin/logout" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-box-arrow-right"></i> <span data-i18n="admin.logout">Logout</span></button>
                 </form>
             </div>
         </nav>

@@ -2,14 +2,11 @@
 package handler
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
-	"log"
 	"time"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/cryptoutil"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -28,31 +25,26 @@ func AdminLoginPage() fiber.Handler {
 // AdminLoginSubmit processes the admin login form.
 func AdminLoginSubmit(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		username := c.FormValue("username")
+		email := c.FormValue("email")
 		password := c.FormValue("password")
 
 		var admin model.Admin
-		if err := db.Where("username = ?", username).First(&admin).Error; err != nil {
+		if err := db.Where("email = ?", email).First(&admin).Error; err != nil {
 			return c.Render("admin/login", fiber.Map{
 				"Title": "Admin Login",
-				"Error": "Invalid username or password",
+				"Error": "Invalid email or password",
 			})
 		}
 
 		if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(password)); err != nil {
 			return c.Render("admin/login", fiber.Map{
 				"Title": "Admin Login",
-				"Error": "Invalid username or password",
+				"Error": "Invalid email or password",
 			})
 		}
 
 		// Generate session token.
-		tokenBytes := make([]byte, 32)
-		if _, err := rand.Read(tokenBytes); err != nil {
-			log.Printf("Failed to generate session token: %v", err)
-			return c.Status(fiber.StatusInternalServerError).SendString("Internal error")
-		}
-		token := hex.EncodeToString(tokenBytes)
+		token := cryptoutil.RandomHex(32)
 		now := time.Now().UTC()
 
 		db.Model(&admin).Updates(map[string]interface{}{
@@ -71,7 +63,7 @@ func AdminLoginSubmit(db *gorm.DB) fiber.Handler {
 			MaxAge:   cfg.Admin.SessionTTL * 60,
 		})
 
-		return c.Redirect("/admin")
+		return c.Redirect("/admin?toast=login_success")
 	}
 }
 
@@ -87,14 +79,6 @@ func AdminLogout() fiber.Handler {
 			Secure:   cfg.Admin.CookieSecure,
 			MaxAge:   -1,
 		})
-		return c.Redirect("/admin/login")
+		return c.Redirect("/admin/login?toast=logout_success")
 	}
-}
-
-func generateSessionToken() string {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return fmt.Sprintf("%d", time.Now().UnixNano())
-	}
-	return hex.EncodeToString(b)
 }

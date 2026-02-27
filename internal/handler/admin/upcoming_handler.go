@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -10,9 +12,12 @@ import (
 // UpcomingListPage renders the upcoming items admin page.
 func UpcomingListPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		cfg := config.MyPortfolio.Get()
 		return c.Render("admin/upcoming", fiber.Map{
-			"Title": "Upcoming",
-			"Admin": c.Locals("admin"),
+			"Title":          "Upcoming",
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/admin_base")
 	}
 }
@@ -20,9 +25,14 @@ func UpcomingListPage() fiber.Handler {
 // UpcomingListPartial returns the upcoming items table rows as an HTMX partial.
 func UpcomingListPartial(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		params := pagination.ParseParams(c, "sort_order", []string{"sort_order", "title", "type", "status", "created_at"})
 		var items []model.UpcomingItem
-		db.Order("sort_order ASC, created_at DESC").Find(&items)
-		return c.Render("partials/upcoming_rows", fiber.Map{"Items": items})
+		query, pageResult := pagination.Paginate(db, &model.UpcomingItem{}, params, []string{"title", "description", "type"})
+		query.Find(&items)
+		return c.Render("partials/upcoming_rows", fiber.Map{
+			"Items":      items,
+			"Pagination": pageResult,
+		})
 	}
 }
 
