@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
 	"github.com/gofiber/fiber/v3"
@@ -15,9 +16,14 @@ func ServeResumePDF(db *gorm.DB) fiber.Handler {
 		if owner.ResumeFile == nil {
 			return c.Status(fiber.StatusNotFound).SendString("No resume uploaded")
 		}
+		cfg := config.MyPortfolio.Get()
 		return c.Render("public/pdf_viewer", fiber.Map{
 			"Title":          "Resume",
 			"ResumeFilename": owner.ResumeFile.StoredName,
+			"Owner":          owner,
+			"BaseURL":        cfg.App.BaseURL,
+			"DefaultLang":    cfg.I18n.DefaultLang,
+			"SupportedLangs": cfg.I18n.SupportedLangs,
 		}, "layouts/public_base")
 	}
 }

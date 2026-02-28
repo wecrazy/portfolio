@@ -6,8 +6,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ---------- i18n Engine ----------
     var i18nCache = {};
+    // translateCache[lang][origText] = translatedText
+    // Load from localStorage so successful translations persist across page reloads
+    // without re-hitting the free-tier API on every visit.
+    var TRANSLATE_CACHE_KEY = 'portfolio-translate-cache-v2';
+    var translateCache = (function () {
+        try {
+            return JSON.parse(localStorage.getItem(TRANSLATE_CACHE_KEY)) || {};
+        } catch (e) {
+            return {};
+        }
+    }());
+    function persistTranslateCache() {
+        try { localStorage.setItem(TRANSLATE_CACHE_KEY, JSON.stringify(translateCache)); } catch (e) { /* quota */ }
+    }
     var defaultLang = document.documentElement.getAttribute('data-default-lang') || 'en';
+    // contentLang = the language the DB content is stored in (always 'en').
+    // This is intentionally separate from defaultLang (UI preference) so that
+    // even if the site default is changed to another language, translation still
+    // knows the correct source language to send to the API.
+    var contentLang = document.documentElement.getAttribute('data-content-lang') || 'en';
     var currentLang = localStorage.getItem('portfolio-lang') || defaultLang;
+
+    // Expose a global translation lookup so external scripts (events.js, toast.js)
+    // can get the current language string without needing access to this closure.
+    // window.t(key, fallback) returns the translated string or fallback.
+    window.t = function (key, fallback) {
+        var d = i18nCache[currentLang];
+        return (d && d[key]) || fallback || key;
+    };
 
     function applyTranslations(dict) {
         document.querySelectorAll('[data-i18n]').forEach(function (el) {
@@ -25,7 +52,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update the lang dropdown label with full localized language name.
         var langLabel = document.getElementById('langLabel');
         if (langLabel) {
-            langLabel.textContent = dict['lang.' + currentLang] || currentLang.toUpperCase();
+            // Always show the short 2-letter code in the button to avoid overflow.
+            langLabel.textContent = currentLang.toUpperCase();
         }
         // Mark active option in dropdown.
         document.querySelectorAll('.lang-option').forEach(function (opt) {
@@ -35,10 +63,81 @@ document.addEventListener('DOMContentLoaded', function () {
         document.documentElement.setAttribute('lang', currentLang);
     }
 
+    // Translate elements that carry data-translate (DB-driven content).
+    // Originals are stashed in data-translate-orig so we can restore on lang revert.
+    function translateDynamicContent(lang) {
+        var elements = Array.from(document.querySelectorAll('[data-translate]'));
+        if (!elements.length) return;
+
+        // Stash originals on first encounter.
+        elements.forEach(function (el) {
+            if (!el.hasAttribute('data-translate-orig')) {
+                el.setAttribute('data-translate-orig', el.textContent.trim());
+            }
+        });
+
+        // Revert to original when switching back to the content language (EN).
+        // Use contentLang here, NOT defaultLang — the UI default preference may
+        // differ from the language the DB content is actually stored in.
+        if (lang === contentLang) {
+            elements.forEach(function (el) {
+                el.textContent = el.getAttribute('data-translate-orig');
+            });
+            return;
+        }
+
+        if (!translateCache[lang]) translateCache[lang] = {};
+
+        // Split into already-cached and needs-fetch.
+        var toFetch = [];
+        var toFetchEls = [];
+        elements.forEach(function (el) {
+            var orig = el.getAttribute('data-translate-orig');
+            if (!orig) return; // skip empty content
+            if (translateCache[lang][orig] !== undefined) {
+                el.textContent = translateCache[lang][orig];
+            } else {
+                toFetch.push(orig);
+                toFetchEls.push(el);
+            }
+        });
+
+        if (!toFetch.length) return;
+
+        fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // Always translate FROM contentLang (the DB storage language, 'en'),
+            // not from defaultLang (the UI default), which may be different.
+            body: JSON.stringify({ texts: toFetch, from: contentLang, to: lang })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!Array.isArray(data.translations)) return;
+                // Guard: user may have switched language while this fetch was in-flight.
+                if (lang !== currentLang) return;
+                data.translations.forEach(function (translated, idx) {
+                    var orig = toFetch[idx];
+                    // Only cache & apply when MyMemory actually translated something.
+                    // If it echoed back the original (API error / rate-limit), skip
+                    // caching so the next language switch will retry the call.
+                    if (translated && translated.trim() !== orig) {
+                        translateCache[lang][orig] = translated;
+                        persistTranslateCache();
+                        toFetchEls[idx].textContent = translated;
+                    }
+                });
+            })
+            .catch(function () {
+                // Silently fall back; original text stays.
+            });
+    }
+
     function setLanguage(lang) {
         currentLang = lang;
         localStorage.setItem('portfolio-lang', lang);
         document.cookie = 'lang=' + lang + '; path=/; SameSite=Lax; max-age=31536000';
+        translateDynamicContent(lang);
         if (i18nCache[lang]) {
             applyTranslations(i18nCache[lang]);
             return;
@@ -74,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (i18nCache[currentLang]) {
             applyTranslations(i18nCache[currentLang]);
         }
+        translateDynamicContent(currentLang);
         initSeeMoreButtons();
         swapThemeIcons(document.documentElement.getAttribute('data-bs-theme') || 'dark');
     });
@@ -111,6 +211,54 @@ document.addEventListener('DOMContentLoaded', function () {
         handleNavbarScroll();
     }
 
+    // ---------- Mobile Navbar Auto-Close ----------
+    // Bootstrap collapses its own dropdown menus on outside click, but does NOT
+    // collapse the main navbar toggle (#navContent) automatically. Fix it here.
+    var navContent = document.getElementById('navContent');
+    function collapseNavbar() {
+        if (!navContent) return;
+        if (navContent.classList.contains('show')) {
+            // Use Bootstrap's Collapse API so the animation plays correctly.
+            var bsCollapse = bootstrap.Collapse.getInstance(navContent);
+            if (bsCollapse) {
+                bsCollapse.hide();
+            } else {
+                new bootstrap.Collapse(navContent, { toggle: false }).hide();
+            }
+        }
+    }
+
+    // Close when clicking anywhere outside the navbar.
+    document.addEventListener('click', function (e) {
+        if (navbar && !navbar.contains(e.target)) {
+            collapseNavbar();
+        }
+    });
+
+    // Close when a nav anchor link is clicked (scrolls to section, menu should close).
+    if (navContent) {
+        navContent.querySelectorAll('a.nav-link').forEach(function (link) {
+            link.addEventListener('click', function () {
+                collapseNavbar();
+            });
+        });
+    }
+
+    // Close when the theme toggle is clicked (it lives inside the navbar).
+    var themeToggleBtn = document.getElementById('themeToggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function () {
+            collapseNavbar();
+        });
+    }
+
+    // Close when a language option is selected (also inside the navbar).
+    document.querySelectorAll('.lang-option').forEach(function (opt) {
+        opt.addEventListener('click', function () {
+            collapseNavbar();
+        });
+    });
+
     // ---------- AOS Init ----------
     if (typeof AOS !== 'undefined') {
         AOS.init({
@@ -131,8 +279,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     skillsFilled = true;
                     var bars = skillsSection.querySelectorAll('.skill-bar-fill');
                     bars.forEach(function (bar) {
-                        var progress = bar.getAttribute('data-progress') || 0;
+                        var progress = parseInt(bar.getAttribute('data-progress') || 0, 10);
                         bar.style.width = progress + '%';
+                        // Colour tier: 1-25 red, 26-50 orange, 51-75 blue, 76-89 purple-cyan, 90-100 primary gradient
+                        var level;
+                        if (progress <= 25) level = 'beginner';
+                        else if (progress <= 50) level = 'elementary';
+                        else if (progress <= 75) level = 'intermediate';
+                        else if (progress <= 89) level = 'advanced';
+                        else level = 'expert';
+                        bar.setAttribute('data-level', level);
                     });
                 }
             });

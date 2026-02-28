@@ -18,6 +18,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// deviconCDN is the base URL for fetching technology icons in seeds. It is used by both skills and tech stacks to ensure consistent icons.  It is intentionally kept in the seed package because it is only relevant for seeding demo data and not used elsewhere in the app.
+const deviconCDN = "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons"
+
 // SeedIfNeeded creates the default admin user and an empty owner profile when
 // they don't already exist. Safe to call on every startup.
 func SeedIfNeeded(db *gorm.DB, cfg config.TypeMyPortfolio) {
@@ -26,6 +29,7 @@ func SeedIfNeeded(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	seedDemoData(db)
 }
 
+// seedAdmin creates the default admin user if no admins exist. Safe to call on every startup.
 func seedAdmin(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	var count int64
 	db.Model(&model.Admin{}).Count(&count)
@@ -142,6 +146,7 @@ func copyStaticImage(db *gorm.DB, cfg config.TypeMyPortfolio, uploadDir string, 
 	return rec
 }
 
+// seedOwner creates the default owner profile if it doesn't exist. Safe to call on every startup.
 func seedOwner(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	var count int64
 	db.Model(&model.Owner{}).Count(&count)
@@ -160,11 +165,44 @@ func seedOwner(db *gorm.DB, cfg config.TypeMyPortfolio) {
 		imgProfile = copyStaticImage(db, cfg, uploadDir, allowedExts)
 	}
 
+	// Resume: pick up any PDF already sitting in uploads/resume/ (survives db-reset).
+	var resumeFile *model.UploadedFile
+	resumeDir := filepath.Join(cfg.App.UploadDir, "resume")
+	if entries, err := os.ReadDir(resumeDir); err == nil {
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
+			}
+			name := e.Name()
+			if strings.ToLower(filepath.Ext(name)) != ".pdf" {
+				continue
+			}
+			fullPath := filepath.Join(resumeDir, name)
+			var size int64
+			if info, err2 := e.Info(); err2 == nil {
+				size = info.Size()
+			}
+			rec := &model.UploadedFile{
+				OriginalName: name,
+				StoredName:   name,
+				FilePath:     fullPath,
+				MimeType:     "application/pdf",
+				FileSize:     size,
+				Category:     "resume",
+			}
+			if err2 := db.Create(rec).Error; err2 == nil {
+				resumeFile = rec
+			}
+			break // use first PDF found
+		}
+	}
+
 	owner := model.Owner{
 		FullName:     cfg.Owner.Name,
 		Title:        cfg.Owner.Title,
 		Bio:          cfg.Owner.Bio,
 		ProfileImage: imgProfile,
+		ResumeFile:   resumeFile,
 		Email:        cfg.Owner.Email,
 		Phone:        cfg.Owner.Phone,
 		Location:     cfg.Owner.Location,
@@ -175,6 +213,7 @@ func seedOwner(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	log.Println("Seeded default owner profile")
 }
 
+// seedDemoData creates demo projects, experience, skills, etc if they don't already exist. Safe to call on every startup.
 func seedDemoData(db *gorm.DB) {
 	// Only seed projects/experience/skills/etc if projects table is empty.
 	var count int64
@@ -212,86 +251,124 @@ func seedDemoData(db *gorm.DB) {
 	}
 }
 
-func seedProjects(db *gorm.DB) {
-	projects := []model.Project{
-		{Title: "E-Commerce Platform", Slug: "e-commerce-platform", Description: "A full-featured e-commerce platform with cart, checkout, and payment integration.", Tags: "Go,React,PostgreSQL,Stripe", Status: "published", SortOrder: 1, Featured: true, LiveURL: "https://example.com", RepoURL: "https://github.com/example/ecommerce"},
-		{Title: "Task Management App", Slug: "task-management-app", Description: "Real-time task management application with team collaboration features.", Tags: "TypeScript,Next.js,Prisma,WebSocket", Status: "published", SortOrder: 2, Featured: true, RepoURL: "https://github.com/example/tasks"},
-		{Title: "Weather Dashboard", Slug: "weather-dashboard", Description: "Beautiful weather dashboard with 7-day forecast, radar maps, and location search.", Tags: "Vue.js,OpenWeather API,Chart.js", Status: "published", SortOrder: 3, LiveURL: "https://example.com/weather"},
-		{Title: "Blog Engine", Slug: "blog-engine", Description: "Markdown-powered blog engine with SEO optimization and RSS feed.", Tags: "Go,Fiber,SQLite,HTMX", Status: "published", SortOrder: 4, RepoURL: "https://github.com/example/blog"},
-		{Title: "Chat Application", Slug: "chat-application", Description: "Real-time chat app with rooms, direct messages, and file sharing.", Tags: "Go,WebSocket,Redis,React", Status: "published", SortOrder: 5, Featured: true},
-		{Title: "Portfolio Builder", Slug: "portfolio-builder", Description: "Drag-and-drop portfolio builder for developers with custom themes.", Tags: "Next.js,Tailwind,MongoDB", Status: "published", SortOrder: 6},
-		{Title: "API Gateway", Slug: "api-gateway", Description: "High-performance API gateway with rate limiting, caching, and auth.", Tags: "Go,Redis,Docker,gRPC", Status: "published", SortOrder: 7, RepoURL: "https://github.com/example/gateway"},
-		{Title: "Mobile Fitness App", Slug: "mobile-fitness-app", Description: "Cross-platform fitness tracking app with workout plans and progress charts.", Tags: "Flutter,Firebase,Dart", Status: "published", SortOrder: 8},
-	}
-	db.Create(&projects)
-}
-
+// seedExperiences creates demo work and education experiences. It is intentionally kept in the seed package because it depends on internal/model.
 func seedExperiences(db *gorm.DB) {
-	past1 := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-	past2 := time.Date(2021, 6, 1, 0, 0, 0, 0, time.UTC)
-	past2End := time.Date(2022, 12, 31, 0, 0, 0, 0, time.UTC)
-	past3 := time.Date(2019, 9, 1, 0, 0, 0, 0, time.UTC)
-	past3End := time.Date(2021, 5, 31, 0, 0, 0, 0, time.UTC)
-	edu1 := time.Date(2015, 9, 1, 0, 0, 0, 0, time.UTC)
-	edu1End := time.Date(2019, 6, 30, 0, 0, 0, 0, time.UTC)
+	workStart := time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC)
+	workEnd := time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)
+	eduStart := time.Date(2018, 1, 1, 0, 0, 0, 0, time.UTC)
+	eduEnd := time.Date(2022, 9, 1, 0, 0, 0, 0, time.UTC)
 
 	experiences := []model.Experience{
-		{Type: "Work", Title: "Senior Full-Stack Developer", Org: "Tech Corp", Location: "Jakarta, Indonesia", StartDate: past1, IsCurrent: true, Description: "Leading a team of 5 developers building microservices architecture. Implemented CI/CD pipelines that reduced deployment time by 60%.", SortOrder: 1},
-		{Type: "Work", Title: "Full-Stack Developer", Org: "StartupXYZ", Location: "Bandung, Indonesia", StartDate: past2, EndDate: &past2End, Description: "Built and maintained the core product platform serving 50K+ users. Migrated legacy monolith to Go microservices.", SortOrder: 2},
-		{Type: "Work", Title: "Junior Developer", Org: "WebAgency", Location: "Yogyakarta, Indonesia", StartDate: past3, EndDate: &past3End, Description: "Developed responsive web applications for various clients. Gained experience with React, Node.js, and PostgreSQL.", SortOrder: 3},
-		{Type: "Education", Title: "Bachelor of Computer Science", Org: "Universitas Indonesia", Location: "Jakarta, Indonesia", StartDate: edu1, EndDate: &edu1End, Description: "Graduated with honors. Focus on software engineering and distributed systems.", SortOrder: 4},
+		{
+			Type:        "Work",
+			Title:       "Full Stack Programmer",
+			Org:         "PT. Cyber Smart Network Asia",
+			Location:    "Indonesia",
+			StartDate:   workStart,
+			EndDate:     &workEnd,
+			IsCurrent:   false,
+			Description: "Worked as a Full Stack Programmer responsible for designing, developing, and maintaining web-based applications. Built and integrated backend APIs alongside dynamic frontend interfaces to deliver full-cycle software solutions.",
+			SortOrder:   1,
+			ImageURL:    "https://media.licdn.com/dms/image/v2/C4E0BAQHs0YUQvojhmA/company-logo_200_200/company-logo_200_200/0/1631316640234?e=2147483647&v=beta&t=RSKIYgOB-a3FNYeu3zNumK6iu5Laijgr410euHTSuWA",
+		},
+		{
+			Type:        "Education",
+			Title:       "Bachelor of Informatics Engineering",
+			Org:         "Universitas Kristen Indonesia Toraja",
+			Location:    "Toraja, South Sulawesi, Indonesia",
+			StartDate:   eduStart,
+			EndDate:     &eduEnd,
+			IsCurrent:   false,
+			Description: "Graduated Cum Laude from the Faculty of Engineering, Department of Informatics Engineering with a GPA of 3.89, earning recognition as the best graduate of the class.",
+			SortOrder:   2,
+			ImageURL:    "https://ukitoraja.ac.id/wp-content/uploads/2019/05/Logo-UKIT.png",
+		},
 	}
 	db.Create(&experiences)
 }
 
+// seedProjects creates demo projects. It is intentionally kept in the seed package because it depends on internal/model.
+func seedProjects(db *gorm.DB) {
+	projects := []model.Project{
+		{Title: "E-Commerce Platform", Slug: "e-commerce-platform", Description: "A full-featured e-commerce platform with cart, checkout, and payment integration.", Tags: "Go,React,PostgreSQL,Stripe", Status: "published", SortOrder: 1, Featured: true, LiveURL: "https://example.com", RepoURL: "https://github.com/example/ecommerce", ThumbnailURL: "https://placehold.co/600x400/6366f1/ffffff?text=E-Commerce"},
+		{Title: "Task Management App", Slug: "task-management-app", Description: "Real-time task management application with team collaboration features.", Tags: "TypeScript,Next.js,Prisma,WebSocket", Status: "published", SortOrder: 2, Featured: true, RepoURL: "https://github.com/example/tasks", ThumbnailURL: "https://placehold.co/600x400/8b5cf6/ffffff?text=Task+Manager"},
+		{Title: "Weather Dashboard", Slug: "weather-dashboard", Description: "Beautiful weather dashboard with 7-day forecast, radar maps, and location search.", Tags: "Vue.js,OpenWeather API,Chart.js", Status: "published", SortOrder: 3, LiveURL: "https://example.com/weather", ThumbnailURL: "https://placehold.co/600x400/0ea5e9/ffffff?text=Weather+Dashboard"},
+		{Title: "Blog Engine", Slug: "blog-engine", Description: "Markdown-powered blog engine with SEO optimization and RSS feed.", Tags: "Go,Fiber,SQLite,HTMX", Status: "published", SortOrder: 4, RepoURL: "https://github.com/example/blog", ThumbnailURL: "https://placehold.co/600x400/10b981/ffffff?text=Blog+Engine"},
+		{Title: "Chat Application", Slug: "chat-application", Description: "Real-time chat app with rooms, direct messages, and file sharing.", Tags: "Go,WebSocket,Redis,React", Status: "published", SortOrder: 5, Featured: true, ThumbnailURL: "https://placehold.co/600x400/f59e0b/ffffff?text=Chat+App"},
+		{Title: "Portfolio Builder", Slug: "portfolio-builder", Description: "Drag-and-drop portfolio builder for developers with custom themes.", Tags: "Next.js,Tailwind,MongoDB", Status: "published", SortOrder: 6, ThumbnailURL: "https://placehold.co/600x400/ec4899/ffffff?text=Portfolio+Builder"},
+		{Title: "API Gateway", Slug: "api-gateway", Description: "High-performance API gateway with rate limiting, caching, and auth.", Tags: "Go,Redis,Docker,gRPC", Status: "published", SortOrder: 7, RepoURL: "https://github.com/example/gateway", ThumbnailURL: "https://placehold.co/600x400/ef4444/ffffff?text=API+Gateway"},
+		{Title: "Mobile Fitness App", Slug: "mobile-fitness-app", Description: "Cross-platform fitness tracking app with workout plans and progress charts.", Tags: "Flutter,Firebase,Dart", Status: "published", SortOrder: 8, ThumbnailURL: "https://placehold.co/600x400/14b8a6/ffffff?text=Fitness+App"},
+	}
+	db.Create(&projects)
+}
+
+// seedSkills creates demo skills. It is intentionally kept in the seed package because it depends on internal/model.
 func seedSkills(db *gorm.DB) {
 	skills := []model.Skill{
-		{Name: "Go", Category: "Languages", IconClass: "devicon-go-original-wordmark", Proficiency: 95, SortOrder: 1},
-		{Name: "TypeScript", Category: "Languages", IconClass: "devicon-typescript-plain", Proficiency: 90, SortOrder: 2},
-		{Name: "Python", Category: "Languages", IconClass: "devicon-python-plain", Proficiency: 80, SortOrder: 3},
-		{Name: "JavaScript", Category: "Languages", IconClass: "devicon-javascript-plain", Proficiency: 90, SortOrder: 4},
-		{Name: "React", Category: "Frontend", IconClass: "devicon-react-original", Proficiency: 85, SortOrder: 1},
-		{Name: "Vue.js", Category: "Frontend", IconClass: "devicon-vuejs-plain", Proficiency: 75, SortOrder: 2},
-		{Name: "HTMX", Category: "Frontend", IconClass: "bxf bx-bolt-circle", Proficiency: 90, SortOrder: 3},
-		{Name: "Tailwind CSS", Category: "Frontend", IconClass: "devicon-tailwindcss-original", Proficiency: 85, SortOrder: 4},
-		{Name: "Fiber", Category: "Backend", IconClass: "bxf bx-bolt-circle", Proficiency: 95, SortOrder: 1},
-		{Name: "PostgreSQL", Category: "Backend", IconClass: "devicon-postgresql-plain", Proficiency: 85, SortOrder: 2},
-		{Name: "Redis", Category: "Backend", IconClass: "devicon-redis-plain", Proficiency: 80, SortOrder: 3},
-		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", Proficiency: 85, SortOrder: 1},
-		{Name: "Linux", Category: "DevOps", IconClass: "devicon-linux-plain", Proficiency: 80, SortOrder: 2},
-		{Name: "Git", Category: "DevOps", IconClass: "devicon-git-plain", Proficiency: 90, SortOrder: 3},
+		{Name: "Go", Category: "Languages", IconClass: "devicon-go-original-wordmark", IconURL: deviconCDN + "/go/go-original-wordmark.svg", Proficiency: 85, SortOrder: 1},
+		{Name: "Python", Category: "Languages", IconClass: "devicon-python-plain", IconURL: deviconCDN + "/python/python-original.svg", Proficiency: 75, SortOrder: 2},
+		{Name: "JavaScript", Category: "Languages", IconClass: "devicon-javascript-plain", IconURL: deviconCDN + "/javascript/javascript-plain.svg", Proficiency: 76, SortOrder: 3},
+		{Name: "PHP", Category: "Languages", IconClass: "devicon-php-plain", IconURL: deviconCDN + "/php/php-plain.svg", Proficiency: 80, SortOrder: 4},
+		{Name: "Rust", Category: "Languages", IconClass: "devicon-rust-original", IconURL: deviconCDN + "/rust/rust-original.svg", Proficiency: 5, SortOrder: 5},
+		{Name: "C++", Category: "Languages", IconClass: "devicon-cplusplus-plain", IconURL: deviconCDN + "/cplusplus/cplusplus-original.svg", Proficiency: 50, SortOrder: 6},
+		{Name: "Java", Category: "Languages", IconClass: "devicon-java-plain", IconURL: deviconCDN + "/java/java-original.svg", Proficiency: 30, SortOrder: 7},
+		{Name: "HTMX", Category: "Frontend", IconClass: "bxf bx-bolt-circle", IconURL: "https://cdn.jsdelivr.net/gh/bigskysoftware/htmx@v2.0.4/www/static/img/htmx_logo.1.png", Proficiency: 90, SortOrder: 1},
+		{Name: "Fiber", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gofiber/docs/master/static/img/logo.svg", Proficiency: 90, SortOrder: 1},
+		{Name: "Gin", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gin-gonic/logo/master/color.png", Proficiency: 80, SortOrder: 2},
+		{Name: "Code Igniter", Category: "Backend", IconClass: "devicon-codeigniter-plain", IconURL: deviconCDN + "/codeigniter/codeigniter-plain.svg", Proficiency: 80, SortOrder: 3},
+		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", IconURL: deviconCDN + "/docker/docker-original.svg", Proficiency: 76, SortOrder: 1},
+		{Name: "Linux", Category: "DevOps", IconClass: "devicon-linux-plain", IconURL: deviconCDN + "/linux/linux-original.svg", Proficiency: 80, SortOrder: 2},
+		{Name: "Git", Category: "DevOps", IconClass: "devicon-git-plain", IconURL: deviconCDN + "/git/git-original.svg", Proficiency: 85, SortOrder: 3},
+		{Name: "Adobe Photoshop", Category: "Design", IconClass: "devicon-photoshop-plain", IconURL: deviconCDN + "/photoshop/photoshop-plain.svg", Proficiency: 50, SortOrder: 1},
+		{Name: "Adobe After Effects", Category: "Design", IconClass: "devicon-aftereffects-plain", IconURL: deviconCDN + "/aftereffects/aftereffects-plain.svg", Proficiency: 30, SortOrder: 2},
+		{Name: "Adobe Premiere Pro", Category: "Design", IconClass: "devicon-premierepro-plain", IconURL: deviconCDN + "/premierepro/premierepro-plain.svg", Proficiency: 25, SortOrder: 3},
 	}
 	db.Create(&skills)
 }
 
+// seedSocialLinks creates demo social links. It is intentionally kept in the seed package because it depends on internal/model.
 func seedSocialLinks(db *gorm.DB) {
 	links := []model.SocialLink{
-		{Platform: "GitHub", URL: "https://github.com/johndoe", IconClass: "bxl bx-github", Label: "GitHub", SortOrder: 1},
-		{Platform: "LinkedIn", URL: "https://linkedin.com/in/johndoe", IconClass: "bxl bx-linkedin", Label: "LinkedIn", SortOrder: 2},
-		{Platform: "Instagram", URL: "https://instagram.com/johndoe", IconClass: "bxl bx-instagram", Label: "Instagram", SortOrder: 3},
-		{Platform: "Twitter", URL: "https://twitter.com/johndoe", IconClass: "bxl bx-twitter-x", Label: "Twitter", SortOrder: 4},
+		{Platform: "GitHub", URL: "https://github.com/wecrazy", IconClass: "bxl bx-github", Label: "GitHub", SortOrder: 1},
+		{Platform: "LinkedIn", URL: "https://id.linkedin.com/in/wegirandol-histara-littu-926219195", IconClass: "bxl bx-linkedin", Label: "LinkedIn", SortOrder: 2},
+		{Platform: "Instagram", URL: "https://www.instagram.com/wecraz_y", IconClass: "bxl bx-instagram", Label: "Instagram", SortOrder: 3},
+		{Platform: "Facebook", URL: "https://www.facebook.com/wegil", IconClass: "bxl bx-facebook", Label: "Facebook", SortOrder: 4},
 	}
 	db.Create(&links)
 }
 
+// seedTechStacks creates demo tech stacks. It is intentionally kept in the seed package because it depends on internal/model.
 func seedTechStacks(db *gorm.DB) {
 	stacks := []model.TechStack{
-		{Name: "Go", Category: "Language", IconClass: "devicon-go-original-wordmark", Desc: "Primary backend language", SortOrder: 1},
-		{Name: "TypeScript", Category: "Language", IconClass: "devicon-typescript-plain", Desc: "Frontend & full-stack", SortOrder: 2},
-		{Name: "Python", Category: "Language", IconClass: "devicon-python-plain", Desc: "Scripting & automation", SortOrder: 3},
-		{Name: "Fiber", Category: "Framework", IconClass: "bxf bx-bolt-circle", Desc: "Express-inspired Go web framework", URL: "https://gofiber.io", SortOrder: 1},
-		{Name: "React", Category: "Framework", IconClass: "devicon-react-original", Desc: "UI component library", SortOrder: 2},
-		{Name: "Next.js", Category: "Framework", IconClass: "devicon-nextjs-plain", Desc: "React meta-framework", SortOrder: 3},
-		{Name: "PostgreSQL", Category: "Database", IconClass: "devicon-postgresql-plain", Desc: "Primary relational database", SortOrder: 1},
-		{Name: "SQLite", Category: "Database", IconClass: "devicon-sqlite-plain", Desc: "Embedded database", SortOrder: 2},
-		{Name: "Redis", Category: "Database", IconClass: "devicon-redis-plain", Desc: "Caching & sessions", SortOrder: 3},
-		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", Desc: "Containerization", SortOrder: 1},
-		{Name: "Git", Category: "DevOps", IconClass: "devicon-git-plain", Desc: "Version control", SortOrder: 2},
-		{Name: "Linux", Category: "DevOps", IconClass: "devicon-linux-plain", Desc: "Server OS", SortOrder: 3},
+		{Name: "Go", Category: "Language", IconClass: "devicon-go-original-wordmark", IconURL: deviconCDN + "/go/go-original-wordmark.svg", Desc: "Primary backend language", SortOrder: 1},
+		{Name: "PHP", Category: "Language", IconClass: "devicon-php-plain", IconURL: deviconCDN + "/php/php-plain.svg", Desc: "Web & backend scripting", SortOrder: 2},
+		{Name: "JavaScript", Category: "Language", IconClass: "devicon-javascript-plain", IconURL: deviconCDN + "/javascript/javascript-plain.svg", Desc: "Frontend & backend scripting", SortOrder: 3},
+		{Name: "Python", Category: "Language", IconClass: "devicon-python-plain", IconURL: deviconCDN + "/python/python-original.svg", Desc: "Scripting & automation", SortOrder: 4},
+		{Name: "Rust", Category: "Language", IconClass: "devicon-rust-original", IconURL: deviconCDN + "/rust/rust-original.svg", Desc: "Systems programming & performance-critical code", SortOrder: 5},
+		{Name: "C++", Category: "Language", IconClass: "devicon-cplusplus-plain", IconURL: deviconCDN + "/cplusplus/cplusplus-original.svg", Desc: "Legacy systems & performance optimization", SortOrder: 6},
+		{Name: "Java", Category: "Language", IconClass: "devicon-java-plain", IconURL: deviconCDN + "/java/java-original.svg", Desc: "Enterprise applications & Android development", SortOrder: 7},
+		{Name: "Fiber", Category: "Framework", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gofiber/docs/master/static/img/logo.svg", Desc: "Express-inspired Go web framework", URL: "https://gofiber.io", SortOrder: 1},
+		{Name: "Gin", Category: "Framework", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gin-gonic/logo/master/color.png", Desc: "Minimalist Go web framework", URL: "https://gin-gonic.com", SortOrder: 2},
+		{Name: "Code Igniter", Category: "Framework", IconClass: "devicon-codeigniter-plain", IconURL: deviconCDN + "/codeigniter/codeigniter-plain.svg", Desc: "Lightweight PHP framework", URL: "https://codeigniter.com", SortOrder: 3},
+		{Name: "MySQL", Category: "Database", IconClass: "devicon-mysql-plain", IconURL: deviconCDN + "/mysql/mysql-original.svg", Desc: "Relational database", SortOrder: 1},
+		{Name: "SQLite", Category: "Database", IconClass: "devicon-sqlite-plain", IconURL: deviconCDN + "/sqlite/sqlite-original.svg", Desc: "Embedded database", SortOrder: 2},
+		{Name: "PostgreSQL", Category: "Database", IconClass: "devicon-postgresql-plain", IconURL: deviconCDN + "/postgresql/postgresql-original.svg", Desc: "Primary relational database", SortOrder: 3},
+		{Name: "Redis", Category: "Database", IconClass: "devicon-redis-plain", IconURL: deviconCDN + "/redis/redis-original.svg", Desc: "Caching & sessions", SortOrder: 4},
+		{Name: "MongoDB", Category: "Database", IconClass: "devicon-mongodb-plain", IconURL: deviconCDN + "/mongodb/mongodb-original.svg", Desc: "NoSQL document database", SortOrder: 5},
+		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", IconURL: deviconCDN + "/docker/docker-original.svg", Desc: "Containerization", SortOrder: 1},
+		{Name: "Podman", Category: "DevOps", IconClass: "bxf bx-cube", IconURL: "https://cdn.jsdelivr.net/gh/containers/podman@main/logo/podman-logo-source.svg", IconURLDark: "https://cdn.jsdelivr.net/gh/containers/podman@main/logo/podman-logo-source.svg", Desc: "Alternative container engine", URL: "https://podman.io", SortOrder: 2},
+		{Name: "Git", Category: "DevOps", IconClass: "devicon-git-plain", IconURL: deviconCDN + "/git/git-original.svg", Desc: "Version control", SortOrder: 3},
+		{Name: "Linux", Category: "DevOps", IconClass: "devicon-linux-plain", IconURL: deviconCDN + "/linux/linux-original.svg", Desc: "Server OS", SortOrder: 4},
+		{Name: "Nginx", Category: "DevOps", IconClass: "devicon-nginx-original", IconURL: deviconCDN + "/nginx/nginx-original.svg", Desc: "Web server & reverse proxy", SortOrder: 5},
+		{Name: "Grafana", Category: "DevOps", IconClass: "bxf bx-line-chart", IconURL: "https://cdn.worldvectorlogo.com/logos/grafana.svg", Desc: "Monitoring & observability", URL: "https://grafana.com", SortOrder: 6},
+		{Name: "n8n", Category: "Other Tools", IconClass: "bxf bx-cog", IconURL: "https://cdn.jsdelivr.net/gh/n8n-io/n8n@master/assets/n8n-logo.png", Desc: "Workflow automation tool", URL: "https://n8n.io", SortOrder: 1},
+		{Name: "Postman", Category: "Other Tools", IconClass: "devicon-postman-plain", IconURL: deviconCDN + "/postman/postman-original.svg", Desc: "API documentation & testing tool", URL: "https://www.postman.com", SortOrder: 2},
+		{Name: "ODOO", Category: "Other Tools", IconClass: "bxf bxl-odoo", IconURL: "https://cdn.worldvectorlogo.com/logos/odoo.svg", Desc: "ERP software for business management", URL: "https://www.odoo.com", SortOrder: 3},
 	}
 	db.Create(&stacks)
 }
 
+// seedComments creates demo comments and replies. It is intentionally kept in the seed package because it depends on internal/model.
 func seedComments(db *gorm.DB) {
 	users := []model.OAuthUser{
 		{Provider: "github", ProviderID: "demo-1", Email: "alice@example.com", DisplayName: "Alice Chen", AvatarURL: "https://i.pravatar.cc/150?u=alice"},
@@ -313,6 +390,7 @@ func seedComments(db *gorm.DB) {
 	db.Create(&replies)
 }
 
+// seedPosts creates demo blog posts. It is intentionally kept in the seed package because it depends on internal/model.
 func seedPosts(db *gorm.DB) error {
 	pub1 := time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)
 	pub2 := time.Date(2025, 2, 5, 0, 0, 0, 0, time.UTC)
@@ -353,6 +431,7 @@ func seedPosts(db *gorm.DB) error {
 	return db.Create(&posts).Error
 }
 
+// seedUpcomingItems creates demo upcoming projects and announcements. It is intentionally kept in the seed package because it depends on internal/model.
 func seedUpcomingItems(db *gorm.DB) {
 	items := []model.UpcomingItem{
 		{

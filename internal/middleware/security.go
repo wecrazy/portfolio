@@ -24,9 +24,9 @@ func Security() fiber.Handler {
 		"cdn.jsdelivr.net fonts.googleapis.com cdn.boxicons.com unpkg.com; " +
 		"font-src 'self' fonts.gstatic.com cdn.boxicons.com data:; " +
 		"img-src 'self' data: blob: https:; " +
-		"connect-src 'self' ws: wss: hcaptcha.com newassets.hcaptcha.com; " +
-		"frame-src newassets.hcaptcha.com hcaptcha.com; " +
-		"frame-ancestors 'none'; " +
+		"connect-src 'self' ws: wss: cdn.jsdelivr.net hcaptcha.com newassets.hcaptcha.com; " +
+		"frame-src 'self' newassets.hcaptcha.com hcaptcha.com; " +
+		"frame-ancestors 'self'; " +
 		"object-src 'none'; " +
 		"base-uri 'self'; " +
 		"form-action 'self';"
@@ -34,7 +34,7 @@ func Security() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		// Legacy hardening
 		c.Set("X-Content-Type-Options", "nosniff")
-		c.Set("X-Frame-Options", "DENY")
+		c.Set("X-Frame-Options", "SAMEORIGIN")
 		c.Set("X-XSS-Protection", "1; mode=block")
 		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		c.Set("X-DNS-Prefetch-Control", "off")

@@ -1,10 +1,10 @@
-.PHONY: run build dev seed deps test clean dirs init help revive install-service uninstall-service service-status
+.PHONY: run build dev seed deps test clean clean-static dirs init help revive install-service uninstall-service service-status
 
 APP_NAME := my-portfolio
 BIN_DIR  := bin
 CMD_DIR  := cmd/server
 
-run:
+run: clean-static
 	go run $(CMD_DIR)/main.go
 
 build:
@@ -46,6 +46,10 @@ service-status:
 clean:
 	rm -rf $(BIN_DIR)
 
+clean-static:
+	@find web/static -name '*.fiber.br' -o -name '*.fiber.gz' | xargs rm -f 2>/dev/null; true
+	@echo "Cleared stale static compression cache"
+
 dirs:
 	mkdir -p uploads/images uploads/resume data
 
@@ -58,17 +62,18 @@ init: dirs deps
 
 help:
 	@echo "Available targets:"
-	@echo "  run        - Run the server"
-	@echo "  build      - Build binary to bin/"
-	@echo "  dev        - Run with air hot-reload"
-	@echo "  seed       - Seed initial data"
-	@echo "  deps       - Tidy and download Go modules"
-	@echo "  revive     - Run revive linter"
-	@echo "  test       - Run all tests"
-	@echo "  clean      - Remove build artifacts"
-	@echo "  dirs       - Create required directories"
-	@echo "  db-reset   - Delete DB and re-seed"
-	@echo "  init             - Full project initialization"
-	@echo "  install-service  - Build and install as OS service (needs sudo on Linux)"
-	@echo "  uninstall-service- Stop and remove the OS service"
-	@echo "  service-status   - Show service status"
+	@echo "  run        				- Run the server"
+	@echo "  build      				- Build binary to bin/"
+	@echo "  dev        				- Run with air hot-reload"
+	@echo "  seed       				- Seed initial data"
+	@echo "  deps       				- Tidy and download Go modules"
+	@echo "  revive     				- Run revive linter"
+	@echo "  test       				- Run all tests"
+	@echo "  clean        				- Remove build artifacts"
+	@echo "  clean-static 				- Delete stale .fiber.br/.fiber.gz static cache files"
+	@echo "  dirs      				- Create required directories"
+	@echo "  db-reset  				- Delete DB and re-seed"
+	@echo "  init             			- Full project initialization"
+	@echo "  install-service  			- Build and install as OS service (needs sudo on Linux)"
+	@echo "  uninstall-service 			- Stop and remove the OS service"
+	@echo "  service-status  			- Show service status"

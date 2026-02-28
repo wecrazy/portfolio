@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark" data-default-lang="{{.DefaultLang}}" data-app-version="{{appVersion}}">
+<html lang="en" data-bs-theme="dark" data-default-lang="{{.DefaultLang}}" data-content-lang="en" data-app-version="{{appVersion}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,7 +40,7 @@
             link.as='fetch';
             link.crossOrigin='anonymous';
             var v=document.documentElement.getAttribute('data-app-version')||'';
-            link.href='/static/lang/'+l+'.json'+(v?'?v='+v:'');
+            link.href='/lang/'+l+(v?'?v='+v:'');
             document.head.appendChild(link);
         }
     })();

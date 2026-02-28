@@ -30,10 +30,17 @@
             var list = document.getElementById('comment-list');
             if (list) htmx.trigger(list, 'refresh');
           }
-          if (d.user) window.showToast(d.user + ' left a comment', 'info');
+          if (d.user) {
+            var commentMsg = window.t
+              ? window.t('ws.new_comment', '{user} left a comment').replace('{user}', d.user)
+              : d.user + ' left a comment';
+            window.showToast(commentMsg, 'info');
+          }
 
         } else if (event.type === 'shutdown') {
-          var msg = (event.data && event.data.message) || 'Server is restarting — please wait…';
+          var msg = window.t
+            ? window.t('ws.shutdown', 'Server is restarting — please wait…')
+            : (event.data && event.data.message) || 'Server is restarting — please wait…';
           window.showToast(msg, 'warning');
           ws.close();
           setTimeout(function () { connect(); }, reconnectDelay * 3);

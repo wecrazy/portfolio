@@ -6,10 +6,10 @@ app:
   base_url: "http://localhost:6969"
   debug: true
   log_level: "DEBUG"
-  secret_key: "change-me-to-a-random-32-char-string!"
+  secret_key: "a8F3kLm9Qz2Xc7Vb1Nw4Rt6Yp0Hs5JuK"
   static_dir: "./web"
   upload_dir: "./uploads"
-  shutdown_timeout: 10
+  shutdown_timeout: 3
 
 database:
   dsn: "./data/portfolio.db"
@@ -19,9 +19,9 @@ database:
   log_level: "error"
 
 admin:
-  default_username: "admin"
-  default_password: "admin123"
-  default_email: "admin@example.com"
+  default_username: "wegil"
+  default_password: "Odoo12345#"
+  default_email: "wegirandolhistaralittu@gmail.com"
   session_ttl: 480
   cookie_name: "portfolio_session"
   cookie_secure: false
@@ -98,11 +98,10 @@ table_names:
   upcoming_items: "upcoming_items"
 
 owner:
-  name: "Johnny Doe"
+  name: "Wegirandol Histara Littu"
   title: "Full Stack Developer"
-  # bio: "Passionate developer with experience in building web applications. Skilled in Go, React, and cloud technologies. Always eager to learn and take on new challenges."
-  bio: "Gak tau males pengen beli truck"
-  profile_image: "/static/images/profile.jpg"
-  email: "john.doe@example.com"
-  phone: "+1 (555) 123-4567"
-  location: "San Francisco, CA"
+  bio: "Passionate developer with experience +3 years in building applications, websites, chat bot and APIs. Skilled in Go & PHP. Always eager to learn and take on new challenges."
+  profile_image: "/static/img/profile.jpg"
+  email: "wegirandolhistaralittu@gmail.com"
+  phone: "+62 851-7320-7755"
+  location: "Jakarta, Indonesia"

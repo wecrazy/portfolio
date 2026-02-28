@@ -7,6 +7,7 @@ import (
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/hub"
+	"my-portfolio/pkg/translate"
 
 	contribcb "github.com/gofiber/contrib/v3/circuitbreaker"
 	contribloadshed "github.com/gofiber/contrib/v3/loadshed"
@@ -115,6 +116,8 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, h *hub.Hub) {
 	cbMiddleware := contribcb.Middleware(cb)
 
 	// ── 4. Route groups ────────────────────────────────────────────
+	translator := translate.New()
+	registerAPIRoutes(app, db, cbMiddleware, translator)
 	registerPublicRoutes(app, db, h, cbMiddleware, contactLimiter, commentLimiter)
 	registerAuthRoutes(app, db, loginLimiter)
 	registerAdminRoutes(app, db)
