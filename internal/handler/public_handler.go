@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"math"
 	"strconv"
+	"strings"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
@@ -10,19 +12,34 @@ import (
 	"gorm.io/gorm"
 )
 
+const projectPageSize = 6
+const upcomingPageSize = 6
+
 // PortfolioPage renders the public portfolio with all published content.
 func PortfolioPage(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
 
-		// Load first page of projects (6 items).
-		const pageSize = 6
+		// ── Projects (first page) ──────────────────────────────────
 		var projects []model.Project
 		var totalProjects int64
 		db.Model(&model.Project{}).Where("status = ?", "published").Count(&totalProjects)
-		db.Where("status = ?", "published").Order("sort_order ASC, created_at DESC").Limit(pageSize).Find(&projects)
+		db.Where("status = ?", "published").
+			Order("sort_order ASC, created_at DESC").
+			Limit(projectPageSize).Find(&projects)
+		projectTotalPages := int(math.Ceil(float64(totalProjects) / float64(projectPageSize)))
 
+		// ── Upcoming (first page) ──────────────────────────────────
+		var upcomingItems []model.UpcomingItem
+		var totalUpcoming int64
+		db.Model(&model.UpcomingItem{}).Where("is_visible = ?", true).Count(&totalUpcoming)
+		db.Where("is_visible = ?", true).
+			Order("sort_order ASC, created_at ASC").
+			Limit(upcomingPageSize).Find(&upcomingItems)
+		upcomingTotalPages := int(math.Ceil(float64(totalUpcoming) / float64(upcomingPageSize)))
+
+		// ── Other data ─────────────────────────────────────────────
 		var experiences []model.Experience
 		db.Preload("Image").Order("sort_order ASC, start_date DESC").Find(&experiences)
 
@@ -35,30 +52,19 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 		var techStacks []model.TechStack
 		db.Order("category ASC, sort_order ASC").Find(&techStacks)
 
-		var upcomingItems []model.UpcomingItem
-		db.Where("is_visible = ?", true).Order("sort_order ASC, created_at ASC").Find(&upcomingItems)
-
-		// Group skills by category.
 		skillsByCategory := make(map[string][]model.Skill)
 		for _, s := range skills {
 			skillsByCategory[s.Category] = append(skillsByCategory[s.Category], s)
 		}
 
-		// Group tech stacks by category.
 		techByCategory := make(map[string][]model.TechStack)
 		for _, t := range techStacks {
 			techByCategory[t.Category] = append(techByCategory[t.Category], t)
 		}
 
-		// Get visitor session info for comment section.
-		visitorLoggedIn := false
-		token := c.Cookies("visitor_session")
-		if token != "" {
-			visitorLoggedIn = true
-		}
+		visitorLoggedIn := c.Cookies("visitor_session") != ""
 
 		cfg := config.MyPortfolio.Get()
-		// Build OG image and description for social sharing.
 		ogImage := cfg.App.BaseURL + "/static/img/favicon.svg"
 		if owner.ProfileImage != nil {
 			ogImage = cfg.App.BaseURL + "/uploads/images/" + owner.ProfileImage.StoredName
@@ -72,51 +78,93 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 		}
 
 		return c.Render("public/portfolio", fiber.Map{
-			"Title":            owner.FullName,
-			"BaseURL":          cfg.App.BaseURL,
-			"OGImage":          ogImage,
-			"OGDescription":    ogDesc,
-			"Owner":            owner,
-			"Projects":         projects,
-			"HasMoreProjects":  totalProjects > pageSize,
-			"NextPage":         2,
-			"Experiences":      experiences,
-			"Skills":           skills,
-			"SkillsByCategory": skillsByCategory,
-			"TechByCategory":   techByCategory,
-			"SocialLinks":      socialLinks,
-			"UpcomingItems":    upcomingItems,
-			"VisitorLoggedIn":  visitorLoggedIn,
-			"SupportedLangs":   cfg.I18n.SupportedLangs,
-			"DefaultLang":      cfg.I18n.DefaultLang,
+			"Title":               owner.FullName,
+			"BaseURL":             cfg.App.BaseURL,
+			"OGImage":             ogImage,
+			"OGDescription":       ogDesc,
+			"Owner":               owner,
+			"Projects":            projects,
+			"ProjectCurrentPage":  1,
+			"ProjectTotalPages":   projectTotalPages,
+			"Experiences":         experiences,
+			"Skills":              skills,
+			"SkillsByCategory":    skillsByCategory,
+			"TechByCategory":      techByCategory,
+			"SocialLinks":         socialLinks,
+			"UpcomingItems":       upcomingItems,
+			"UpcomingCurrentPage": 1,
+			"UpcomingTotalPages":  upcomingTotalPages,
+			"VisitorLoggedIn":     visitorLoggedIn,
+			"SupportedLangs":      cfg.I18n.SupportedLangs,
+			"DefaultLang":         cfg.I18n.DefaultLang,
 		}, "layouts/public_base")
 	}
 }
 
-// ProjectsPage returns the next batch of projects as an HTMX partial.
+// ProjectsPage returns a paginated, searchable project grid as an HTMX partial.
 func ProjectsPage(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		const pageSize = 6
 		page, _ := strconv.Atoi(c.Query("page", "1"))
 		if page < 1 {
 			page = 1
 		}
-		offset := (page - 1) * pageSize
+		q := strings.TrimSpace(c.Query("q", ""))
+		offset := (page - 1) * projectPageSize
+
+		query := db.Model(&model.Project{}).Where("status = ?", "published")
+		if q != "" {
+			like := "%" + q + "%"
+			query = query.Where("title LIKE ? OR tags LIKE ? OR description LIKE ?", like, like, like)
+		}
+
+		var total int64
+		query.Count(&total)
 
 		var projects []model.Project
-		var total int64
-		db.Model(&model.Project{}).Where("status = ?", "published").Count(&total)
-		db.Where("status = ?", "published").
-			Order("sort_order ASC, created_at DESC").
-			Offset(offset).Limit(pageSize).
+		query.Order("sort_order ASC, created_at DESC").
+			Offset(offset).Limit(projectPageSize).
 			Find(&projects)
 
-		hasMore := int64(offset+pageSize) < total
+		totalPages := int(math.Ceil(float64(total) / float64(projectPageSize)))
 
 		return c.Render("partials/project_cards", fiber.Map{
-			"Projects":        projects,
-			"HasMoreProjects": hasMore,
-			"NextPage":        page + 1,
+			"Projects":    projects,
+			"CurrentPage": page,
+			"TotalPages":  totalPages,
+		})
+	}
+}
+
+// UpcomingPage returns a paginated, searchable upcoming-items grid as an HTMX partial.
+func UpcomingPage(db *gorm.DB) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		page, _ := strconv.Atoi(c.Query("page", "1"))
+		if page < 1 {
+			page = 1
+		}
+		q := strings.TrimSpace(c.Query("q", ""))
+		offset := (page - 1) * upcomingPageSize
+
+		query := db.Model(&model.UpcomingItem{}).Where("is_visible = ?", true)
+		if q != "" {
+			like := "%" + q + "%"
+			query = query.Where("title LIKE ? OR description LIKE ?", like, like)
+		}
+
+		var total int64
+		query.Count(&total)
+
+		var upcomingItems []model.UpcomingItem
+		query.Order("sort_order ASC, created_at ASC").
+			Offset(offset).Limit(upcomingPageSize).
+			Find(&upcomingItems)
+
+		totalPages := int(math.Ceil(float64(total) / float64(upcomingPageSize)))
+
+		return c.Render("partials/upcoming_cards", fiber.Map{
+			"UpcomingItems": upcomingItems,
+			"CurrentPage":   page,
+			"TotalPages":    totalPages,
 		})
 	}
 }

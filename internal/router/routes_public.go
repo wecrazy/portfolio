@@ -47,11 +47,13 @@ func registerPublicRoutes(
 	// ── Locale JSON ────────────────────────────────────────────────
 	// Single source of truth served from web/locales/*.yaml.
 	app.Get("/lang/:code", handler.LangJSON("web/locales"))
-
 	// ── Portfolio & resume ─────────────────────────────────────────
 	app.Get("/", handler.PortfolioPage(db))
 	app.Get("/resume", handler.ServeResumePDF(db))
 	app.Get("/resume/download", handler.DownloadResumePDF(db))
+	// HTMX partials for project + upcoming pagination/search
+	app.Get("/projects", handler.ProjectsPage(db))
+	app.Get("/upcoming", handler.UpcomingPage(db))
 
 	// ── OAuth ──────────────────────────────────────────────────────
 	app.Get("/auth/google", handler.GoogleLogin())
@@ -63,9 +65,6 @@ func registerPublicRoutes(
 	// ── Comments ───────────────────────────────────────────────────
 	app.Get("/comments", cb, handler.GetComments(db))
 	app.Post("/comments", commentLimiter, cb, middleware.OAuthAuth(), handler.PostComment(db, h))
-
-	// ── Projects ───────────────────────────────────────────────────
-	app.Get("/projects", handler.ProjectsPage(db))
 
 	// ── Blog ───────────────────────────────────────────────────────
 	app.Get("/blog", handler.BlogListPage(db))

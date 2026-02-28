@@ -305,22 +305,85 @@ h1, h2, h3, h4, h5, h6 {
 .about-image-wrapper {
     max-width: 350px;
     position: relative;
+    animation: profileFloat 5s ease-in-out infinite;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    perspective: 800px;
+    transition: transform 0.4s ease;
 }
 
+/* Spinning gradient ring */
 .about-image-wrapper::before {
     content: '';
     position: absolute;
-    inset: -8px;
-    border-radius: 20px;
-    background: var(--gradient-primary);
-    opacity: 0.3;
+    inset: -4px;
+    border-radius: 22px;
+    background: conic-gradient(
+        from 0deg,
+        #6c63ff, #a78bfa, #06b6d4, #10b981, #f59e0b, #ef4444, #6c63ff
+    );
     z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease, inset 0.4s ease;
+}
+
+/* Shine sweep overlay */
+.about-image-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        transparent 30%,
+        rgba(255,255,255,0.18) 50%,
+        transparent 70%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    background-position: -100% 0;
+    transition: background-position 0.6s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.about-image-wrapper:hover::before {
+    opacity: 1;
+    inset: -5px;
+    animation: ringRotate 2.5s linear infinite;
+}
+
+.about-image-wrapper:hover::after {
+    background-position: 200% 0;
+}
+
+.about-image-wrapper:hover {
+    animation: none;
+    transform: scale(1.04) translateY(-6px);
+}
+
+@keyframes ringRotate {
+    from { filter: hue-rotate(0deg); }
+    to   { filter: hue-rotate(360deg); }
+}
+
+@keyframes profileFloat {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-10px); }
 }
 
 .about-image {
     object-fit: cover;
     aspect-ratio: 1;
     width: 100%;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.about-image-wrapper:hover .about-image {
+    box-shadow: 0 20px 60px rgba(108, 99, 255, 0.45);
 }
 
 .about-image-placeholder {
@@ -402,46 +465,76 @@ h1, h2, h3, h4, h5, h6 {
 /* ---------- Experience Background Thumbnail ---------- */
 .experience-bg-image {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 40%;
-    height: 100%;
+    inset: 0;
     z-index: 0;
     overflow: hidden;
     pointer-events: none;
+    border-radius: inherit;
 }
 
 .experience-bg-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.12;
-    filter: grayscale(30%);
+    object-position: right center;
+    opacity: 0.22;
+    filter: grayscale(70%) blur(1px);
+    transform: scale(1.06); /* slight zoom prevents blurred edge bleed */
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Two-layer overlay: left-side solid fill for text legibility + subtle vignette */
+.experience-bg-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        var(--bg-dark-2) 0%,
+        var(--bg-dark-2) 38%,
+        color-mix(in srgb, var(--bg-dark-2) 70%, transparent) 62%,
+        color-mix(in srgb, var(--bg-dark-2) 35%, transparent) 100%
+    );
+    z-index: 1;
 }
 
 .experience-bg-image::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, var(--bg-dark-2) 0%, transparent 100%);
-    z-index: 1;
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--bg-dark-2) 30%, transparent) 0%,
+        transparent 30%,
+        transparent 70%,
+        color-mix(in srgb, var(--bg-dark-2) 40%, transparent) 100%
+    );
+    z-index: 2;
+}
+
+/* Subtle image reveal on hover */
+.timeline-content:hover .experience-bg-image img {
+    opacity: 0.32;
+    transform: scale(1.03);
 }
 
 .experience-content {
     position: relative;
-    z-index: 2;
+    z-index: 3;
 }
 
 /* ---------- Text Truncation with See More ---------- */
 .text-truncate-clamp {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
 .text-truncate-clamp.expanded {
     -webkit-line-clamp: unset;
+    line-clamp: unset;
     overflow: visible;
 }
 
@@ -483,6 +576,23 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--gradient-primary);
     border-radius: 3px;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Proficiency tier colours — applied via JS on scroll-in */
+.skill-bar-fill[data-level="beginner"] {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+.skill-bar-fill[data-level="elementary"] {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+}
+.skill-bar-fill[data-level="intermediate"] {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+.skill-bar-fill[data-level="advanced"] {
+    background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+}
+.skill-bar-fill[data-level="expert"] {
+    background: var(--gradient-primary);
 }
 
 /* ===================================================
@@ -548,6 +658,18 @@ h1, h2, h3, h4, h5, h6 {
 /* ===================================================
    RESPONSIVE
    =================================================== */
+/* Tighten nav-link padding on screens where the navbar is expanded but space is tight */
+@media (max-width: 1199px) {
+    .nav-link {
+        padding: 6px 10px !important;
+        font-size: 0.85rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+}
+
 @media (max-width: 768px) {
     .hero-section {
         min-height: 90vh;
@@ -586,10 +708,6 @@ h1, h2, h3, h4, h5, h6 {
     .hero-orb-1 { width: 200px; height: 200px; }
     .hero-orb-2 { width: 150px; height: 150px; }
     .hero-orb-3 { width: 100px; height: 100px; }
-
-    .experience-bg-image {
-        width: 50%;
-    }
 }
 
 @media (max-width: 576px) {
@@ -664,4 +782,41 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-bs-theme="light"] .icon-auto-theme {
     filter: brightness(0.2);
+}
+
+/* ===================================================
+   PAGINATION — project & upcoming sections
+   =================================================== */
+.pagination .page-link {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    min-width: 2.2rem;
+    text-align: center;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.pagination .page-link:hover:not(:disabled) {
+    background: var(--glass-hover);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* Subtle pulse on the grid while HTMX fetches */
+.htmx-request #project-list-area,
+.htmx-request #upcoming-list-area {
+    opacity: 0.6;
+    transition: opacity 0.15s;
 }

@@ -108,7 +108,7 @@
         // Minimal i18n for login page
         var lang = localStorage.getItem('admin-lang') || 'en';
         if (lang !== 'en') {
-            fetch('/static/lang/' + lang + '.json')
+            fetch('/lang/' + lang)
                 .then(function (r) { return r.json(); })
                 .then(function (dict) {
                     document.querySelectorAll('[data-i18n]').forEach(function (el) {

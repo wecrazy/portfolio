@@ -40,5 +40,6 @@ uploads/resume/*
 # .vscode/
 
 *.fiber.gz
+*.fiber.br
 log/
 bin/

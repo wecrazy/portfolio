@@ -1,7 +1,7 @@
 <tr id="techstack-{{.Tech.ID}}">
     <td>
-        {{if .Tech.IconClass}}<i class="{{.Tech.IconClass}} fs-4"></i>
-        {{else if .Tech.IconURL}}<img src="{{.Tech.IconURL}}" width="28" height="28" alt="">
+        {{if .Tech.IconURL}}<img src="{{.Tech.IconURL}}" width="28" height="28" alt="">
+        {{else if .Tech.IconClass}}<i class="{{.Tech.IconClass}} fs-4"></i>
         {{else}}<i class="bx bx-code-alt fs-4"></i>{{end}}
     </td>
     <td><strong>{{.Tech.Name}}</strong></td>

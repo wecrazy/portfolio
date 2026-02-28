@@ -1,5 +1,5 @@
 <!-- ======================= A. NAVBAR ======================= -->
-<nav class="navbar navbar-expand-lg fixed-top glass-nav" id="mainNav">
+<nav class="navbar navbar-expand-xl fixed-top glass-nav" id="mainNav">
     <div class="container">
         <a class="navbar-brand fw-bold gradient-text" href="#hero">{{.Owner.FullName}}</a>
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,7 @@
             <div class="d-flex align-items-center gap-2">
                 {{if .Owner.ResumeFile}}
                 <a href="/resume" class="btn btn-outline-light btn-sm" target="_blank">
-                    <i class="bx bx-file me-1"></i><span data-i18n="nav.resume">Resume</span>
+                    <i class="bx bx-file-detail me-1"></i><span data-i18n="nav.resume">Resume</span>
                 </a>
                 {{end}}
                 <!-- Language Switcher -->
@@ -48,10 +48,10 @@
     <div class="container position-relative z-1">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <h1 class="display-2 fw-bold mb-3 gradient-text" data-aos="fade-down">{{.Owner.FullName}}</h1>
+                <h1 class="display-1 fw-bold mb-3 gradient-text" data-aos="fade-down">{{.Owner.FullName}}</h1>
                 <p class="lead fs-4 text-secondary mb-4" data-aos="fade-up" data-aos-delay="100">{{.Owner.Title}}</p>
                 {{if .Owner.Bio}}
-                <p class="text-muted mb-4 mx-auto" style="max-width: 600px;" data-aos="fade-up" data-aos-delay="200">{{.Owner.Bio}}</p>
+                <!-- <p class="text-muted mb-4 mx-auto" style="max-width: 600px;" data-aos="fade-up" data-aos-delay="200">{{.Owner.Bio}}</p> -->
                 {{end}}
                 <div class="d-flex justify-content-center gap-3 mb-4" data-aos="fade-up" data-aos-delay="300">
                     <a href="#projects" class="btn btn-gradient btn-lg px-4">
@@ -93,7 +93,7 @@
             </div>
             <div class="col-lg-7" data-aos="fade-left">
                 {{if .Owner.Bio}}
-                <p class="fs-5 text-muted mb-4">{{.Owner.Bio}}</p>
+                <p class="fs-5 text-muted mb-4" data-translate>{{.Owner.Bio}}</p>
                 {{end}}
                 <div class="row g-3">
                     {{if .Owner.Title}}
@@ -133,6 +133,16 @@
                     </div>
                     {{end}}
                 </div>
+                {{if .Owner.ResumeFile}}
+                <div class="d-flex gap-3 mt-4">
+                    <a href="/resume" target="_blank" class="btn btn-gradient px-4">
+                        <i class="bx bx-eye me-2"></i><span data-i18n="about.resume_view">View Resume</span>
+                    </a>
+                    <a href="/resume/download" class="btn btn-outline-light px-4">
+                        <i class="bx bx-save me-2"></i><span data-i18n="about.resume_download">Download</span>
+                    </a>
+                </div>
+                {{end}}
             </div>
         </div>
     </div>
@@ -157,8 +167,8 @@
                     </div>
                     {{end}}
                     <div class="experience-content">
-                        <span class="badge bg-gradient-primary mb-2">{{$exp.Type}}</span>
-                        <h4 class="mb-1">{{$exp.Title}}</h4>
+                        <span class="badge bg-gradient-primary mb-2" data-translate>{{$exp.Type}}</span>
+                        <h4 class="mb-1" data-translate>{{$exp.Title}}</h4>
                         <h6 class="text-secondary mb-2">{{$exp.Org}}</h6>
                         <p class="small text-muted mb-2">
                             <i class="bx bx-calendar me-1"></i>
@@ -175,12 +185,12 @@
                         </p>
                         {{if $exp.Location}}
                         <p class="small text-muted mb-2">
-                            <i class="bx bx-map me-1"></i>{{$exp.Location}}
+                            <i class="bx bx-map me-1"></i><span>{{$exp.Location}}</span>
                         </p>
                         {{end}}
                         {{if $exp.Description}}
                         <div class="truncate-wrapper">
-                            <p class="mb-0 text-muted text-truncate-clamp">{{$exp.Description}}</p>
+                            <p class="mb-0 text-muted text-truncate-clamp" data-translate>{{$exp.Description}}</p>
                             <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
                         </div>
                         {{end}}
@@ -204,14 +214,14 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="glass-card p-3 skill-card">
                         <div class="d-flex align-items-center mb-2">
-                            {{if .IconClass}}
-                            <i class="{{.IconClass}} fs-5 me-2 gradient-text"></i>
-                            {{else if .IconURL}}
+                            {{if .IconURL}}
                                 {{if .IconURLDark}}
                                 <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}" class="theme-icon me-2" width="24" height="24" alt="{{.Name}}" loading="lazy">
                                 {{else}}
                                 <img src="{{.IconURL}}" class="icon-auto-theme me-2" width="24" height="24" alt="{{.Name}}" loading="lazy">
                                 {{end}}
+                            {{else if .IconClass}}
+                            <i class="{{.IconClass}} fs-5 me-2 gradient-text"></i>
                             {{end}}
                             <span class="fw-semibold">{{.Name}}</span>
                             <span class="ms-auto small text-muted">{{.Proficiency}}%</span>
@@ -241,14 +251,14 @@
                 <div class="col-6 col-md-4 col-lg-3">
                     <div class="glass-card p-3 text-center h-100">
                         <div class="mb-2">
-                            {{if .IconClass}}
-                            <i class="{{.IconClass}} fs-1 gradient-text"></i>
-                            {{else if .IconURL}}
+                            {{if .IconURL}}
                                 {{if .IconURLDark}}
                                 <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}" class="theme-icon" width="48" height="48" alt="{{.Name}}" loading="lazy">
                                 {{else}}
                                 <img src="{{.IconURL}}" class="icon-auto-theme" width="48" height="48" alt="{{.Name}}" loading="lazy">
                                 {{end}}
+                            {{else if .IconClass}}
+                            <i class="{{.IconClass}} fs-1 gradient-text"></i>
                             {{else}}
                             <i class="bx bx-code-alt fs-1 gradient-text"></i>
                             {{end}}
@@ -271,50 +281,96 @@
 <section id="projects" class="section-padding">
     <div class="container">
         <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.projects">Projects</h2>
-        <div class="row g-4" id="project-grid">
-            {{range $i, $proj := .Projects}}
-            <div class="col-md-6 col-lg-4" data-aos="zoom-in">
-                <div class="glass-card project-card h-100 d-flex flex-column">
-                    {{if $proj.ThumbnailURL}}
-                    <div class="project-thumbnail">
-                        <img src="{{$proj.ThumbnailURL}}" alt="{{$proj.Title}}" class="img-fluid rounded-top-4" loading="lazy">
-                    </div>
-                    {{end}}
-                    <div class="p-4 flex-grow-1 d-flex flex-column">
-                        <h5 class="fw-bold mb-2">{{$proj.Title}}</h5>
-                        {{if $proj.Description}}
-                        <p class="text-muted small mb-3 flex-grow-1">{{$proj.Description}}</p>
-                        {{end}}
-                        {{if $proj.Tags}}
-                        <div class="mb-3">
-                            {{range split $proj.Tags ","}}
-                            <span class="badge bg-glass me-1 mb-1">{{.}}</span>
-                            {{end}}
+        <!-- Search bar -->
+        <div class="row justify-content-center mb-4" data-aos="fade-up">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-glass">
+                        <i class="bx bx-search text-muted"></i>
+                    </span>
+                    <input type="search" id="project-search" name="q"
+                        class="form-control bg-transparent border-glass"
+                        placeholder="Search projects..."
+                        data-i18n-placeholder="project.search"
+                        hx-get="/projects"
+                        hx-trigger="input changed delay:400ms, search"
+                        hx-target="#project-list-area"
+                        hx-swap="innerHTML">
+                </div>
+            </div>
+        </div>
+        <!-- Card grid + pagination (replaced by HTMX on search/page click) -->
+        <div id="project-list-area">
+            {{if .Projects}}
+            <div class="row g-4 mb-4">
+                {{range $i, $proj := .Projects}}
+                <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+                    <div class="glass-card project-card h-100 d-flex flex-column">
+                        {{if $proj.ThumbnailURL}}
+                        <div class="project-thumbnail">
+                            <img src="{{$proj.ThumbnailURL}}" alt="{{$proj.Title}}" class="img-fluid rounded-top-4" loading="lazy">
                         </div>
                         {{end}}
-                        <div class="d-flex gap-2 mt-auto">
-                            {{if $proj.LiveURL}}
-                            <a href="{{$proj.LiveURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-gradient">
-                                <i class="bx bx-arrow-out-up-left-stroke-square me-1"></i><span data-i18n="project.live">Live</span>
-                            </a>
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <h5 class="fw-bold mb-2">{{$proj.Title}}</h5>
+                            {{if $proj.Description}}
+                            <p class="text-muted small mb-3 flex-grow-1">{{$proj.Description}}</p>
                             {{end}}
-                            {{if $proj.RepoURL}}
-                            <a href="{{$proj.RepoURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-light">
-                                <i class="bxl bx-github me-1"></i><span data-i18n="project.code">Code</span>
-                            </a>
+                            {{if $proj.Tags}}
+                            <div class="mb-3">
+                                {{range split $proj.Tags ","}}
+                                <span class="badge bg-glass me-1 mb-1">{{.}}</span>
+                                {{end}}
+                            </div>
                             {{end}}
+                            <div class="d-flex gap-2 mt-auto">
+                                {{if $proj.LiveURL}}
+                                <a href="{{$proj.LiveURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-gradient">
+                                    <i class="bx bx-arrow-out-up-left-stroke-square me-1"></i><span data-i18n="project.live">Live</span>
+                                </a>
+                                {{end}}
+                                {{if $proj.RepoURL}}
+                                <a href="{{$proj.RepoURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-light">
+                                    <i class="bxl bx-github me-1"></i><span data-i18n="project.code">Code</span>
+                                </a>
+                                {{end}}
+                            </div>
                         </div>
                     </div>
                 </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="text-center py-5">
+                <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
+                <p class="text-muted fs-5" data-i18n="project.not_found">No projects found.</p>
             </div>
             {{end}}
-            {{if .HasMoreProjects}}
-            <div id="load-more-projects" class="col-12 text-center py-4"
-                 hx-get="/projects?page={{.NextPage}}" hx-trigger="revealed" hx-swap="outerHTML" hx-target="#load-more-projects">
-                <div class="spinner-border spinner-border-sm text-muted" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+            {{if gt .ProjectTotalPages 1}}
+            <nav aria-label="Projects pagination" class="d-flex justify-content-center mt-2">
+                <ul class="pagination pagination-sm gap-1 mb-0">
+                    <li class="page-item disabled">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
+                    </li>
+                    {{range seq .ProjectTotalPages}}
+                    {{$p := add . 1}}
+                    <li class="page-item {{if eq $p 1}}active{{end}}">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/projects?page={{$p}}"
+                            hx-include="#project-search"
+                            hx-target="#project-list-area"
+                            hx-swap="innerHTML">{{$p}}</button>
+                    </li>
+                    {{end}}
+                    <li class="page-item">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/projects?page=2"
+                            hx-include="#project-search"
+                            hx-target="#project-list-area"
+                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
             {{end}}
         </div>
     </div>
@@ -324,53 +380,100 @@
 <section id="upcoming" class="section-padding bg-darker">
     <div class="container">
         <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.upcoming">What's Next</h2>
-        {{if .UpcomingItems}}
-        <div class="row g-4">
-            {{range .UpcomingItems}}
-            <div class="col-md-6 col-lg-4" data-aos="zoom-in">
-                <div class="glass-card p-4 h-100">
-                    <div class="d-flex align-items-start mb-3 gap-3">
-                        <div class="flex-shrink-0">
-                            {{if .IconClass}}
-                            <i class="{{.IconClass}} fs-2 gradient-text"></i>
-                            {{else}}
-                            <i class="bx bx-rocket fs-2 gradient-text"></i>
-                            {{end}}
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="mb-1">
-                                {{if eq .Type "project"}}
-                                <span class="badge bg-primary me-1" data-i18n="upcoming.type.project">Future Project</span>
-                                {{else}}
-                                <span class="badge bg-info text-dark me-1" data-i18n="upcoming.type.announcement">Announcement</span>
-                                {{end}}
-                                {{if eq .Status "in-progress"}}
-                                <span class="badge bg-success" data-i18n="upcoming.status.in_progress">In Progress</span>
-                                {{else if eq .Status "coming-soon"}}
-                                <span class="badge bg-warning text-dark" data-i18n="upcoming.status.coming_soon">Coming Soon</span>
-                                {{else}}
-                                <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
-                                {{end}}
-                            </div>
-                            <h5 class="fw-bold mb-0">{{.Title}}</h5>
-                        </div>
-                    </div>
-                    {{if .Description}}
-                    <div class="truncate-wrapper">
-                        <p class="text-muted small mb-0 text-truncate-clamp">{{.Description}}</p>
-                        <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
-                    </div>
-                    {{end}}
+        <!-- Search bar -->
+        <div class="row justify-content-center mb-4" data-aos="fade-up">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-glass">
+                        <i class="bx bx-search text-muted"></i>
+                    </span>
+                    <input type="search" id="upcoming-search" name="q"
+                        class="form-control bg-transparent border-glass"
+                        placeholder="Search upcoming..."
+                        data-i18n-placeholder="upcoming.search"
+                        hx-get="/upcoming"
+                        hx-trigger="input changed delay:400ms, search"
+                        hx-target="#upcoming-list-area"
+                        hx-swap="innerHTML">
                 </div>
             </div>
+        </div>
+        <!-- Card grid + pagination (replaced by HTMX on search/page click) -->
+        <div id="upcoming-list-area">
+            {{if .UpcomingItems}}
+            <div class="row g-4 mb-4">
+                {{range .UpcomingItems}}
+                <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+                    <div class="glass-card p-4 h-100">
+                        <div class="d-flex align-items-start mb-3 gap-3">
+                            <div class="flex-shrink-0">
+                                {{if .IconClass}}
+                                <i class="{{.IconClass}} fs-2 gradient-text"></i>
+                                {{else}}
+                                <i class="bx bx-rocket fs-2 gradient-text"></i>
+                                {{end}}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="mb-1">
+                                    {{if eq .Type "project"}}
+                                    <span class="badge bg-primary me-1" data-i18n="upcoming.type.project">Future Project</span>
+                                    {{else}}
+                                    <span class="badge bg-info text-dark me-1" data-i18n="upcoming.type.announcement">Announcement</span>
+                                    {{end}}
+                                    {{if eq .Status "in-progress"}}
+                                    <span class="badge bg-success" data-i18n="upcoming.status.in_progress">In Progress</span>
+                                    {{else if eq .Status "coming-soon"}}
+                                    <span class="badge bg-warning text-dark" data-i18n="upcoming.status.coming_soon">Coming Soon</span>
+                                    {{else}}
+                                    <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
+                                    {{end}}
+                                </div>
+                                <h5 class="fw-bold mb-0">{{.Title}}</h5>
+                            </div>
+                        </div>
+                        {{if .Description}}
+                        <div class="truncate-wrapper">
+                            <p class="text-muted small mb-0 text-truncate-clamp">{{.Description}}</p>
+                            <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="text-center py-5" data-aos="fade-up">
+                <i class="bx bx-rocket display-3 text-muted mb-3 d-block"></i>
+                <p class="text-muted fs-5" data-i18n="upcoming.empty">No upcoming plans yet — stay tuned!</p>
+            </div>
+            {{end}}
+            {{if gt .UpcomingTotalPages 1}}
+            <nav aria-label="Upcoming pagination" class="d-flex justify-content-center mt-2">
+                <ul class="pagination pagination-sm gap-1 mb-0">
+                    <li class="page-item disabled">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
+                    </li>
+                    {{range seq .UpcomingTotalPages}}
+                    {{$p := add . 1}}
+                    <li class="page-item {{if eq $p 1}}active{{end}}">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/upcoming?page={{$p}}"
+                            hx-include="#upcoming-search"
+                            hx-target="#upcoming-list-area"
+                            hx-swap="innerHTML">{{$p}}</button>
+                    </li>
+                    {{end}}
+                    <li class="page-item">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/upcoming?page=2"
+                            hx-include="#upcoming-search"
+                            hx-target="#upcoming-list-area"
+                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
             {{end}}
         </div>
-        {{else}}
-        <div class="text-center py-5" data-aos="fade-up">
-            <i class="bx bx-rocket display-3 text-muted mb-3 d-block"></i>
-            <p class="text-muted fs-5" data-i18n="upcoming.empty">No upcoming plans yet — stay tuned!</p>
-        </div>
-        {{end}}
     </div>
 </section>
 
@@ -503,7 +606,7 @@
     <div class="container">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <p class="mb-0 text-muted small">
-                &copy; {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span>
+                &copy; 2026 - {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span>
             </p>
             <p class="mb-0 text-muted small">
                 <span data-i18n="footer.built_with">Built with</span> <i class="bxf bx-heart text-danger"></i> using Go + Fiber

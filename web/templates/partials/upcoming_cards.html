@@ -1,0 +1,81 @@
+{{if .UpcomingItems}}
+<div class="row g-4 mb-4">
+    {{range .UpcomingItems}}
+    <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-start mb-3 gap-3">
+                <div class="flex-shrink-0">
+                    {{if .IconClass}}
+                    <i class="{{.IconClass}} fs-2 gradient-text"></i>
+                    {{else}}
+                    <i class="bx bx-rocket fs-2 gradient-text"></i>
+                    {{end}}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="mb-1">
+                        {{if eq .Type "project"}}
+                        <span class="badge bg-primary me-1" data-i18n="upcoming.type.project">Future Project</span>
+                        {{else}}
+                        <span class="badge bg-info text-dark me-1" data-i18n="upcoming.type.announcement">Announcement</span>
+                        {{end}}
+                        {{if eq .Status "in-progress"}}
+                        <span class="badge bg-success" data-i18n="upcoming.status.in_progress">In Progress</span>
+                        {{else if eq .Status "coming-soon"}}
+                        <span class="badge bg-warning text-dark" data-i18n="upcoming.status.coming_soon">Coming Soon</span>
+                        {{else}}
+                        <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
+                        {{end}}
+                    </div>
+                    <h5 class="fw-bold mb-0">{{.Title}}</h5>
+                </div>
+            </div>
+            {{if .Description}}
+            <div class="truncate-wrapper">
+                <p class="text-muted small mb-0 text-truncate-clamp">{{.Description}}</p>
+                <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="text-center py-5">
+    <i class="bx bx-rocket display-3 text-muted mb-3 d-block"></i>
+    <p class="text-muted fs-5" data-i18n="upcoming.empty">No upcoming plans yet — stay tuned!</p>
+</div>
+{{end}}
+{{if gt .TotalPages 1}}
+<nav aria-label="Upcoming pagination" class="d-flex justify-content-center mt-2">
+    <ul class="pagination pagination-sm gap-1 mb-0">
+        <li class="page-item {{if le .CurrentPage 1}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/upcoming?page={{sub .CurrentPage 1}}"
+                hx-include="#upcoming-search"
+                hx-target="#upcoming-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-left"></i>
+            </button>
+        </li>
+        {{range seq .TotalPages}}
+        {{$p := add . 1}}
+        <li class="page-item {{if eq $p $.CurrentPage}}active{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/upcoming?page={{$p}}"
+                hx-include="#upcoming-search"
+                hx-target="#upcoming-list-area"
+                hx-swap="innerHTML">{{$p}}</button>
+        </li>
+        {{end}}
+        <li class="page-item {{if ge .CurrentPage .TotalPages}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/upcoming?page={{add .CurrentPage 1}}"
+                hx-include="#upcoming-search"
+                hx-target="#upcoming-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-right"></i>
+            </button>
+        </li>
+    </ul>
+</nav>
+{{end}}
