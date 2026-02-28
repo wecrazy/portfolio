@@ -41,3 +41,4 @@ uploads/resume/*
 
 *.fiber.gz
 log/
+bin/

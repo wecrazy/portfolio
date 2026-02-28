@@ -1,4 +1,4 @@
-.PHONY: run build dev seed deps test clean dirs init help revive
+.PHONY: run build dev seed deps test clean dirs init help revive install-service uninstall-service service-status
 
 APP_NAME := my-portfolio
 BIN_DIR  := bin
@@ -30,6 +30,19 @@ revive:
 test:
 	go test ./... -v -count=1
 
+# ── Service installation (Linux systemd / Windows SCM) ───────────────────────
+
+install-service: build
+	@echo "Installing $(APP_NAME) as a system service..."
+	sudo $(BIN_DIR)/$(APP_NAME) --install
+
+uninstall-service:
+	@echo "Uninstalling $(APP_NAME) system service..."
+	sudo $(BIN_DIR)/$(APP_NAME) --uninstall
+
+service-status:
+	$(BIN_DIR)/$(APP_NAME) --service-status
+
 clean:
 	rm -rf $(BIN_DIR)
 
@@ -55,4 +68,7 @@ help:
 	@echo "  clean      - Remove build artifacts"
 	@echo "  dirs       - Create required directories"
 	@echo "  db-reset   - Delete DB and re-seed"
-	@echo "  init       - Full project initialization"
+	@echo "  init             - Full project initialization"
+	@echo "  install-service  - Build and install as OS service (needs sudo on Linux)"
+	@echo "  uninstall-service- Stop and remove the OS service"
+	@echo "  service-status   - Show service status"
