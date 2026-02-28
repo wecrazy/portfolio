@@ -22,6 +22,7 @@ import (
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/router"
 	"my-portfolio/internal/seed"
+	"my-portfolio/pkg/installer"
 
 	contribzap "github.com/gofiber/contrib/v3/zap"
 	"github.com/gofiber/fiber/v3"
@@ -33,7 +34,45 @@ import (
 	"gopkg.in/lumberjack.v2"
 )
 
+// serviceInstallerCfg is the installer.Config used by the service flags.
+var serviceInstallerCfg = installer.Config{
+	Name:        "my-portfolio",
+	DisplayName: "My Portfolio Server",
+	Description: "Personal portfolio web server (Fiber / SQLite)",
+}
+
+// handleServiceFlags checks os.Args for --install / --uninstall /
+// --service-status and, if present, runs the matching installer action then
+// exits.  Returns false when no service flag was found.
+func handleServiceFlags() bool {
+	argToAction := map[string]string{
+		"--install":        "install",
+		"--uninstall":      "uninstall",
+		"--service-status": "status",
+	}
+	for _, arg := range os.Args[1:] {
+		action, ok := argToAction[arg]
+		if !ok {
+			continue
+		}
+		if err := installer.Execute(action, serviceInstallerCfg); err != nil {
+			log.Fatalf("installer: %v", err)
+		}
+		return true
+	}
+	return false
+}
+
 func main() {
+	// 0. Handle service-management flags before anything else.
+	//    Usage:
+	//      sudo ./bin/my-portfolio --install
+	//      sudo ./bin/my-portfolio --uninstall
+	//           ./bin/my-portfolio --service-status
+	if handleServiceFlags() {
+		os.Exit(0)
+	}
+
 	// 1. Load config (auto-detects ENV=dev|prod, hot-reloads on change).
 	config.MyPortfolio.MustInit("my-portfolio")
 	go config.MyPortfolio.Watch()
