@@ -2,11 +2,13 @@
 package router
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/hub"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/pkg/translate"
 
 	contribcb "github.com/gofiber/contrib/v3/circuitbreaker"
@@ -93,7 +95,35 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) 
 		commentMax = 20
 	}
 
-	contactLimiter := makeLimiter(contactMax, 1*time.Minute)
+	// Contact: stricter window (10 min) + HTMX-aware too-many-requests toast.
+	contactLimiter := limiter.New(limiter.Config{
+		Max:          contactMax,
+		Expiration:   10 * time.Minute,
+		KeyGenerator: func(c fiber.Ctx) string { return c.IP() },
+		LimitReached: func(c fiber.Ctx) error {
+			c.Set("Retry-After", "600")
+			msg, _ := appI18n.T.Localize(c, "contact_rate_limit")
+			if msg == "" {
+				msg = "Too many messages sent. Please wait 10 minutes before trying again."
+			}
+			if c.Get("HX-Request") == "true" {
+				type payload struct {
+					Msg  string `json:"msg"`
+					Type string `json:"type"`
+				}
+				type trigger struct {
+					ContactToast payload `json:"contactToast"`
+				}
+				b, _ := json.Marshal(trigger{ContactToast: payload{Msg: msg, Type: "warning"}})
+				c.Set("HX-Trigger", string(b))
+				return c.Status(fiber.StatusTooManyRequests).SendString("")
+			}
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error":       msg,
+				"retry_after": 600,
+			})
+		},
+	})
 	commentLimiter := makeLimiter(commentMax, 1*time.Minute)
 	// Admin login: strict brute-force guard — 10 attempts per 15 minutes per IP.
 	loginLimiter := makeLimiter(10, 15*time.Minute)

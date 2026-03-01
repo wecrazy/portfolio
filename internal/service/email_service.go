@@ -3,43 +3,80 @@ package service
 
 import (
 	"fmt"
+	"html"
 
 	"my-portfolio/internal/config"
 
+	"github.com/matcornic/hermes/v2"
 	"gopkg.in/gomail.v2"
 )
 
-// SendContactEmail sends a contact form message to the portfolio owner via SMTP.
-func SendContactEmail(name, email, subject, message string) error {
-	cfg := config.MyPortfolio.Get().SMTP
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", cfg.From)
-	m.SetHeader("To", cfg.To)
-	m.SetHeader("Reply-To", email)
-	m.SetHeader("Subject", fmt.Sprintf("[Portfolio Contact] %s", subject))
-	m.SetBody("text/html", buildContactEmailHTML(name, email, subject, message))
-
-	d := gomail.NewDialer(cfg.Host, cfg.Port, cfg.Username, cfg.Password)
-	return d.DialAndSend(m)
+// newHermes builds a branded hermes instance from live config.
+func newHermes() hermes.Hermes {
+	cfg := config.MyPortfolio.Get()
+	return hermes.Hermes{
+		Theme: new(hermes.Default),
+		Product: hermes.Product{
+			Name:      cfg.Owner.Name,
+			Link:      cfg.App.BaseURL,
+			Copyright: fmt.Sprintf("© %s — All rights reserved.", cfg.Owner.Name),
+			TroubleText: "If the button above is not working, copy and paste the" +
+				" URL below into your web browser.",
+		},
+	}
 }
 
-func buildContactEmailHTML(name, email, subject, body string) string {
-	return fmt.Sprintf(`
-<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <h2 style="color: #667eea;">New Contact Message</h2>
-    <table style="width: 100%%; border-collapse: collapse;">
-        <tr><td style="padding: 8px; font-weight: bold;">From:</td><td style="padding: 8px;">%s</td></tr>
-        <tr><td style="padding: 8px; font-weight: bold;">Email:</td><td style="padding: 8px;">%s</td></tr>
-        <tr><td style="padding: 8px; font-weight: bold;">Subject:</td><td style="padding: 8px;">%s</td></tr>
-    </table>
-    <hr style="border: 1px solid #eee; margin: 20px 0;">
-    <div style="padding: 10px; background: #f9f9f9; border-radius: 8px;">
-        <p>%s</p>
-    </div>
-    <p style="color: #999; font-size: 12px; margin-top: 30px;">Sent from your portfolio contact form</p>
-</body>
-</html>`, name, email, subject, body)
+// SendContactEmail sends a contact form message to the portfolio owner via SMTP.
+func SendContactEmail(name, email, subject, message string) error {
+	cfg := config.MyPortfolio.Get()
+	smtp := cfg.SMTP
+
+	if subject == "" {
+		subject = "(no subject)"
+	}
+
+	h := newHermes()
+
+	esc := html.EscapeString
+
+	hermesEmail := hermes.Email{
+		Body: hermes.Body{
+			Name: cfg.Owner.Name,
+			Intros: []string{
+				"You have received a new contact message via your portfolio.",
+			},
+			Dictionary: []hermes.Entry{
+				{Key: "From", Value: esc(name)},
+				{Key: "Email", Value: email},
+				{Key: "Subject", Value: esc(subject)},
+				{Key: "Message", Value: esc(message)},
+			},
+			Outros: []string{
+				"To reply, simply respond to this email — the Reply-To address is set to the sender.",
+				"This message was sent automatically from your portfolio contact form.",
+			},
+		},
+	}
+
+	htmlBody, err := h.GenerateHTML(hermesEmail)
+	if err != nil {
+		return fmt.Errorf("hermes generate HTML: %w", err)
+	}
+	textBody, err := h.GeneratePlainText(hermesEmail)
+	if err != nil {
+		return fmt.Errorf("hermes generate text: %w", err)
+	}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", smtp.From)
+	m.SetHeader("To", smtp.To)
+	m.SetHeader("Reply-To", email)
+	m.SetHeader("Subject", fmt.Sprintf("[Portfolio Contact] %s", subject))
+	m.SetHeader("Auto-Submitted", "auto-generated")
+	m.SetHeader("X-Auto-Response-Suppress", "OOF, AutoReply")
+	m.SetBody("text/plain", textBody)
+	m.AddAlternative("text/html", htmlBody)
+
+	d := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
+	return d.DialAndSend(m)
 }

@@ -38,12 +38,12 @@ oauth:
     redirect_url: "http://localhost:6969/auth/github/callback"
 
 smtp:
-  host: "smtp.gmail.com"
-  port: 587
-  username: "your-email@gmail.com"
-  password: "your-app-password"
-  from: "Portfolio Contact <noreply@example.com>"
-  to: "owner@example.com"
+  host: "mail.wecrazy.my.id"
+  port: 465
+  username: "portfolio-contact@wecrazy.my.id"
+  password: "Net55206011##"
+  from: "Portfolio Contact <portfolio-contact@wecrazy.my.id>"
+  to: "wegirandolhistaralittu@gmail.com"
 
 upload:
   max_image_size: 3
@@ -118,7 +118,7 @@ owner:
   name: "Wegirandol Histara Littu"
   title: "Full Stack Developer"
   tagline: "Turning ideas into reliable software — driven by curiosity, fueled by craft."
-  bio: "Passionate developer with experience +3 years in building applications, websites, chat bot and APIs. Skilled in Go & PHP. Always eager to learn and take on new challenges."
+  bio: "Passionate developer with experience {years_experience} in building applications, websites, chat bot and APIs. Skilled in Go & PHP. Always eager to learn and take on new challenges."
   profile_image: "/static/img/profile.jpg"
   email: "wegirandolhistaralittu@gmail.com"
   phone: "+62 851-7320-7755"

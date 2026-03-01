@@ -82,6 +82,7 @@ func registerPublicRoutes(
 	app.Get("/blog/more", cb, handler.BlogPostsPartial(db))
 	app.Get("/blog/:slug", handler.BlogPostPage(db))
 
-	// ── Contact ────────────────────────────────────────────────────
+	// ── Contact ────────────────────────────────────────────────────────────────
+	// hCaptcha verification is handled inside SubmitContact using a direct API call.
 	app.Post("/contact", contactLimiter, cb, handler.SubmitContact(db))
 }

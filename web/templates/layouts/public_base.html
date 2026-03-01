@@ -88,6 +88,18 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="/static/js/toast.js"></script>
 
+    <!-- hCaptcha JS: only loaded when hcaptcha is enabled in config -->
+    {{if .HCaptchaEnabled}}
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    {{end}}
+
+    <!-- contactToast: triggered by HX-Trigger header from POST /contact -->
+    <script>
+    document.addEventListener('contactToast', function (e) {
+        showToast(e.detail.msg, e.detail.type || 'success');
+    });
+    </script>
+
     <!-- WebSocket: real-time comment updates + shutdown notifications -->
     <script src="/static/js/events.js"></script>
 </body>
