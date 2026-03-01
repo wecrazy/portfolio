@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
@@ -11,6 +13,18 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 )
+
+// careerStart is the date Wegil started his professional career.
+var careerStart = time.Date(2023, time.February, 13, 0, 0, 0, 0, time.UTC)
+
+// expandText replaces dynamic placeholders in owner text fields so the values
+// stay accurate over time without any manual edits to the database.
+//
+//	{years_experience} → "+3 years", "+4 years", etc.
+func expandText(s string) string {
+	years := int(time.Since(careerStart).Hours() / (24 * 365.25))
+	return strings.ReplaceAll(s, "{years_experience}", fmt.Sprintf("+%d years", years))
+}
 
 const projectPageSize = 6
 const upcomingPageSize = 6
@@ -20,6 +34,10 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var owner model.Owner
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
+
+		// Expand dynamic placeholders in owner text fields.
+		owner.Tagline = expandText(owner.Tagline)
+		owner.Bio = expandText(owner.Bio)
 
 		// ── Projects (first page) ──────────────────────────────────
 		var projects []model.Project
@@ -98,6 +116,8 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 			"SupportedLangs":      cfg.I18n.SupportedLangs,
 			"DefaultLang":         cfg.I18n.DefaultLang,
 			"IsPortfolio":         true,
+			"HCaptchaEnabled":     cfg.HCaptcha.Enabled,
+			"HCaptchaKey":         cfg.HCaptcha.SiteKey,
 		}, "layouts/public_base")
 	}
 }
