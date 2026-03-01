@@ -88,7 +88,7 @@
                 {{if .Post.Excerpt}}
                 <p class="lead text-muted mb-4 pb-4 border-bottom border-glass">{{.Post.Excerpt}}</p>
                 {{end}}
-                <div class="post-content text-body" style="white-space: pre-wrap; line-height: 1.8; font-size: 1.05rem;">{{.Post.Content}}</div>
+                <div class="post-content text-body">{{.PostHTML}}</div>
                 <hr class="border-glass my-5">
                 <div class="d-flex justify-content-between align-items-center">
                     <a href="/blog" class="btn btn-outline-light"><i class="bx bx-arrow-left me-2"></i><span data-i18n="blog.back">Back to Blog</span></a>
@@ -108,11 +108,4 @@
 </section>
 
 <!-- ======================= FOOTER ======================= -->
-<footer class="py-4 text-center border-top border-glass">
-    <div class="container">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <p class="mb-0 text-muted small">&copy; {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span></p>
-            <a href="/" class="btn btn-sm btn-outline-light"><i class="bx bx-arrow-left me-1"></i><span data-i18n="blog.back_portfolio">Back to Portfolio</span></a>
-        </div>
-    </div>
-</footer>
+{{template "footer" .}}

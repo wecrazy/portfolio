@@ -46,14 +46,26 @@ smtp:
   to: "owner@example.com"
 
 upload:
-  max_image_size: 5
-  max_resume_size: 10
+  max_image_size: 3
+  max_resume_size: 6
+  max_video_size: 20
+  max_audio_size: 9
   allowed_image_types:
     - "image/jpeg"
     - "image/png"
     - "image/webp"
   allowed_resume_types:
     - "application/pdf"
+  allowed_video_types:
+    - "video/mp4"
+    - "video/webm"
+    - "video/ogg"
+  allowed_audio_types:
+    - "audio/mpeg"
+    - "audio/ogg"
+    - "audio/wav"
+    - "audio/aac"
+    - "audio/flac"
 
 log:
   dir: "./log"
@@ -75,6 +87,11 @@ rate_limit:
   enabled: true
   contact_form: 5
   comments: 20
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 2
 
 i18n:
   default_lang: "en"
@@ -100,6 +117,7 @@ table_names:
 owner:
   name: "Wegirandol Histara Littu"
   title: "Full Stack Developer"
+  tagline: "Turning ideas into reliable software — driven by curiosity, fueled by craft."
   bio: "Passionate developer with experience +3 years in building applications, websites, chat bot and APIs. Skilled in Go & PHP. Always eager to learn and take on new challenges."
   profile_image: "/static/img/profile.jpg"
   email: "wegirandolhistaralittu@gmail.com"

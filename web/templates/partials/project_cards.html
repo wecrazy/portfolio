@@ -9,9 +9,9 @@
             </div>
             {{end}}
             <div class="p-4 flex-grow-1 d-flex flex-column">
-                <h5 class="fw-bold mb-2">{{$proj.Title}}</h5>
+                <h5 class="fw-bold mb-2" data-translate>{{$proj.Title}}</h5>
                 {{if $proj.Description}}
-                <p class="text-muted small mb-3 flex-grow-1">{{$proj.Description}}</p>
+                <p class="text-muted small mb-3 flex-grow-1" data-translate>{{$proj.Description}}</p>
                 {{end}}
                 {{if $proj.Tags}}
                 <div class="mb-3">

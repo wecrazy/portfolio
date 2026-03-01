@@ -7,13 +7,14 @@ import (
 	contribfgprof "github.com/gofiber/contrib/v3/fgprof"
 	contribmonitor "github.com/gofiber/contrib/v3/monitor"
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // registerAdminRoutes wires all session-protected /admin/* routes.
 // Every route in this group requires a valid admin session cookie.
-func registerAdminRoutes(app *fiber.App, db *gorm.DB) {
-	adm := app.Group("/admin", middleware.AdminAuth(db))
+func registerAdminRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
+	adm := app.Group("/admin", middleware.AdminAuth(db, rdb))
 
 	// ── Dashboard ──────────────────────────────────────────────────
 	adm.Get("/", admin.Dashboard(db))
@@ -106,6 +107,9 @@ func registerAdminRoutes(app *fiber.App, db *gorm.DB) {
 	adm.Put("/posts/:id", admin.PostUpdate(db))
 	adm.Delete("/posts/:id", admin.PostDelete(db))
 	adm.Post("/posts/upload-thumbnail", admin.PostUploadThumbnail(db))
+	adm.Post("/posts/upload-media", admin.PostUploadMedia(db))
+	adm.Post("/posts/upload-video", admin.PostUploadVideo(db))
+	adm.Post("/posts/upload-audio", admin.PostUploadAudio(db))
 
 	// ── Upcoming Items ─────────────────────────────────────────────
 	adm.Get("/upcoming", admin.UpcomingListPage())

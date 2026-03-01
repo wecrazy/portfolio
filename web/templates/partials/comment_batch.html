@@ -1,5 +1,5 @@
-{{/* Reusable card — used by both comment_list and comment_batch */}}
-{{define "commentCard"}}
+{{/* Page 2+ batch — replaces the #comment-load-more sentinel via outerHTML swap */}}
+{{range .Comments}}
 <div class="comment-item glass-card p-4 mb-3">
     <div class="d-flex align-items-start gap-3">
         {{if .OAuthUser.AvatarURL}}
@@ -40,25 +40,6 @@
 </div>
 {{end}}
 
-{{/* ── Page 1: metadata header + first batch ── */}}
-{{if .Total}}
-<div class="d-flex align-items-center justify-content-between mb-3 px-1">
-    <span class="text-muted small">
-        <i class="bx bx-message-dots me-1"></i>
-        {{.Total}} <span data-i18n="comments.total">comments · newest first</span>
-    </span>
-    <span class="text-muted small" id="comment-window-label" style="display:none">
-        <i class="bx bx-git-commit me-1"></i>
-        <span data-i18n="comments.windowed">Showing a window</span> &middot;
-        <a href="#" id="comment-reset-btn" class="text-decoration-none" data-i18n="comments.load_newer">See newest</a>
-    </span>
-</div>
-{{end}}
-
-{{if .Comments}}
-{{range .Comments}}
-{{template "commentCard" .}}
-{{end}}
 {{if .HasMore}}
 <div id="comment-load-more" class="text-center py-3">
     <button class="btn btn-sm btn-outline-secondary"
@@ -75,10 +56,9 @@
         </div>
     </div>
 </div>
-{{end}}
 {{else}}
-<div class="text-center text-muted py-4">
-    <i class="bx bx-message-dots fs-3 d-block mb-2"></i>
-    <p class="mb-0" data-i18n="comments.empty">No comments yet. Be the first to comment!</p>
+<div class="text-center text-muted py-3 border-top border-glass mt-1">
+    <i class="bx bx-check-circle me-1 text-success"></i>
+    <small data-i18n="comments.all_loaded">All comments loaded.</small>
 </div>
 {{end}}

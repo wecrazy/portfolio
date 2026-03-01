@@ -14,8 +14,8 @@ import (
 // are easy to add later without touching other files.
 func registerAPIRoutes(
 	app *fiber.App,
-	db *gorm.DB,
-	cb fiber.Handler,
+	_ *gorm.DB,
+	_ fiber.Handler,
 	t translate.Translator,
 ) {
 	api := app.Group("/api")

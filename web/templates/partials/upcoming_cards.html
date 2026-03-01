@@ -26,12 +26,12 @@
                         <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
                         {{end}}
                     </div>
-                    <h5 class="fw-bold mb-0">{{.Title}}</h5>
+                    <h5 class="fw-bold mb-0" data-translate>{{.Title}}</h5>
                 </div>
             </div>
             {{if .Description}}
             <div class="truncate-wrapper">
-                <p class="text-muted small mb-0 text-truncate-clamp">{{.Description}}</p>
+                <p class="text-muted small mb-0 text-truncate-clamp" data-translate>{{.Description}}</p>
                 <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
             </div>
             {{end}}

@@ -2,18 +2,19 @@
 package middleware
 
 import (
-	"time"
-
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
+	"my-portfolio/internal/session"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-// AdminAuth checks for a valid admin session cookie and loads the admin into
+// AdminAuth checks for a valid admin session in Redis and loads the admin into
 // c.Locals("admin"). Redirects to /admin/login when not authenticated.
-func AdminAuth(db *gorm.DB) fiber.Handler {
+// Sessions survive Go server restarts because they live in Redis.
+func AdminAuth(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
 		token := c.Cookies(cfg.Admin.CookieName)
@@ -21,20 +22,14 @@ func AdminAuth(db *gorm.DB) fiber.Handler {
 			return c.Redirect().To("/admin/login")
 		}
 
-		// Use Find+Limit instead of First to avoid GORM logging ErrRecordNotFound
-		// for every request with a stale or missing session cookie.
-		var admins []model.Admin
-		db.Where("session_token = ?", token).Limit(1).Find(&admins)
-		if len(admins) == 0 {
+		// Look up session in Redis — returns 0 when token is missing / expired.
+		adminID, err := session.Get(rdb, token)
+		if err != nil || adminID == 0 {
 			return c.Redirect().To("/admin/login")
 		}
-		admin := admins[0]
 
-		// Check session TTL.
-		ttl := time.Duration(cfg.Admin.SessionTTL) * time.Minute
-		if admin.LastLoginAt != nil && time.Since(*admin.LastLoginAt) > ttl {
-			// Session expired – clear it.
-			db.Model(&admin).Updates(map[string]interface{}{"session_token": ""})
+		var admin model.Admin
+		if err := db.First(&admin, adminID).Error; err != nil {
 			return c.Redirect().To("/admin/login")
 		}
 

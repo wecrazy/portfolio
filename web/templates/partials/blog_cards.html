@@ -8,9 +8,9 @@
             </div>
             {{end}}
             <div class="p-4 flex-grow-1 d-flex flex-column">
-                <h5 class="fw-bold mb-2 text-body">{{$post.Title}}</h5>
+                <h5 class="fw-bold mb-2 text-body" data-translate>{{$post.Title}}</h5>
                 {{if $post.Excerpt}}
-                <p class="text-muted small mb-3 flex-grow-1">{{$post.Excerpt}}</p>
+                <p class="text-muted small mb-3 flex-grow-1" data-translate>{{$post.Excerpt}}</p>
                 {{end}}
                 {{if $post.Tags}}
                 <div class="mb-3">
@@ -23,7 +23,7 @@
                     {{if $post.PublishedAt}}
                     <small class="text-muted"><i class="bx bx-calendar me-1"></i>{{formatDate (derefTime $post.PublishedAt)}}</small>
                     {{end}}
-                    <span class="btn btn-sm btn-gradient">Read More <i class="bx bx-arrow-right ms-1"></i></span>
+                    <span class="btn btn-sm btn-gradient"><span data-i18n="blog.read_more">Read More</span> <i class="bx bx-arrow-right ms-1"></i></span>
                 </div>
             </div>
         </div>

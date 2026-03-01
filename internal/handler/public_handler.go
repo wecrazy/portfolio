@@ -97,6 +97,7 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 			"VisitorLoggedIn":     visitorLoggedIn,
 			"SupportedLangs":      cfg.I18n.SupportedLangs,
 			"DefaultLang":         cfg.I18n.DefaultLang,
+			"IsPortfolio":         true,
 		}, "layouts/public_base")
 	}
 }

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strconv"
+
 	"my-portfolio/internal/hub"
 	"my-portfolio/internal/model"
 	"my-portfolio/pkg/sanitize"
@@ -9,9 +11,24 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetComments returns the comments list as an HTML partial.
+const commentPageSize = 10
+
+// GetComments returns a paginated comments list as an HTML partial.
+// Page 1 renders comment_list (full container with metadata header).
+// Page > 1 renders comment_batch (chunk only, replaces the load-more sentinel).
 func GetComments(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		page, _ := strconv.Atoi(c.Query("page", "1"))
+		if page < 1 {
+			page = 1
+		}
+		offset := (page - 1) * commentPageSize
+
+		var total int64
+		db.Model(&model.Comment{}).
+			Where("parent_id IS NULL AND is_approved = ?", true).
+			Count(&total)
+
 		var comments []model.Comment
 		db.Where("parent_id IS NULL AND is_approved = ?", true).
 			Preload("OAuthUser").
@@ -19,11 +36,22 @@ func GetComments(db *gorm.DB) fiber.Handler {
 				return tx.Preload("OAuthUser").Order("created_at ASC")
 			}).
 			Order("created_at DESC").
+			Offset(offset).Limit(commentPageSize).
 			Find(&comments)
 
-		return c.Render("partials/comment_list", fiber.Map{
+		hasMore := int64(offset+commentPageSize) < total
+		data := fiber.Map{
 			"Comments": comments,
-		})
+			"HasMore":  hasMore,
+			"NextPage": page + 1,
+			"Total":    total,
+			"Page":     page,
+		}
+
+		if page == 1 {
+			return c.Render("partials/comment_list", data)
+		}
+		return c.Render("partials/comment_batch", data)
 	}
 }
 

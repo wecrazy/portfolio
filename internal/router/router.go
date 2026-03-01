@@ -14,11 +14,12 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // RegisterRoutes wires up every route and middleware in the application.
-func RegisterRoutes(app *fiber.App, db *gorm.DB, h *hub.Hub) {
+func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) {
 	cfg := config.MyPortfolio.Get()
 
 	// ── 1. Load shedding ───────────────────────────────────────────
@@ -118,7 +119,7 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, h *hub.Hub) {
 	// ── 4. Route groups ────────────────────────────────────────────
 	translator := translate.New()
 	registerAPIRoutes(app, db, cbMiddleware, translator)
-	registerPublicRoutes(app, db, h, cbMiddleware, contactLimiter, commentLimiter)
-	registerAuthRoutes(app, db, loginLimiter)
-	registerAdminRoutes(app, db)
+	registerPublicRoutes(app, db, rdb, h, cbMiddleware, contactLimiter, commentLimiter)
+	registerAuthRoutes(app, db, rdb, loginLimiter)
+	registerAdminRoutes(app, db, rdb)
 }

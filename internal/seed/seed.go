@@ -200,6 +200,7 @@ func seedOwner(db *gorm.DB, cfg config.TypeMyPortfolio) {
 	owner := model.Owner{
 		FullName:     cfg.Owner.Name,
 		Title:        cfg.Owner.Title,
+		Tagline:      cfg.Owner.Tagline,
 		Bio:          cfg.Owner.Bio,
 		ProfileImage: imgProfile,
 		ResumeFile:   resumeFile,
@@ -227,6 +228,9 @@ func seedDemoData(db *gorm.DB) {
 		seedComments(db)
 		log.Println("Seeded demo data")
 	}
+
+	// Seed demo media files (image, video, audio) used by the demo blog posts.
+	seedDemoMediaFiles(db)
 
 	// Seed posts independently so they work even on existing installs.
 	var postCount int64
@@ -279,7 +283,7 @@ func seedExperiences(db *gorm.DB) {
 			StartDate:   eduStart,
 			EndDate:     &eduEnd,
 			IsCurrent:   false,
-			Description: "Graduated Cum Laude from the Faculty of Engineering, Department of Informatics Engineering with a GPA of 3.89, earning recognition as the best graduate of the class.",
+			Description: "Graduated Cum Laude from the Faculty of Engineering, Department of Informatics Engineering with a GPA of 3.89, earning recognition as the best graduate of the class. (Certificate: https://drive.google.com/file/d/1A0hDQingopqunPV87WMY93O3JOWjg92I/view?usp=drive_link)",
 			SortOrder:   2,
 			ImageURL:    "https://ukitoraja.ac.id/wp-content/uploads/2019/05/Logo-UKIT.png",
 		},
@@ -289,6 +293,14 @@ func seedExperiences(db *gorm.DB) {
 
 // seedProjects creates demo projects. It is intentionally kept in the seed package because it depends on internal/model.
 func seedProjects(db *gorm.DB) {
+	// TODO: add :
+	// Web contest toraja
+	// electric payment
+	// dashboards
+	// jupyter notebook code
+	// web gereja katolik
+	// web enrekang
+
 	projects := []model.Project{
 		{Title: "E-Commerce Platform", Slug: "e-commerce-platform", Description: "A full-featured e-commerce platform with cart, checkout, and payment integration.", Tags: "Go,React,PostgreSQL,Stripe", Status: "published", SortOrder: 1, Featured: true, LiveURL: "https://example.com", RepoURL: "https://github.com/example/ecommerce", ThumbnailURL: "https://placehold.co/600x400/6366f1/ffffff?text=E-Commerce"},
 		{Title: "Task Management App", Slug: "task-management-app", Description: "Real-time task management application with team collaboration features.", Tags: "TypeScript,Next.js,Prisma,WebSocket", Status: "published", SortOrder: 2, Featured: true, RepoURL: "https://github.com/example/tasks", ThumbnailURL: "https://placehold.co/600x400/8b5cf6/ffffff?text=Task+Manager"},
@@ -314,7 +326,7 @@ func seedSkills(db *gorm.DB) {
 		{Name: "Java", Category: "Languages", IconClass: "devicon-java-plain", IconURL: deviconCDN + "/java/java-original.svg", Proficiency: 30, SortOrder: 7},
 		{Name: "HTMX", Category: "Frontend", IconClass: "bxf bx-bolt-circle", IconURL: "https://cdn.jsdelivr.net/gh/bigskysoftware/htmx@v2.0.4/www/static/img/htmx_logo.1.png", Proficiency: 90, SortOrder: 1},
 		{Name: "Fiber", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gofiber/docs/master/static/img/logo.svg", Proficiency: 90, SortOrder: 1},
-		{Name: "Gin", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gin-gonic/logo/master/color.png", Proficiency: 80, SortOrder: 2},
+		{Name: "Gin", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gin-gonic/logo/master/color.png", Proficiency: 90, SortOrder: 2},
 		{Name: "Code Igniter", Category: "Backend", IconClass: "devicon-codeigniter-plain", IconURL: deviconCDN + "/codeigniter/codeigniter-plain.svg", Proficiency: 80, SortOrder: 3},
 		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", IconURL: deviconCDN + "/docker/docker-original.svg", Proficiency: 76, SortOrder: 1},
 		{Name: "Linux", Category: "DevOps", IconClass: "devicon-linux-plain", IconURL: deviconCDN + "/linux/linux-original.svg", Proficiency: 80, SortOrder: 2},
@@ -373,21 +385,97 @@ func seedComments(db *gorm.DB) {
 	users := []model.OAuthUser{
 		{Provider: "github", ProviderID: "demo-1", Email: "alice@example.com", DisplayName: "Alice Chen", AvatarURL: "https://i.pravatar.cc/150?u=alice"},
 		{Provider: "google", ProviderID: "demo-2", Email: "bob@example.com", DisplayName: "Bob Smith", AvatarURL: "https://i.pravatar.cc/150?u=bob"},
+		{Provider: "github", ProviderID: "demo-3", Email: "carlos@example.com", DisplayName: "Carlos Mendez", AvatarURL: "https://i.pravatar.cc/150?u=carlos"},
+		{Provider: "google", ProviderID: "demo-4", Email: "diana@example.com", DisplayName: "Diana Park", AvatarURL: "https://i.pravatar.cc/150?u=diana"},
+		{Provider: "github", ProviderID: "demo-5", Email: "evan@example.com", DisplayName: "Evan Torres", AvatarURL: "https://i.pravatar.cc/150?u=evan"},
+		{Provider: "google", ProviderID: "demo-6", Email: "fiona@example.com", DisplayName: "Fiona Lim", AvatarURL: "https://i.pravatar.cc/150?u=fiona"},
+		{Provider: "github", ProviderID: "demo-7", Email: "george@example.com", DisplayName: "George Nakamura", AvatarURL: "https://i.pravatar.cc/150?u=george"},
+		{Provider: "google", ProviderID: "demo-8", Email: "hana@example.com", DisplayName: "Hana Yılmaz", AvatarURL: "https://i.pravatar.cc/150?u=hana"},
 		{Provider: "system", ProviderID: "owner", Email: "john@example.com", DisplayName: "John Doe (Owner)"},
 	}
 	db.Create(&users)
+	owner := users[8]
 
+	// 25 top-level comments spread across 8 visitors — enough for 3 pages of 10
+	// and to demonstrate the DOM-windowing "Showing a window" indicator.
 	comments := []model.Comment{
 		{OAuthUserID: users[0].ID, Body: "Great portfolio! I love the clean design and the tech stack section is really informative.", IsApproved: true},
 		{OAuthUserID: users[1].ID, Body: "Impressive project list. The e-commerce platform looks really solid. Would love to see a demo!", IsApproved: true},
+		{OAuthUserID: users[2].ID, Body: "The Go + Fiber combo is underrated — fast to build and blazing fast at runtime. Keep it up!", IsApproved: true},
+		{OAuthUserID: users[3].ID, Body: "I really appreciate the attention to UI/UX here. The dark theme with the glass-morphism cards feels premium.", IsApproved: true},
+		{OAuthUserID: users[4].ID, Body: "Your experience section showed up perfectly on mobile for me. How did you handle the timeline on small screens?", IsApproved: true},
+		{OAuthUserID: users[5].ID, Body: "Love that you used HTMX instead of a heavy SPA framework. The page feels snappy even on a slow connection.", IsApproved: true},
+		{OAuthUserID: users[6].ID, Body: "The blog with Markdown + embedded video support is a nice touch. Most dev portfolios skip that entirely.", IsApproved: true},
+		{OAuthUserID: users[7].ID, Body: "Cum Laude with a 3.89 GPA — that's impressive! Did you specialize in web or systems programming during your degree?", IsApproved: true},
+		{OAuthUserID: users[0].ID, Body: "Just read the HTMX blog post — the 'Show More' pagination pattern explanation was crystal clear. Bookmarked!", IsApproved: true},
+		{OAuthUserID: users[1].ID, Body: "The Go Fiber post convinced me to finally try it for my next side project. Any tips for production deployment?", IsApproved: true},
+		{OAuthUserID: users[2].ID, Body: "Your Docker + Nginx + SQLite stack is exactly what I've been looking for for small-scale personal projects.", IsApproved: true},
+		{OAuthUserID: users[3].ID, Body: "Loving the i18n support! Switching between EN and ID in real time without a page reload — clean.", IsApproved: true},
+		{OAuthUserID: users[4].ID, Body: "Is the backend entirely Go? I couldn't find a Node.js or Python dependency anywhere. Impressive!", IsApproved: true},
+		{OAuthUserID: users[5].ID, Body: "The skills section with the animated progress bars is satisfying to watch. Small but impactful detail.", IsApproved: true},
+		{OAuthUserID: users[6].ID, Body: "I noticed the PDF resume opens inside the site — that's a much better UX than triggering a browser download.", IsApproved: true},
+		{OAuthUserID: users[7].ID, Body: "The 'What's Next' section is a great idea. Keeps visitors in the loop without needing a separate blog post.", IsApproved: true},
+		{OAuthUserID: users[0].ID, Body: "How long did this portfolio take you to build end-to-end? The feature set is surprisingly complete.", IsApproved: true},
+		{OAuthUserID: users[1].ID, Body: "The comment section with OAuth login (Google + GitHub) is a thoughtful touch. Encourages real interaction.", IsApproved: true},
+		{OAuthUserID: users[2].ID, Body: "Real-time comment notifications via WebSocket — that's a level of detail most portfolios completely skip.", IsApproved: true},
+		{OAuthUserID: users[3].ID, Body: "The profile image hover animation is a fun little Easter egg. Adds personality without being distracting.", IsApproved: true},
+		{OAuthUserID: users[4].ID, Body: "Great use of AOS animations — they add polish without slowing anything down. Performance score still looks solid.", IsApproved: true},
+		{OAuthUserID: users[5].ID, Body: "The contact form works great! I tested it and received a confirmation almost instantly. Very responsive.", IsApproved: true},
+		{OAuthUserID: users[6].ID, Body: "The tech stack grid with icons from devicons is a nice visual touch. Way better than a plain text list.", IsApproved: true},
+		{OAuthUserID: users[7].ID, Body: "Are you planning to open-source this portfolio template? I'd love to use it as a starting point!", IsApproved: true},
+		{OAuthUserID: users[0].ID, Body: "The dark/light theme toggle respects the system preference by default — that's the UX best practice most devs skip.", IsApproved: true},
 	}
 	db.Create(&comments)
 
+	// Owner replies to a handful of comments
 	replies := []model.Comment{
-		{OAuthUserID: users[2].ID, ParentID: &comments[0].ID, Body: "Thank you Alice! Glad you like the design.", IsOwnerReply: true, IsApproved: true},
-		{OAuthUserID: users[2].ID, ParentID: &comments[1].ID, Body: "Thanks Bob! I'll add a live demo link soon.", IsOwnerReply: true, IsApproved: true},
+		{OAuthUserID: owner.ID, ParentID: &comments[0].ID, Body: "Thank you Alice! Glad you like the design.", IsOwnerReply: true, IsApproved: true},
+		{OAuthUserID: owner.ID, ParentID: &comments[1].ID, Body: "Thanks Bob! I'll add a live demo link soon.", IsOwnerReply: true, IsApproved: true},
+		{OAuthUserID: owner.ID, ParentID: &comments[4].ID, Body: "Used CSS flexbox + a bit of media-query magic for the timeline. It collapses to a single column on mobile.", IsOwnerReply: true, IsApproved: true},
+		{OAuthUserID: owner.ID, ParentID: &comments[9].ID, Body: "For production I use a systemd service + Nginx reverse proxy. The Makefile has an --install flag that sets it all up.", IsOwnerReply: true, IsApproved: true},
+		{OAuthUserID: owner.ID, ParentID: &comments[16].ID, Body: "Roughly 3 weeks of evenings and weekends. Iterating fast with HTMX + Go templates helped a lot.", IsOwnerReply: true, IsApproved: true},
+		{OAuthUserID: owner.ID, ParentID: &comments[23].ID, Body: "That's the plan! Will clean it up and publish it on GitHub once I've polished a few more rough edges.", IsOwnerReply: true, IsApproved: true},
 	}
 	db.Create(&replies)
+}
+
+// seedDemoMediaFiles registers the pre-generated demo media assets (image, video,
+// audio) into the uploaded_files table so the blog posts can reference them by URL.
+// It is idempotent: if the records already exist it does nothing.
+func seedDemoMediaFiles(db *gorm.DB) {
+	type fileSpec struct {
+		stored   string
+		filePath string
+		mime     string
+		category string
+	}
+	specs := []fileSpec{
+		{"demo_blog_cover.jpg", "uploads/images/demo_blog_cover.jpg", "image/jpeg", "images"},
+		{"demo_video.mp4", "uploads/video/demo_video.mp4", "video/mp4", "video"},
+		{"demo_audio.wav", "uploads/audio/demo_audio.wav", "audio/wav", "audio"},
+	}
+	for _, s := range specs {
+		var c int64
+		db.Model(&model.UploadedFile{}).Where("stored_name = ?", s.stored).Count(&c)
+		if c > 0 {
+			continue
+		}
+		var size int64
+		if info, err := os.Stat(s.filePath); err == nil {
+			size = info.Size()
+		}
+		rec := model.UploadedFile{
+			OriginalName: s.stored,
+			StoredName:   s.stored,
+			FilePath:     s.filePath,
+			MimeType:     s.mime,
+			FileSize:     size,
+			Category:     s.category,
+		}
+		if err := db.Create(&rec).Error; err != nil {
+			log.Printf("Warning: could not seed media file record %s: %v", s.stored, err)
+		}
+	}
 }
 
 // seedPosts creates demo blog posts. It is intentionally kept in the seed package because it depends on internal/model.
@@ -395,37 +483,99 @@ func seedPosts(db *gorm.DB) error {
 	pub1 := time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC)
 	pub2 := time.Date(2025, 2, 5, 0, 0, 0, 0, time.UTC)
 	pub3 := time.Date(2025, 2, 20, 0, 0, 0, 0, time.UTC)
+	pub4 := time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)
 
 	posts := []model.Post{
 		{
-			Title:       "Getting Started with Go and Fiber",
-			Slug:        "getting-started-with-go-and-fiber",
-			Excerpt:     "A beginner-friendly guide to building fast web apps with Go and the Fiber framework — from zero to your first REST API.",
-			Content:     "## Why Go + Fiber?\n\nGo is one of the fastest-growing languages for backend development, and Fiber is an Express.js-inspired framework that makes it incredibly easy to get started.\n\n## Setting Up\n\nFirst, initialize your Go module:\n\n```bash\ngo mod init myapp\ngo get github.com/gofiber/fiber/v2\n```\n\n## Your First Route\n\n```go\napp := fiber.New()\napp.Get(\"/\", func(c fiber.Ctx) error {\n    return c.SendString(\"Hello, World!\")\n})\napp.Listen(\":3000\")\n```\n\n## What's Next?\n\nFrom here you can add middleware, connect a database with GORM, and build a full REST API. Go's performance and simplicity make it a great choice for modern backends.",
+			Title:   "Getting Started with Go and Fiber",
+			Slug:    "getting-started-with-go-and-fiber",
+			Excerpt: "A beginner-friendly guide to building fast web apps with Go and the Fiber framework — from zero to your first REST API.",
+			Content: "![Go and Fiber banner](/uploads/images/demo_blog_cover.jpg)\n\n" +
+				"## Why Go + Fiber?\n\n" +
+				"Go is one of the fastest-growing languages for backend development, and Fiber is an Express.js-inspired framework that makes it incredibly easy to get started.\n\n" +
+				"## Setting Up\n\n" +
+				"First, initialize your Go module:\n\n" +
+				"```bash\ngo mod init myapp\ngo get github.com/gofiber/fiber/v2\n```\n\n" +
+				"## Your First Route\n\n" +
+				"```go\napp := fiber.New()\napp.Get(\"/\", func(c fiber.Ctx) error {\n    return c.SendString(\"Hello, World!\")\n})\napp.Listen(\":3000\")\n```\n\n" +
+				"## What's Next?\n\n" +
+				"From here you can add middleware, connect a database with GORM, and build a full REST API. Go's performance and simplicity make it a great choice for modern backends.",
 			Tags:        "Go,Fiber,Tutorial,Backend",
 			Status:      "published",
 			SortOrder:   1,
 			PublishedAt: &pub1,
 		},
 		{
-			Title:       "Building Dynamic UIs with HTMX — No JavaScript Framework Needed",
-			Slug:        "building-dynamic-uis-with-htmx",
-			Excerpt:     "How HTMX lets you add real-time interactivity to your pages with just HTML attributes, keeping things simple and fast.",
-			Content:     "## What is HTMX?\n\nHTMX is a small (~14KB) JavaScript library that gives you access to AJAX, WebSockets, and server-sent events directly from HTML attributes — no framework needed.\n\n## A Simple Example\n\nLoad content without a full page refresh:\n\n```html\n<button hx-get=\"/api/data\" hx-target=\"#result\" hx-swap=\"innerHTML\">\n    Load Data\n</button>\n<div id=\"result\"></div>\n```\n\n## Why I Love It\n\nWith HTMX, I removed 80% of the custom JavaScript from this portfolio. The server renders HTML partials and HTMX swaps them in. It pairs perfectly with Go templates.\n\n## Pagination with HTMX\n\nThe \"Show More\" pattern is trivial — just return the next page of cards from the server and append them. No state management, no client-side routing.",
+			Title:   "Building Dynamic UIs with HTMX — No JavaScript Framework Needed",
+			Slug:    "building-dynamic-uis-with-htmx",
+			Excerpt: "How HTMX lets you add real-time interactivity to your pages with just HTML attributes, keeping things simple and fast.",
+			Content: "## What is HTMX?\n\n" +
+				"HTMX is a small (~14KB) JavaScript library that gives you access to AJAX, WebSockets, and server-sent events directly from HTML attributes — no framework needed.\n\n" +
+				"## A Simple Example\n\n" +
+				"Load content without a full page refresh:\n\n" +
+				"```html\n<button hx-get=\"/api/data\" hx-target=\"#result\" hx-swap=\"innerHTML\">\n    Load Data\n</button>\n<div id=\"result\"></div>\n```\n\n" +
+				"## Why I Love It\n\n" +
+				"With HTMX, I removed 80% of the custom JavaScript from this portfolio. The server renders HTML partials and HTMX swaps them in. It pairs perfectly with Go templates.\n\n" +
+				"## Pagination with HTMX\n\n" +
+				"The \"Show More\" pattern is trivial — just return the next page of cards from the server and append them. No state management, no client-side routing.",
 			Tags:        "HTMX,Frontend,HTML,Go",
 			Status:      "published",
 			SortOrder:   2,
 			PublishedAt: &pub2,
 		},
 		{
-			Title:       "My Development Workflow in 2025",
-			Slug:        "my-development-workflow-2025",
-			Excerpt:     "The tools, habits, and mindset behind how I build software day-to-day — from editor setup to deployment.",
-			Content:     "## Editor\n\nI use **Neovim** with LSP for Go and TypeScript. It's fast, keyboard-driven, and highly customizable.\n\n## Version Control\n\nEvery project lives in Git. I follow conventional commits and keep branches small and focused.\n\n## Local Development\n\n- **Air** for hot-reload in Go projects\n- **Docker Compose** for local databases\n- **Make** for common commands (`make run`, `make build`, `make test`)\n\n## Deployment\n\nMost of my projects ship as a single Go binary behind **Nginx** on a Linux VPS. SQLite handles persistence for smaller apps; PostgreSQL for anything with real traffic.\n\n## Mindset\n\nShip early. Iterate fast. Keep dependencies minimal. The best code is the code you don't have to write.",
+			Title:   "My Development Workflow in 2025",
+			Slug:    "my-development-workflow-2025",
+			Excerpt: "The tools, habits, and mindset behind how I build software day-to-day — from editor setup to deployment.",
+			Content: "## Editor\n\n" +
+				"I use **Neovim** with LSP for Go and TypeScript. It's fast, keyboard-driven, and highly customizable.\n\n" +
+				"## Version Control\n\n" +
+				"Every project lives in Git. I follow conventional commits and keep branches small and focused.\n\n" +
+				"## Local Development\n\n" +
+				"- **Air** for hot-reload in Go projects\n" +
+				"- **Docker Compose** for local databases\n" +
+				"- **Make** for common commands (`make run`, `make build`, `make test`)\n\n" +
+				"## Deployment\n\n" +
+				"Most of my projects ship as a single Go binary behind **Nginx** on a Linux VPS. SQLite handles persistence for smaller apps; PostgreSQL for anything with real traffic.\n\n" +
+				"## Mindset\n\n" +
+				"Ship early. Iterate fast. Keep dependencies minimal. The best code is the code you don't have to write.",
 			Tags:        "Workflow,Tooling,Go,Productivity",
 			Status:      "published",
 			SortOrder:   3,
 			PublishedAt: &pub3,
+		},
+		{
+			Title:   "Rich Media in Blog Posts — Images, Video & Audio",
+			Slug:    "rich-media-in-blog-posts",
+			Excerpt: "This blog now supports embedded images, videos, and audio clips inside Markdown posts. Here's a quick tour of each media type.",
+			Content: "## Embedded Images\n\n" +
+				"Drop any uploaded image directly into your post using standard Markdown syntax:\n\n" +
+				"```md\n![Alt text](/uploads/images/your-file.jpg)\n```\n\n" +
+				"![Demo cover image](/uploads/images/demo_blog_cover.jpg)\n\n" +
+				"---\n\n" +
+				"## Embedded Video\n\n" +
+				"Use a raw HTML `<video>` block for self-hosted videos uploaded through the admin panel:\n\n" +
+				"<video controls style=\"width:100%;border-radius:0.75rem;margin:1rem 0\">\n" +
+				"  <source src=\"/uploads/video/demo_video.mp4\" type=\"video/mp4\">\n" +
+				"  Your browser does not support the video tag.\n" +
+				"</video>\n\n" +
+				"You can also embed YouTube or Vimeo via an `<iframe>`:\n\n" +
+				"```html\n<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ\"\n  allowfullscreen style=\"width:100%;aspect-ratio:16/9\"></iframe>\n```\n\n" +
+				"---\n\n" +
+				"## Embedded Audio\n\n" +
+				"Self-hosted audio files work just as smoothly:\n\n" +
+				"<audio controls style=\"width:100%;margin:1rem 0\">\n" +
+				"  <source src=\"/uploads/audio/demo_audio.wav\" type=\"audio/wav\">\n" +
+				"  Your browser does not support audio playback.\n" +
+				"</audio>\n\n" +
+				"---\n\n" +
+				"## How It Works\n\n" +
+				"Posts are written in **Markdown with raw HTML support**, rendered by [goldmark](https://github.com/yuin/goldmark) on the server and sanitized by [bluemonday](https://github.com/microcosm-cc/bluemonday) before display.\n\n" +
+				"Use the three upload buttons in the admin editor — **Insert Image**, **Insert Video**, **Insert Audio** — to upload files and insert the correct snippet automatically.",
+			Tags:        "Blog,Media,Markdown,Tutorial",
+			Status:      "published",
+			SortOrder:   4,
+			PublishedAt: &pub4,
 		},
 	}
 	return db.Create(&posts).Error
@@ -434,6 +584,11 @@ func seedPosts(db *gorm.DB) error {
 // seedUpcomingItems creates demo upcoming projects and announcements. It is intentionally kept in the seed package because it depends on internal/model.
 func seedUpcomingItems(db *gorm.DB) {
 	items := []model.UpcomingItem{
+		// TODO: add:
+		// Developed a self-hosted conversation dashboard integrated with a chat bot.
+		// Developed AI Agent in low spec PC or mobile use PicoClaw (https://github.com/sipeed/picoclaw)
+		// Create API for Toraja dictionary
+
 		{
 			Title:       "Open Source CLI Tool",
 			Description: "A developer productivity CLI written in Go — automates repetitive project scaffolding tasks and integrates with popular APIs.",
