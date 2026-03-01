@@ -415,6 +415,52 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delay init slightly to allow AOS animations to settle.
     setTimeout(initSeeMoreButtons, 500);
 
+    // ---------- Comment DOM Windowing ----------
+    // After each batch-load swap, cap visible comment items at MAX_COMMENT_ITEMS.
+    // Excess items are trimmed from the TOP (newest) so the user's current
+    // "older" reading position is preserved. A "See newest" link reloads page 1.
+    (function () {
+        var MAX_COMMENT_ITEMS = 30;
+
+        document.addEventListener('htmx:afterSwap', function (evt) {
+            var list = document.getElementById('comment-list');
+            if (!list) return;
+
+            // Identify the swap kind:
+            //   target === #comment-list  → initial load or new-comment prepend → skip trim
+            //   target === #comment-load-more (old node) → batch load → maybe trim
+            var targetId = (evt.detail && evt.detail.target) ? evt.detail.target.id : (evt.target ? evt.target.id : '');
+            if (targetId === 'comment-list' || targetId === '') return;
+
+            var items = list.querySelectorAll('.comment-item');
+            if (items.length <= MAX_COMMENT_ITEMS) return;
+
+            // Trim oldest rendered items from the top of the list
+            var excess = items.length - MAX_COMMENT_ITEMS;
+            for (var i = 0; i < excess; i++) {
+                if (items[i]) items[i].remove();
+            }
+
+            // Reveal the windowed indicator with a "See newest" reset link
+            var windowLabel = document.getElementById('comment-window-label');
+            if (windowLabel) {
+                windowLabel.style.display = '';
+                // Apply current i18n if already loaded
+                if (typeof applyI18n === 'function') applyI18n();
+            }
+        });
+
+        // Delegated click for the "See newest" reset button (lives inside HTMX content)
+        document.addEventListener('click', function (evt) {
+            var btn = evt.target.closest('#comment-reset-btn');
+            if (!btn) return;
+            evt.preventDefault();
+            htmx.ajax('GET', '/comments', { target: '#comment-list', swap: 'innerHTML' });
+            var windowLabel = document.getElementById('comment-window-label');
+            if (windowLabel) windowLabel.style.display = 'none';
+        });
+    }());
+
     // ---------- Smooth Scroll for Anchor Links ----------
     document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
         anchor.addEventListener('click', function (e) {

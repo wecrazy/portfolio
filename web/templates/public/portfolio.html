@@ -50,8 +50,8 @@
             <div class="col-lg-8">
                 <h1 class="display-1 fw-bold mb-3 gradient-text" data-aos="fade-down">{{.Owner.FullName}}</h1>
                 <p class="lead fs-4 text-secondary mb-4" data-aos="fade-up" data-aos-delay="100">{{.Owner.Title}}</p>
-                {{if .Owner.Bio}}
-                <!-- <p class="text-muted mb-4 mx-auto" style="max-width: 600px;" data-aos="fade-up" data-aos-delay="200">{{.Owner.Bio}}</p> -->
+                {{if .Owner.Tagline}}
+                <p class="text-muted fst-italic mb-4 mx-auto" style="max-width: 650px;" data-aos="fade-up" data-aos-delay="200" data-translate>{{.Owner.Tagline}}</p>
                 {{end}}
                 <div class="d-flex justify-content-center gap-3 mb-4" data-aos="fade-up" data-aos-delay="300">
                     <a href="#projects" class="btn btn-gradient btn-lg px-4">
@@ -312,9 +312,9 @@
                         </div>
                         {{end}}
                         <div class="p-4 flex-grow-1 d-flex flex-column">
-                            <h5 class="fw-bold mb-2">{{$proj.Title}}</h5>
+                            <h5 class="fw-bold mb-2" data-translate>{{$proj.Title}}</h5>
                             {{if $proj.Description}}
-                            <p class="text-muted small mb-3 flex-grow-1">{{$proj.Description}}</p>
+                            <p class="text-muted small mb-3 flex-grow-1" data-translate>{{$proj.Description}}</p>
                             {{end}}
                             {{if $proj.Tags}}
                             <div class="mb-3">
@@ -428,12 +428,12 @@
                                     <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
                                     {{end}}
                                 </div>
-                                <h5 class="fw-bold mb-0">{{.Title}}</h5>
+                                <h5 class="fw-bold mb-0" data-translate>{{.Title}}</h5>
                             </div>
                         </div>
                         {{if .Description}}
                         <div class="truncate-wrapper">
-                            <p class="text-muted small mb-0 text-truncate-clamp">{{.Description}}</p>
+                            <p class="text-muted small mb-0 text-truncate-clamp" data-translate>{{.Description}}</p>
                             <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
                         </div>
                         {{end}}
@@ -602,24 +602,4 @@
 </section>
 
 <!-- ======================= I. FOOTER ======================= -->
-<footer class="py-4 text-center border-top border-glass">
-    <div class="container">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <p class="mb-0 text-muted small">
-                &copy; 2026 - {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span>
-            </p>
-            <p class="mb-0 text-muted small">
-                <span data-i18n="footer.built_with">Built with</span> <i class="bxf bx-heart text-danger"></i> using Go + Fiber
-            </p>
-            {{if .SocialLinks}}
-            <div class="d-flex gap-2">
-                {{range .SocialLinks}}
-                <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="text-muted" title="{{.Platform}}">
-                    <i class="{{.IconClass}}"></i>
-                </a>
-                {{end}}
-            </div>
-            {{end}}
-        </div>
-    </div>
-</footer>
+{{template "footer" .}}

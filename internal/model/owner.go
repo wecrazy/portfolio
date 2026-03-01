@@ -7,6 +7,7 @@ type Owner struct {
 	gorm.Model
 	FullName       string        `gorm:"column:full_name;size:100;not null" json:"full_name" form:"full_name"`
 	Title          string        `gorm:"column:title;size:150" json:"title" form:"title"`
+	Tagline        string        `gorm:"column:tagline;size:300" json:"tagline" form:"tagline"`
 	Bio            string        `gorm:"column:bio;type:text" json:"bio" form:"bio"`
 	Email          string        `gorm:"column:email;size:100" json:"email" form:"email"`
 	Phone          string        `gorm:"column:phone;size:30" json:"phone" form:"phone"`

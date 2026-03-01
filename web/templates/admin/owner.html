@@ -54,7 +54,11 @@
                         <input type="text" name="title" class="form-control" value="{{.Owner.Title}}" placeholder="e.g. Full-Stack Developer">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Bio</label>
+                        <label class="form-label">Tagline <small class="text-muted">(short motivational line shown in the hero)</small></label>
+                        <input type="text" name="tagline" class="form-control" value="{{.Owner.Tagline}}" placeholder="e.g. Turning ideas into reliable software — one commit at a time.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bio <small class="text-muted">(shown in the About section)</small></label>
                         <textarea name="bio" class="form-control" rows="5">{{.Owner.Bio}}</textarea>
                     </div>
                     <div class="row g-3">

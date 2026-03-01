@@ -1,17 +1,18 @@
-<div class="comment-item mb-4">
+<div class="comment-item glass-card p-4 mb-3 border border-primary border-opacity-25">
     <div class="d-flex align-items-start gap-3">
         {{if .Comment.OAuthUser.AvatarURL}}
-        <img src="{{.Comment.OAuthUser.AvatarURL}}" class="rounded-circle" width="40" height="40" alt="">
+        <img src="{{.Comment.OAuthUser.AvatarURL}}" class="rounded-circle flex-shrink-0" width="40" height="40" alt="" loading="lazy">
         {{else}}
-        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;">
             <i class="bx bx-user text-white"></i>
         </div>
         {{end}}
-        <div class="flex-grow-1">
-            <div class="d-flex align-items-center gap-2 mb-1">
+        <div class="flex-grow-1 min-w-0">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
                 <strong>{{.Comment.OAuthUser.DisplayName}}</strong>
                 <span class="badge bg-secondary bg-opacity-50 small">{{.Comment.OAuthUser.Provider}}</span>
-                <small class="text-muted">{{formatDateTime .Comment.CreatedAt}}</small>
+                <span class="badge bg-warning text-dark small" data-i18n="comments.pending">Pending approval</span>
+                <small class="text-muted ms-auto">{{formatDateTime .Comment.CreatedAt}}</small>
             </div>
             <p class="mb-0">{{.Comment.Body}}</p>
         </div>

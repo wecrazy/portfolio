@@ -9,6 +9,7 @@ import (
 	contribws "github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -21,6 +22,7 @@ import (
 func registerPublicRoutes(
 	app *fiber.App,
 	db *gorm.DB,
+	rdb *redis.Client,
 	h *hub.Hub,
 	cb fiber.Handler,
 	contactLimiter, commentLimiter fiber.Handler,
@@ -33,7 +35,16 @@ func registerPublicRoutes(
 
 	// ── Swagger UI ─────────────────────────────────────────────────
 	// Protected behind admin session auth — API docs should not be public.
-	app.Get("/swagger/*", middleware.AdminAuth(db), contribswaggo.HandlerDefault)
+	//
+	// /swagger/openapi.json is registered as an explicit route BEFORE the
+	// wildcard so Fiber serves the hand-written spec file directly, bypassing
+	// the internal swag.ReadDoc() registry that swaggo uses for doc.json.
+	app.Get("/swagger/openapi.json", middleware.AdminAuth(db, rdb), func(c fiber.Ctx) error {
+		return c.SendFile("./swagger/doc.json")
+	})
+	app.Get("/swagger/*", middleware.AdminAuth(db, rdb), contribswaggo.New(contribswaggo.Config{
+		URL: "openapi.json",
+	}))
 
 	// ── WebSocket upgrade ──────────────────────────────────────────
 	app.Use("/ws", func(c fiber.Ctx) error {

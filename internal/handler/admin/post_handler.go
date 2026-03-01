@@ -138,3 +138,61 @@ func PostUploadThumbnail(db *gorm.DB) fiber.Handler {
 		return c.SendString(html)
 	}
 }
+
+// PostUploadMedia handles inline image upload for the Markdown editor.
+// Returns JSON {"url": "..."}  so the JS can insert it into the editor.
+func PostUploadMedia(db *gorm.DB) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No file uploaded"})
+		}
+		uploaded, err := service.ProcessUpload(file, "images")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err := c.SaveFile(file, uploaded.FilePath); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
+		}
+		db.Create(uploaded)
+		return c.JSON(fiber.Map{"url": "/uploads/images/" + uploaded.StoredName})
+	}
+}
+
+// PostUploadVideo handles video file upload for embedding in a post.
+func PostUploadVideo(db *gorm.DB) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No file uploaded"})
+		}
+		uploaded, err := service.ProcessUpload(file, "video")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err := c.SaveFile(file, uploaded.FilePath); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
+		}
+		db.Create(uploaded)
+		return c.JSON(fiber.Map{"url": "/uploads/video/" + uploaded.StoredName})
+	}
+}
+
+// PostUploadAudio handles audio file upload for embedding in a post.
+func PostUploadAudio(db *gorm.DB) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No file uploaded"})
+		}
+		uploaded, err := service.ProcessUpload(file, "audio")
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err := c.SaveFile(file, uploaded.FilePath); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save file"})
+		}
+		db.Create(uploaded)
+		return c.JSON(fiber.Map{"url": "/uploads/audio/" + uploaded.StoredName})
+	}
+}

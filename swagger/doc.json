@@ -1,0 +1,839 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "My Portfolio API",
+    "description": "Complete API reference for the Go/Fiber-powered portfolio backend.\n\n## Authentication\n- **Admin routes** (`/admin/*`) require a session cookie obtained via `POST /admin/login`.\n- **Comment POST** requires an OAuth session cookie obtained via GitHub or Google OAuth flow.\n- All other routes are public.\n\n## Rate Limits\n- Global: 200 req/min per IP (static assets and health probes exempt).\n- `POST /contact`: configurable, default 5 req/min per IP.\n- `POST /comments`: configurable, default 20 req/min per IP.\n- `POST /admin/login`: 10 req per 15 min per IP (brute-force guard).\n\n## HTMX Partials\nMany endpoints return HTML fragments for HTMX consumption rather than full pages or JSON. Response descriptions note when this applies.",
+    "version": "0.0.1",
+    "license": { "name": "MIT" }
+  },
+  "servers": [{ "url": "/", "description": "Local / production server" }],
+  "components": {
+    "securitySchemes": {
+      "adminSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session",
+        "description": "Session cookie set after successful POST /admin/login."
+      },
+      "oauthSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "oauth_session",
+        "description": "OAuth session cookie set after completing Google or GitHub OAuth flow."
+      }
+    },
+    "schemas": {
+      "ErrorText": { "type": "string", "description": "Plain-text error message." },
+      "ErrorJSON": {
+        "type": "object",
+        "properties": {
+          "error":       { "type": "string" },
+          "retry_after": { "type": "integer" }
+        }
+      },
+      "OwnerForm": {
+        "type": "object",
+        "properties": {
+          "full_name": { "type": "string", "maxLength": 100 },
+          "title":     { "type": "string", "maxLength": 150 },
+          "tagline":   { "type": "string", "maxLength": 300 },
+          "bio":       { "type": "string" },
+          "email":     { "type": "string", "maxLength": 100 },
+          "phone":     { "type": "string", "maxLength": 30 },
+          "location":  { "type": "string", "maxLength": 100 }
+        }
+      },
+      "ProjectForm": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title":         { "type": "string", "maxLength": 200 },
+          "description":   { "type": "string" },
+          "long_desc":     { "type": "string" },
+          "thumbnail_url": { "type": "string", "maxLength": 500 },
+          "live_url":      { "type": "string", "maxLength": 500 },
+          "repo_url":      { "type": "string", "maxLength": 500 },
+          "tags":          { "type": "string", "maxLength": 500 },
+          "status":        { "type": "string", "enum": ["draft", "published"], "default": "draft" },
+          "sort_order":    { "type": "integer", "default": 0 },
+          "featured":      { "type": "boolean", "default": false }
+        }
+      },
+      "ExperienceForm": {
+        "type": "object",
+        "required": ["type", "title", "start_date"],
+        "properties": {
+          "type":        { "type": "string", "enum": ["work", "education", "certification"] },
+          "title":       { "type": "string", "maxLength": 200 },
+          "org":         { "type": "string", "maxLength": 200 },
+          "location":    { "type": "string", "maxLength": 100 },
+          "start_date":  { "type": "string", "format": "date" },
+          "end_date":    { "type": "string", "format": "date" },
+          "is_current":  { "type": "boolean" },
+          "description": { "type": "string" },
+          "sort_order":  { "type": "integer" }
+        }
+      },
+      "SkillForm": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name":          { "type": "string", "maxLength": 100 },
+          "category":      { "type": "string", "maxLength": 50 },
+          "icon_class":    { "type": "string", "maxLength": 100 },
+          "icon_url":      { "type": "string", "maxLength": 500 },
+          "icon_url_dark": { "type": "string", "maxLength": 500 },
+          "proficiency":   { "type": "integer", "minimum": 0, "maximum": 100, "default": 0 },
+          "sort_order":    { "type": "integer", "default": 0 }
+        }
+      },
+      "SocialLinkForm": {
+        "type": "object",
+        "required": ["platform", "url"],
+        "properties": {
+          "platform":   { "type": "string", "maxLength": 50 },
+          "url":        { "type": "string", "maxLength": 500 },
+          "icon_class": { "type": "string", "maxLength": 100 },
+          "label":      { "type": "string", "maxLength": 100 },
+          "sort_order": { "type": "integer", "default": 0 }
+        }
+      },
+      "TechStackForm": {
+        "type": "object",
+        "required": ["name", "category"],
+        "properties": {
+          "name":          { "type": "string", "maxLength": 100 },
+          "category":      { "type": "string", "maxLength": 100 },
+          "icon_class":    { "type": "string", "maxLength": 100 },
+          "icon_url":      { "type": "string", "maxLength": 500 },
+          "icon_url_dark": { "type": "string", "maxLength": 500 },
+          "description":   { "type": "string", "maxLength": 500 },
+          "url":           { "type": "string", "maxLength": 500 },
+          "sort_order":    { "type": "integer", "default": 0 }
+        }
+      },
+      "PostForm": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title":             { "type": "string", "maxLength": 300 },
+          "excerpt":           { "type": "string" },
+          "content":           { "type": "string", "description": "Markdown content with optional raw HTML blocks." },
+          "tags":              { "type": "string", "maxLength": 500, "description": "Comma-separated tags." },
+          "status":            { "type": "string", "enum": ["draft", "published"], "default": "draft" },
+          "sort_order":        { "type": "integer", "default": 0 },
+          "thumbnail_file_id": { "type": "integer", "nullable": true }
+        }
+      },
+      "UpcomingItemForm": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title":       { "type": "string", "maxLength": 200 },
+          "description": { "type": "string" },
+          "type":        { "type": "string", "enum": ["project", "announcement"] },
+          "status":      { "type": "string", "enum": ["planned", "in-progress", "coming-soon"], "default": "planned" },
+          "icon_class":  { "type": "string", "maxLength": 100 },
+          "sort_order":  { "type": "integer", "default": 0 }
+        }
+      },
+      "AdminLoginForm": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username":           { "type": "string" },
+          "password":           { "type": "string", "format": "password" },
+          "h-captcha-response": { "type": "string", "description": "hCaptcha token — required when hCaptcha is enabled in config." }
+        }
+      }
+    },
+    "responses": {
+      "HTML200":        { "description": "HTML page.", "content": { "text/html": { "schema": { "type": "string" } } } },
+      "HTMLPartial200": { "description": "HTMX HTML fragment (not a full page).", "content": { "text/html": { "schema": { "type": "string" } } } },
+      "NoContent":      { "description": "Empty 200 body — HTMX removes the target element." },
+      "Unauthorized":   { "description": "Not authenticated.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorJSON" } } } },
+      "BadRequest":     { "description": "Validation error.", "content": { "text/plain": { "schema": { "$ref": "#/components/schemas/ErrorText" } } } },
+      "NotFound":       { "description": "Resource not found.", "content": { "text/plain": { "schema": { "$ref": "#/components/schemas/ErrorText" } } } },
+      "TooManyRequests":{ "description": "Rate limit exceeded.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorJSON" } } } },
+      "ServiceUnavailable": { "description": "Server overloaded or DB not ready.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorJSON" } } } }
+    }
+  },
+  "tags": [
+    { "name": "Health",               "description": "Liveness and readiness probes." },
+    { "name": "Locale",               "description": "Runtime locale JSON for i18n (en, id)." },
+    { "name": "Portfolio",            "description": "Public portfolio page and resume." },
+    { "name": "Projects",             "description": "Public projects HTMX partial." },
+    { "name": "Upcoming",             "description": "Public upcoming/what's-next HTMX partial." },
+    { "name": "OAuth",                "description": "Google and GitHub OAuth2 login/logout for comment authors." },
+    { "name": "Comments",             "description": "Public paginated comments with lazy-load and WebSocket notifications." },
+    { "name": "Blog",                 "description": "Public blog listing and post detail." },
+    { "name": "Contact",              "description": "Public contact form submission." },
+    { "name": "WebSocket",            "description": "Real-time comment/notification WebSocket." },
+    { "name": "Auth",                 "description": "Admin session login and logout." },
+    { "name": "Admin · Dashboard",    "description": "Admin overview, server monitor, and profiler." },
+    { "name": "Admin · Owner",        "description": "Owner profile, image, and resume management." },
+    { "name": "Admin · Projects",     "description": "CRUD for portfolio projects." },
+    { "name": "Admin · Experience",   "description": "CRUD for work/education/certification timeline." },
+    { "name": "Admin · Skills",       "description": "CRUD for skill entries." },
+    { "name": "Admin · Social Links", "description": "CRUD for social/external profile links." },
+    { "name": "Admin · Tech Stacks",  "description": "CRUD for technology stack items." },
+    { "name": "Admin · Blog Posts",   "description": "CRUD for blog posts including media uploads." },
+    { "name": "Admin · Upcoming",     "description": "CRUD for upcoming project/announcement items." },
+    { "name": "Admin · Uploads",      "description": "Generic file upload management." },
+    { "name": "Admin · Comments",     "description": "Comment moderation: approve, reject, reply, delete." },
+    { "name": "Admin · Contacts",     "description": "Inbound contact message management." },
+    { "name": "Swagger",              "description": "Self-hosted Swagger UI (admin-only)." }
+  ],
+  "paths": {
+    "/livez": {
+      "get": { "summary": "Liveness probe", "operationId": "liveness", "tags": ["Health"],
+        "responses": { "200": { "description": "Server process is alive." } } }
+    },
+    "/readyz": {
+      "get": { "summary": "Readiness probe", "operationId": "readiness", "tags": ["Health"],
+        "description": "Returns 200 when the DB is reachable, 503 otherwise.",
+        "responses": { "200": { "description": "Ready." }, "503": { "$ref": "#/components/responses/ServiceUnavailable" } } }
+    },
+    "/lang/{code}": {
+      "get": { "summary": "Locale JSON", "operationId": "getLocale", "tags": ["Locale"],
+        "description": "Returns the i18n translation map for the requested locale, loaded from web/locales/{code}.yaml.",
+        "parameters": [{ "name": "code", "in": "path", "required": true, "schema": { "type": "string", "enum": ["en", "id"] } }],
+        "responses": {
+          "200": { "description": "Flat key→string JSON map.", "content": { "application/json": { "schema": { "type": "object", "additionalProperties": { "type": "string" } } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/": {
+      "get": { "summary": "Portfolio home page", "operationId": "portfolioPage", "tags": ["Portfolio"],
+        "description": "Full single-page portfolio (hero, about, experience, skills, projects, tech stack, upcoming, blog preview, contact).",
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" } } }
+    },
+    "/resume": {
+      "get": { "summary": "View resume PDF inline", "operationId": "viewResume", "tags": ["Portfolio"],
+        "responses": { "200": { "description": "PDF (Content-Disposition: inline).", "content": { "application/pdf": {} } }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/resume/download": {
+      "get": { "summary": "Download resume PDF", "operationId": "downloadResume", "tags": ["Portfolio"],
+        "responses": { "200": { "description": "PDF (Content-Disposition: attachment).", "content": { "application/pdf": {} } }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/projects": {
+      "get": { "summary": "Projects HTMX partial", "operationId": "projectsPartial", "tags": ["Projects"],
+        "description": "Paginated, filterable HTML partial of project cards for the public portfolio page.",
+        "parameters": [
+          { "name": "page",   "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "tag",    "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" } } }
+    },
+    "/upcoming": {
+      "get": { "summary": "Upcoming items HTMX partial", "operationId": "upcomingPartial", "tags": ["Upcoming"],
+        "description": "HTML partial listing visible upcoming project/announcement items.",
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" } } }
+    },
+    "/auth/google": {
+      "get": { "summary": "Initiate Google OAuth", "operationId": "googleLogin", "tags": ["OAuth"],
+        "responses": { "302": { "description": "Redirect to Google consent screen." } } }
+    },
+    "/auth/google/callback": {
+      "get": { "summary": "Google OAuth callback", "operationId": "googleCallback", "tags": ["OAuth"],
+        "description": "Handles Google callback. Creates/updates OAuthUser and sets oauth_session cookie, then redirects to /#comments.",
+        "parameters": [
+          { "name": "code",  "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "302": { "description": "Redirect to /#comments." }, "400": { "$ref": "#/components/responses/BadRequest" } } }
+    },
+    "/auth/github": {
+      "get": { "summary": "Initiate GitHub OAuth", "operationId": "githubLogin", "tags": ["OAuth"],
+        "responses": { "302": { "description": "Redirect to GitHub authorization page." } } }
+    },
+    "/auth/github/callback": {
+      "get": { "summary": "GitHub OAuth callback", "operationId": "githubCallback", "tags": ["OAuth"],
+        "description": "Handles GitHub callback. Creates/updates OAuthUser and sets oauth_session cookie, then redirects to /#comments.",
+        "parameters": [
+          { "name": "code",  "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "state", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "302": { "description": "Redirect to /#comments." }, "400": { "$ref": "#/components/responses/BadRequest" } } }
+    },
+    "/auth/logout": {
+      "get": { "summary": "OAuth logout", "operationId": "oauthLogout", "tags": ["OAuth"],
+        "description": "Clears oauth_session cookie and redirects to /.",
+        "security": [{ "oauthSession": [] }],
+        "responses": { "302": { "description": "Redirect to /." } } }
+    },
+    "/comments": {
+      "get": {
+        "summary": "List approved comments (paginated)", "operationId": "listComments", "tags": ["Comments"],
+        "description": "Returns an HTML partial with paginated top-level approved comments and their replies.\n\n- `page=1` → full `comment_list` container (includes total count header and first 10 comments).\n- `page>1` → `comment_batch` fragment (replaces load-more sentinel via `hx-swap=outerHTML`).\n\nPage size: **10 per page**. Protected by circuit breaker.",
+        "parameters": [{ "name": "page", "in": "query", "schema": { "type": "integer", "default": 1, "minimum": 1 } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "503": { "$ref": "#/components/responses/ServiceUnavailable" } }
+      },
+      "post": {
+        "summary": "Submit a comment", "operationId": "createComment", "tags": ["Comments"],
+        "description": "Creates a comment with `is_approved=false` (requires admin moderation). Broadcasts a WebSocket event to connected clients. Returns an HTML `comment_card` partial marked as pending.\n\nRate limited: default **20 req/min** per IP. Requires OAuth session.",
+        "security": [{ "oauthSession": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "required": ["body"], "properties": { "body": { "type": "string", "maxLength": 2000 } } } } }
+        },
+        "responses": {
+          "200": { "description": "HTML comment_card partial (pending badge shown).", "content": { "text/html": { "schema": { "type": "string" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/ws/comments": {
+      "get": {
+        "summary": "WebSocket — comment notifications", "operationId": "wsComments", "tags": ["WebSocket"],
+        "description": "Upgrades to a WebSocket connection. The server pushes a JSON event whenever a new comment is posted:\n\n```json\n{\"type\":\"comment\",\"data\":{\"id\":42,\"user\":\"Alice\",\"refresh\":true}}\n```\n\nClients that detect `refresh:true` can re-fetch `GET /comments?page=1`.",
+        "responses": { "101": { "description": "WebSocket handshake." }, "426": { "description": "Upgrade Required — plain HTTP not accepted on this path." } }
+      }
+    },
+    "/blog": {
+      "get": { "summary": "Blog post list page", "operationId": "blogListPage", "tags": ["Blog"],
+        "description": "Renders the public blog listing page. Initial load shows 6 posts; additional posts load via GET /blog/more.",
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" } } }
+    },
+    "/blog/more": {
+      "get": { "summary": "Blog posts HTMX partial (load more)", "operationId": "blogPostsPartial", "tags": ["Blog"],
+        "description": "Returns an HTML partial with the next page of blog post cards for HTMX infinite scroll. Protected by circuit breaker.",
+        "parameters": [{ "name": "page", "in": "query", "schema": { "type": "integer", "default": 2, "minimum": 2 } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "503": { "$ref": "#/components/responses/ServiceUnavailable" } } }
+    },
+    "/blog/{slug}": {
+      "get": { "summary": "Blog post detail", "operationId": "blogPostDetail", "tags": ["Blog"],
+        "description": "Renders the full blog post. Markdown is rendered via goldmark (GFM + raw HTML) and sanitized by bluemonday (allows images, video, audio, YouTube/Vimeo iframes).",
+        "parameters": [{ "name": "slug", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/contact": {
+      "post": {
+        "summary": "Submit contact message", "operationId": "submitContact", "tags": ["Contact"],
+        "description": "Saves the message to the DB and attempts to email the owner.\n\nRate limited: default **5 req/min** per IP. Protected by circuit breaker.\n\nWith `HX-Request: true` header → returns inline HTML snippet. Otherwise → redirects to /#contact.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "message"],
+                "properties": {
+                  "name":    { "type": "string", "maxLength": 100 },
+                  "email":   { "type": "string", "format": "email", "maxLength": 254 },
+                  "subject": { "type": "string", "maxLength": 200 },
+                  "message": { "type": "string", "maxLength": 5000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success HTML snippet (HTMX) or redirect.", "content": { "text/html": { "schema": { "type": "string" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" },
+          "503": { "$ref": "#/components/responses/ServiceUnavailable" }
+        }
+      }
+    },
+    "/swagger/{any}": {
+      "get": { "summary": "Swagger UI", "operationId": "swaggerUI", "tags": ["Swagger"],
+        "description": "Self-hosted Swagger UI (gofiber/contrib/swaggo). Requires admin session cookie.",
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "any", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/login": {
+      "get": {
+        "summary": "Admin login page", "operationId": "adminLoginPage", "tags": ["Auth"],
+        "description": "Renders the admin login form. Shows hCaptcha widget when enabled in config.",
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" } }
+      },
+      "post": {
+        "summary": "Admin login submit", "operationId": "adminLoginSubmit", "tags": ["Auth"],
+        "description": "Authenticates credentials. Sets a session cookie and redirects to /admin/ on success. Re-renders the login page with an error on failure.\n\nBrute-force guard: **10 attempts per 15 min** per IP. hCaptcha validation runs first when enabled.",
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/AdminLoginForm" } } } },
+        "responses": {
+          "302": { "description": "Redirect to /admin/ on success." },
+          "200": { "description": "Login page re-rendered with error.", "content": { "text/html": { "schema": { "type": "string" } } } },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/admin/logout": {
+      "post": { "summary": "Admin logout", "operationId": "adminLogout", "tags": ["Auth"],
+        "description": "Clears the session cookie and redirects to /admin/login.",
+        "security": [{ "adminSession": [] }],
+        "responses": { "302": { "description": "Redirect to /admin/login." } } }
+    },
+    "/admin/": {
+      "get": { "summary": "Admin dashboard", "operationId": "adminDashboard", "tags": ["Admin · Dashboard"],
+        "description": "Overview page with counts, recent comments, recent messages, and pending moderation items.",
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/monitor": {
+      "get": { "summary": "Server monitor", "operationId": "adminMonitor", "tags": ["Admin · Dashboard"],
+        "description": "Real-time server metrics (CPU, memory, goroutines, requests/s) via gofiber/contrib/monitor.",
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/debug/fgprof": {
+      "get": { "summary": "Goroutine-aware CPU profiler", "operationId": "adminProfiler", "tags": ["Admin · Dashboard"],
+        "description": "Full goroutine-aware profiling via gofiber/contrib/fgprof. Example: GET /admin/debug/fgprof?seconds=10",
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "seconds", "in": "query", "schema": { "type": "integer", "default": 30 } }],
+        "responses": { "200": { "description": "pprof-format profile.", "content": { "application/octet-stream": {} } }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/owner": {
+      "get": { "summary": "Owner edit page", "operationId": "adminOwnerEditPage", "tags": ["Admin · Owner"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "put": { "summary": "Update owner profile", "operationId": "adminOwnerUpdate", "tags": ["Admin · Owner"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/OwnerForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/owner/upload-image": {
+      "post": { "summary": "Upload owner profile image", "operationId": "adminOwnerUploadImage", "tags": ["Admin · Owner"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["image"], "properties": { "image": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/owner/upload-resume": {
+      "post": { "summary": "Upload owner resume PDF", "operationId": "adminOwnerUploadResume", "tags": ["Admin · Owner"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["resume"], "properties": { "resume": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/projects": {
+      "get": { "summary": "Projects admin page", "operationId": "adminProjectsPage", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create project", "operationId": "adminProjectCreate", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/ProjectForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/projects/list": {
+      "get": { "summary": "Projects list HTMX partial", "operationId": "adminProjectsListPartial", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",     "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "per_page", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "sort",     "in": "query", "schema": { "type": "string", "enum": ["sort_order", "title", "status", "created_at"], "default": "sort_order" } },
+          { "name": "order",    "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } },
+          { "name": "search",   "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/projects/new": {
+      "get": { "summary": "New project form partial", "operationId": "adminProjectNewForm", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/projects/{id}/edit": {
+      "get": { "summary": "Edit project form partial", "operationId": "adminProjectEditForm", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/projects/{id}": {
+      "put": { "summary": "Update project", "operationId": "adminProjectUpdate", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/ProjectForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete project", "operationId": "adminProjectDelete", "tags": ["Admin · Projects"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/experience": {
+      "get": { "summary": "Experience admin page", "operationId": "adminExperiencePage", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create experience entry", "operationId": "adminExperienceCreate", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/ExperienceForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/experience/list": {
+      "get": { "summary": "Experience list HTMX partial", "operationId": "adminExperienceListPartial", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/experience/new": {
+      "get": { "summary": "New experience form partial", "operationId": "adminExperienceNewForm", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/experience/{id}/edit": {
+      "get": { "summary": "Edit experience form partial", "operationId": "adminExperienceEditForm", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/experience/upload-image": {
+      "post": { "summary": "Upload experience image", "operationId": "adminExperienceUploadImage", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["image"], "properties": { "image": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/experience/{id}": {
+      "put": { "summary": "Update experience entry", "operationId": "adminExperienceUpdate", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/ExperienceForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete experience entry", "operationId": "adminExperienceDelete", "tags": ["Admin · Experience"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/skills": {
+      "get": { "summary": "Skills admin page", "operationId": "adminSkillsPage", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create skill", "operationId": "adminSkillCreate", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/SkillForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/skills/list": {
+      "get": { "summary": "Skills list HTMX partial", "operationId": "adminSkillsListPartial", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/skills/new": {
+      "get": { "summary": "New skill form partial", "operationId": "adminSkillNewForm", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/skills/{id}/edit": {
+      "get": { "summary": "Edit skill form partial", "operationId": "adminSkillEditForm", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/skills/{id}": {
+      "put": { "summary": "Update skill", "operationId": "adminSkillUpdate", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/SkillForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete skill", "operationId": "adminSkillDelete", "tags": ["Admin · Skills"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/social-links": {
+      "get": { "summary": "Social links admin page", "operationId": "adminSocialLinksPage", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create social link", "operationId": "adminSocialLinkCreate", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/SocialLinkForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/social-links/list": {
+      "get": { "summary": "Social links list HTMX partial", "operationId": "adminSocialLinksListPartial", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/social-links/new": {
+      "get": { "summary": "New social link form partial", "operationId": "adminSocialLinkNewForm", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/social-links/{id}/edit": {
+      "get": { "summary": "Edit social link form partial", "operationId": "adminSocialLinkEditForm", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/social-links/{id}": {
+      "put": { "summary": "Update social link", "operationId": "adminSocialLinkUpdate", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/SocialLinkForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete social link", "operationId": "adminSocialLinkDelete", "tags": ["Admin · Social Links"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/tech-stacks": {
+      "get": { "summary": "Tech stacks admin page", "operationId": "adminTechStacksPage", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create tech stack entry", "operationId": "adminTechStackCreate", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/TechStackForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/tech-stacks/list": {
+      "get": { "summary": "Tech stacks list HTMX partial", "operationId": "adminTechStacksListPartial", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/tech-stacks/new": {
+      "get": { "summary": "New tech stack form partial", "operationId": "adminTechStackNewForm", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/tech-stacks/{id}/edit": {
+      "get": { "summary": "Edit tech stack form partial", "operationId": "adminTechStackEditForm", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/tech-stacks/{id}": {
+      "put": { "summary": "Update tech stack entry", "operationId": "adminTechStackUpdate", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/TechStackForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete tech stack entry", "operationId": "adminTechStackDelete", "tags": ["Admin · Tech Stacks"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts": {
+      "get": { "summary": "Blog posts admin page", "operationId": "adminPostsPage", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create blog post", "operationId": "adminPostCreate", "tags": ["Admin · Blog Posts"],
+        "description": "Slug is auto-generated from title. published_at is set automatically on first publish.",
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/PostForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/list": {
+      "get": { "summary": "Blog posts list HTMX partial", "operationId": "adminPostsListPartial", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",     "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "per_page", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "sort",     "in": "query", "schema": { "type": "string", "enum": ["sort_order", "title", "status", "created_at"], "default": "sort_order" } },
+          { "name": "order",    "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } },
+          { "name": "search",   "in": "query", "schema": { "type": "string" }, "description": "Searches title, excerpt, and tags." }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/new": {
+      "get": { "summary": "New blog post form partial", "operationId": "adminPostNewForm", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/upload-thumbnail": {
+      "post": { "summary": "Upload post thumbnail", "operationId": "adminPostUploadThumbnail", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["thumbnail"], "properties": { "thumbnail": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/upload-media": {
+      "post": { "summary": "Upload inline image for post", "operationId": "adminPostUploadMedia", "tags": ["Admin · Blog Posts"],
+        "description": "Stores an image and returns a Markdown ![alt](/path) snippet to paste into the content editor.",
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["media"], "properties": { "media": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "description": "Markdown image snippet.", "content": { "text/plain": { "schema": { "type": "string", "example": "![image](/uploads/images/abc123.jpg)" } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/upload-video": {
+      "post": { "summary": "Upload video for post", "operationId": "adminPostUploadVideo", "tags": ["Admin · Blog Posts"],
+        "description": "Stores a video file and returns an HTML <video> snippet to paste into the content editor.",
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["video"], "properties": { "video": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "description": "HTML <video> snippet.", "content": { "text/plain": { "schema": { "type": "string" } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/upload-audio": {
+      "post": { "summary": "Upload audio for post", "operationId": "adminPostUploadAudio", "tags": ["Admin · Blog Posts"],
+        "description": "Stores an audio file and returns an HTML <audio> snippet to paste into the content editor.",
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["audio"], "properties": { "audio": { "type": "string", "format": "binary" } } } } } },
+        "responses": { "200": { "description": "HTML <audio> snippet.", "content": { "text/plain": { "schema": { "type": "string" } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/posts/{id}/edit": {
+      "get": { "summary": "Edit blog post form partial", "operationId": "adminPostEditForm", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/posts/{id}": {
+      "put": { "summary": "Update blog post", "operationId": "adminPostUpdate", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/PostForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete blog post", "operationId": "adminPostDelete", "tags": ["Admin · Blog Posts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/upcoming": {
+      "get": { "summary": "Upcoming items admin page", "operationId": "adminUpcomingPage", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Create upcoming item", "operationId": "adminUpcomingCreate", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/UpcomingItemForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/upcoming/list": {
+      "get": { "summary": "Upcoming items list HTMX partial", "operationId": "adminUpcomingListPartial", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/upcoming/new": {
+      "get": { "summary": "New upcoming item form partial", "operationId": "adminUpcomingNewForm", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/upcoming/{id}/edit": {
+      "get": { "summary": "Edit upcoming item form partial", "operationId": "adminUpcomingEditForm", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/upcoming/{id}": {
+      "put": { "summary": "Update upcoming item", "operationId": "adminUpcomingUpdate", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "$ref": "#/components/schemas/UpcomingItemForm" } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Delete upcoming item", "operationId": "adminUpcomingDelete", "tags": ["Admin · Upcoming"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/uploads": {
+      "get": { "summary": "Uploads admin page", "operationId": "adminUploadsPage", "tags": ["Admin · Uploads"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } },
+      "post": { "summary": "Upload a file", "operationId": "adminUploadCreate", "tags": ["Admin · Uploads"],
+        "description": "Stores the file in the uploads/ directory and records its metadata in the DB.",
+        "security": [{ "adminSession": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "multipart/form-data": { "schema": { "type": "object", "required": ["file"], "properties": { "file": { "type": "string", "format": "binary" }, "category": { "type": "string" } } } } }
+        },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/uploads/list": {
+      "get": { "summary": "Uploads list HTMX partial", "operationId": "adminUploadsListPartial", "tags": ["Admin · Uploads"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/uploads/{id}": {
+      "delete": { "summary": "Delete uploaded file", "operationId": "adminUploadDelete", "tags": ["Admin · Uploads"],
+        "description": "Removes the DB record and the file from disk.",
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/comments": {
+      "get": { "summary": "Comments moderation page", "operationId": "adminCommentsPage", "tags": ["Admin · Comments"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/comments/list": {
+      "get": { "summary": "Comments list HTMX partial", "operationId": "adminCommentsListPartial", "tags": ["Admin · Comments"],
+        "description": "All comments (pending and approved) for moderation.",
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/comments/{id}/approve": {
+      "put": { "summary": "Approve comment", "operationId": "adminCommentApprove", "tags": ["Admin · Comments"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/comments/{id}/reject": {
+      "put": { "summary": "Reject (un-approve) comment", "operationId": "adminCommentReject", "tags": ["Admin · Comments"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/comments/{id}/reply": {
+      "post": { "summary": "Post owner reply to a comment", "operationId": "adminCommentReply", "tags": ["Admin · Comments"],
+        "description": "Creates a Comment with is_owner_reply=true and parent_id set to the target comment. Requires the owner's OAuthUser system account.",
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/x-www-form-urlencoded": { "schema": { "type": "object", "required": ["body"], "properties": { "body": { "type": "string", "maxLength": 2000 } } } } } },
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "400": { "$ref": "#/components/responses/BadRequest" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/comments/{id}": {
+      "delete": { "summary": "Delete comment", "operationId": "adminCommentDelete", "tags": ["Admin · Comments"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/contacts": {
+      "get": { "summary": "Contact messages admin page", "operationId": "adminContactsPage", "tags": ["Admin · Contacts"],
+        "security": [{ "adminSession": [] }],
+        "responses": { "200": { "$ref": "#/components/responses/HTML200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/contacts/list": {
+      "get": { "summary": "Contact messages list HTMX partial", "operationId": "adminContactsListPartial", "tags": ["Admin · Contacts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [
+          { "name": "page",  "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "sort",  "in": "query", "schema": { "type": "string" } },
+          { "name": "order", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"] } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    },
+    "/admin/contacts/{id}/read": {
+      "put": { "summary": "Mark contact message as read", "operationId": "adminContactMarkRead", "tags": ["Admin · Contacts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/HTMLPartial200" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+    },
+    "/admin/contacts/{id}": {
+      "delete": { "summary": "Delete contact message", "operationId": "adminContactDelete", "tags": ["Admin · Contacts"],
+        "security": [{ "adminSession": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "$ref": "#/components/responses/NoContent" }, "401": { "$ref": "#/components/responses/Unauthorized" } } }
+    }
+  }
+}

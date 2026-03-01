@@ -8,6 +8,7 @@ import (
 
 	contribhcaptcha "github.com/gofiber/contrib/v3/hcaptcha"
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -18,10 +19,10 @@ import (
 // without a server restart.
 //
 //   - loginLimiter — strict IP-based brute-force guard (10 req / 15 min)
-func registerAuthRoutes(app *fiber.App, db *gorm.DB, loginLimiter fiber.Handler) {
+func registerAuthRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, loginLimiter fiber.Handler) {
 	cfg := config.MyPortfolio.Get()
 
-	app.Get("/admin/login", handler.AdminLoginPage())
+	app.Get("/admin/login", handler.AdminLoginPage(db, rdb))
 
 	// hCaptcha middleware: on failure it re-renders the login page with an
 	// error and returns a non-nil error so AdminLoginSubmit is never called.
@@ -55,8 +56,8 @@ func registerAuthRoutes(app *fiber.App, db *gorm.DB, loginLimiter fiber.Handler)
 			}
 			return hcaptchaMiddleware(c)
 		},
-		handler.AdminLoginSubmit(db),
+		handler.AdminLoginSubmit(db, rdb),
 	)
 
-	app.Post("/admin/logout", handler.AdminLogout())
+	app.Post("/admin/logout", handler.AdminLogout(rdb))
 }

@@ -27,6 +27,26 @@ func ProcessUpload(fileHeader *multipart.FileHeader, category string) (*model.Up
 	case "resume":
 		maxSize = cfg.Upload.MaxResumeSize * 1024 * 1024
 		allowedTypes = cfg.Upload.AllowedResumeTypes
+	case "video":
+		v := cfg.Upload.MaxVideoSize
+		if v <= 0 {
+			v = 200
+		}
+		maxSize = v * 1024 * 1024
+		allowedTypes = cfg.Upload.AllowedVideoTypes
+		if len(allowedTypes) == 0 {
+			allowedTypes = []string{"video/mp4", "video/webm", "video/ogg"}
+		}
+	case "audio":
+		v := cfg.Upload.MaxAudioSize
+		if v <= 0 {
+			v = 50
+		}
+		maxSize = v * 1024 * 1024
+		allowedTypes = cfg.Upload.AllowedAudioTypes
+		if len(allowedTypes) == 0 {
+			allowedTypes = []string{"audio/mpeg", "audio/ogg", "audio/wav", "audio/aac"}
+		}
 	default:
 		maxSize = cfg.Upload.MaxImageSize * 1024 * 1024
 		allowedTypes = cfg.Upload.AllowedImageTypes

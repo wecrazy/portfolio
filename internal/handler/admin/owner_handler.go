@@ -33,6 +33,7 @@ func OwnerUpdate(db *gorm.DB) fiber.Handler {
 
 		owner.FullName = c.FormValue("full_name")
 		owner.Title = c.FormValue("title")
+		owner.Tagline = c.FormValue("tagline")
 		owner.Bio = c.FormValue("bio")
 		owner.Email = c.FormValue("email")
 		owner.Phone = c.FormValue("phone")

@@ -1,3 +1,7 @@
+<!-- EasyMDE (Markdown editor) — load only when form is injected -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+
 <div class="card border-0 mb-3">
     <div class="card-body">
         <h6 class="card-title mb-3">{{if .Post.ID}}Edit Post{{else}}New Post{{end}}</h6>
@@ -19,8 +23,26 @@
                     <textarea name="excerpt" class="form-control" rows="2">{{.Post.Excerpt}}</textarea>
                 </div>
                 <div class="col-12 mb-2">
-                    <label class="form-label">Content <small class="text-muted">(full post body)</small></label>
-                    <textarea name="content" class="form-control" rows="8">{{.Post.Content}}</textarea>
+                    <label class="form-label">
+                        Content
+                        <small class="text-muted">(Markdown supported — use toolbar to insert images, video &amp; audio)</small>
+                    </label>
+                    <!-- Media upload buttons -->
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="postMediaUpload('image')">
+                            <i class="bx bx-image-add me-1"></i>Insert Image
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="postMediaUpload('video')">
+                            <i class="bx bx-video-plus me-1"></i>Insert Video
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="postMediaUpload('audio')">
+                            <i class="bx bx-music me-1"></i>Insert Audio
+                        </button>
+                        <span class="ms-auto text-muted small align-self-center">
+                            YouTube embed: paste <code>&lt;iframe src="https://www.youtube.com/embed/ID" ...&gt;&lt;/iframe&gt;</code>
+                        </span>
+                    </div>
+                    <textarea id="post-content-mde" name="content" class="form-control" rows="12">{{.Post.Content}}</textarea>
                 </div>
                 <div class="col-md-8 mb-2">
                     <label class="form-label">Tags <small class="text-muted">(comma-separated)</small></label>
@@ -58,3 +80,68 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    // Initialise EasyMDE on the content textarea.
+    var ta = document.getElementById('post-content-mde');
+    if (!ta || ta._mdeReady) return;
+    ta._mdeReady = true;
+
+    window._postMDE = new EasyMDE({
+        element: ta,
+        spellChecker: false,
+        autofocus: false,
+        lineWrapping: true,
+        status: ['lines', 'words', 'cursor'],
+        toolbar: [
+            'bold', 'italic', 'strikethrough', 'heading', '|',
+            'quote', 'code', 'unordered-list', 'ordered-list', '|',
+            'link', 'horizontal-rule', '|',
+            'preview', 'side-by-side', 'fullscreen', '|',
+            'guide'
+        ],
+    });
+
+    // Media upload helper — called by the three buttons above the editor.
+    window.postMediaUpload = function (type) {
+        var input = document.createElement('input');
+        input.type = 'file';
+        if (type === 'image')      input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+        else if (type === 'video') input.accept = 'video/mp4,video/webm,video/ogg';
+        else if (type === 'audio') input.accept = 'audio/mpeg,audio/ogg,audio/wav,audio/aac,audio/flac';
+
+        input.onchange = function () {
+            var file = input.files[0];
+            if (!file) return;
+            var endpoint = '/admin/posts/upload-' + (type === 'image' ? 'media' : type);
+            var fd = new FormData();
+            fd.append('file', file);
+
+            fetch(endpoint, { method: 'POST', body: fd })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.error) { alert('Upload failed: ' + data.error); return; }
+                    var snippet = '';
+                    if (type === 'image') {
+                        snippet = '![' + file.name + '](' + data.url + ')';
+                    } else if (type === 'video') {
+                        snippet = '<video controls style="max-width:100%;border-radius:8px">\n' +
+                                  '  <source src="' + data.url + '" type="' + file.type + '">\n' +
+                                  '</video>';
+                    } else if (type === 'audio') {
+                        snippet = '<audio controls style="width:100%">\n' +
+                                  '  <source src="' + data.url + '" type="' + file.type + '">\n' +
+                                  '</audio>';
+                    }
+                    var cm = window._postMDE.codemirror;
+                    var cursor = cm.getCursor();
+                    cm.replaceRange('\n' + snippet + '\n', cursor);
+                    cm.focus();
+                })
+                .catch(function (err) { alert('Upload error: ' + err); });
+        };
+        input.click();
+    };
+})();
+</script>

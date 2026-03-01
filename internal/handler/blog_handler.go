@@ -1,14 +1,57 @@
 package handler
 
 import (
+	"bytes"
+	"html/template"
+	"regexp"
 	"strconv"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	gmhtml "github.com/yuin/goldmark/renderer/html"
 	"gorm.io/gorm"
 )
+
+// markdownRenderer parses GFM (tables, strikethrough, etc.) and allows raw HTML blocks.
+var markdownRenderer = goldmark.New(
+	goldmark.WithExtensions(extension.GFM),
+	goldmark.WithParserOptions(parser.WithAutoHeadingID()),
+	goldmark.WithRendererOptions(gmhtml.WithUnsafe()),
+)
+
+// htmlPolicy builds a bluemonday policy that allows rich blog content including
+// images, audio, video, and YouTube/Vimeo iframes written in raw Markdown HTML blocks.
+var htmlPolicy = func() *bluemonday.Policy {
+	p := bluemonday.UGCPolicy()
+	// Media elements
+	p.AllowElements("video", "audio", "source", "figure", "figcaption")
+	p.AllowAttrs("controls", "autoplay", "loop", "muted", "preload", "width", "height", "style", "class").OnElements("video", "audio")
+	p.AllowAttrs("src", "type").OnElements("source")
+	// Iframes only from YouTube / Vimeo
+	p.AllowElements("iframe")
+	p.AllowAttrs("width", "height", "frameborder", "allow", "allowfullscreen", "title", "style", "class").OnElements("iframe")
+	p.AllowAttrs("src").Matching(
+		regexp.MustCompile(`^https?://(www\.)?(youtube\.com|youtu\.be|player\.vimeo\.com)/`),
+	).OnElements("iframe")
+	// Allow style on any element (for alignment etc.)
+	p.AllowAttrs("style", "class").Globally()
+	return p
+}()
+
+// renderMarkdown converts Markdown (with raw HTML blocks) to sanitized HTML.
+func renderMarkdown(content string) template.HTML {
+	var buf bytes.Buffer
+	if err := markdownRenderer.Convert([]byte(content), &buf); err != nil {
+		return template.HTML(template.HTMLEscapeString(content))
+	}
+	return template.HTML(htmlPolicy.SanitizeBytes(buf.Bytes()))
+}
 
 // blogPageData loads shared data needed by blog pages (owner, social links for navbar).
 func blogPageData(db *gorm.DB) (model.Owner, []model.SocialLink) {
@@ -122,6 +165,7 @@ func BlogPostPage(db *gorm.DB) fiber.Handler {
 			"Owner":          owner,
 			"SocialLinks":    socialLinks,
 			"Post":           post,
+			"PostHTML":       renderMarkdown(post.Content),
 			"SupportedLangs": cfg.I18n.SupportedLangs,
 			"DefaultLang":    cfg.I18n.DefaultLang,
 		}, "layouts/public_base")

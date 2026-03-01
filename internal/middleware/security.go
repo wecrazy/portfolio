@@ -25,7 +25,7 @@ func Security() fiber.Handler {
 		"font-src 'self' fonts.gstatic.com cdn.boxicons.com data:; " +
 		"img-src 'self' data: blob: https:; " +
 		"connect-src 'self' ws: wss: cdn.jsdelivr.net hcaptcha.com newassets.hcaptcha.com; " +
-		"frame-src 'self' newassets.hcaptcha.com hcaptcha.com; " +
+		"frame-src 'self' newassets.hcaptcha.com hcaptcha.com www.youtube.com youtube.com player.vimeo.com; " +
 		"frame-ancestors 'self'; " +
 		"object-src 'none'; " +
 		"base-uri 'self'; " +

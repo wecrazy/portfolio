@@ -63,8 +63,12 @@ type TypeMyPortfolio struct {
 	Upload struct {
 		MaxImageSize       int64    `yaml:"max_image_size" validate:"required"`
 		MaxResumeSize      int64    `yaml:"max_resume_size" validate:"required"`
+		MaxVideoSize       int64    `yaml:"max_video_size"`
+		MaxAudioSize       int64    `yaml:"max_audio_size"`
 		AllowedImageTypes  []string `yaml:"allowed_image_types" validate:"required"`
 		AllowedResumeTypes []string `yaml:"allowed_resume_types" validate:"required"`
+		AllowedVideoTypes  []string `yaml:"allowed_video_types"`
+		AllowedAudioTypes  []string `yaml:"allowed_audio_types"`
 	} `yaml:"upload" validate:"required"`
 
 	RateLimit struct {
@@ -72,6 +76,12 @@ type TypeMyPortfolio struct {
 		ContactForm int  `yaml:"contact_form" validate:"required"`
 		Comments    int  `yaml:"comments" validate:"required"`
 	} `yaml:"rate_limit" validate:"required"`
+
+	Redis struct {
+		Addr     string `yaml:"addr" validate:"required"`
+		Password string `yaml:"password"`
+		DB       int    `yaml:"db"`
+	} `yaml:"redis" validate:"required"`
 
 	I18n struct {
 		DefaultLang    string   `yaml:"default_lang" validate:"required"`
@@ -115,6 +125,7 @@ type TypeMyPortfolio struct {
 	Owner struct {
 		Name         string `yaml:"name" validate:"required"`
 		Title        string `yaml:"title" validate:"required"`
+		Tagline      string `yaml:"tagline"`
 		Bio          string `yaml:"bio" validate:"required"`
 		ProfileImage string `yaml:"profile_image" validate:"required"`
 		Email        string `yaml:"email" validate:"required,email"`

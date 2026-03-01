@@ -100,6 +100,9 @@ func main() {
 	db := database.InitSQLite(cfg)
 	database.AutoMigrate(db)
 
+	// 3b. Init Redis (admin session store — survives Go server restarts).
+	rdb := database.InitRedis(cfg)
+
 	// 4. Seed defaults.
 	seed.SeedIfNeeded(db, cfg)
 
@@ -148,6 +151,7 @@ func main() {
 	engine.AddFunc("add", func(a, b int) int { return a + b })
 	engine.AddFunc("sub", func(a, b int) int { return a - b })
 	engine.AddFunc("appVersion", func() string { return cfg.App.Version })
+	engine.AddFunc("currentYear", func() int { return time.Now().Year() })
 	engine.AddFunc("humanSize", func(size int64) string {
 		if size < 1024 {
 			return fmt.Sprintf("%d B", size)
@@ -250,7 +254,7 @@ func main() {
 	h := hub.New()
 
 	// 11. Routes (loadshed, circuitbreaker, WS, hcaptcha are registered inside).
-	router.RegisterRoutes(app, db, h)
+	router.RegisterRoutes(app, db, rdb, h)
 
 	// 12. Shutdown hooks — broadcast event so clients show a toast.
 	app.Hooks().OnPreShutdown(func() error {
