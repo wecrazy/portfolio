@@ -35,11 +35,18 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) 
 		},
 		Next: func(c fiber.Ctx) bool {
 			p := c.Path()
+			// these routes are lightweight and should always be served even
+			// when we are shedding load; clients rely on them for i18n and
+			// comment display. skipping them avoids 503 responses that broke
+			// the frontend.
 			return p == healthcheck.LivenessEndpoint ||
 				p == healthcheck.ReadinessEndpoint ||
 				strings.HasPrefix(p, "/static") ||
 				strings.HasPrefix(p, "/uploads") ||
-				strings.HasPrefix(p, "/ws")
+				strings.HasPrefix(p, "/ws") ||
+				strings.HasPrefix(p, "/lang") ||
+				strings.HasPrefix(p, "/comments") ||
+				strings.HasPrefix(p, "/api/translate") // TODO: exclude the /api/translate soon if it will be overloaded
 		},
 		OnShed: func(c fiber.Ctx) error {
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{

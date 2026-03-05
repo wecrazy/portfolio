@@ -1,0 +1,178 @@
+package seed
+
+import (
+	"my-portfolio/internal/model"
+
+	"gorm.io/gorm"
+)
+
+// seedProjects creates demo projects. It is intentionally kept in the seed package because it depends on internal/model.
+func seedProjects(db *gorm.DB) {
+	// TODO: add :
+	// dashboards
+	// jupyter notebook code
+	// web gereja katolik
+	// web enrekang
+
+	projects := []model.Project{
+		{
+			Title:        "Service Platform",
+			Slug:         "service-platform",
+			Description:  "A modular Go platform delivering APIs, WhatsApp/Twilio messaging, schedulers, monitoring, and automation services in one repo.",
+			Tags:         "Go, Gin, Swagger, WhatsApp, Twilio, Telegram, Scheduler, Mongo, Redis, PostgreSQL, gRPC, Protobuf, Prometheus, Grafana, n8n, Docker",
+			Status:       "published",
+			SortOrder:    1,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/service-platform",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/service-platform/ad21add745003b0840d9a1d1d210ce13a64a52b5/web/assets/logo.svg",
+		},
+		{
+			Title:        "Electric Payment",
+			Slug:         "electric-payment",
+			Description:  "Prototype for PLTMH Lembang Palesan's electric payment system. Built with Go, Gin &  MySQL. Customer can paid their electric bill through QRIS payment and see their bill history in dashboard.",
+			Tags:         "Go, Gin, MySQL, QRIS, Dashboard",
+			Status:       "published",
+			SortOrder:    2,
+			Featured:     true,
+			LiveURL:      "https://go.pltmhpalesan.biz.id:6990/welcome",
+			RepoURL:      "https://github.com/wecrazy/electric_payment",
+			ThumbnailURL: "https://go.pltmhpalesan.biz.id:6990/assets/img/front-pages/landing-page/hero-dashboard-light.png",
+		},
+		{
+			Title:        "Cek Resi",
+			Slug:         "cek-resi",
+			Description:  "Indonesian courier tracking API aggregator.",
+			Tags:         "PHP, Composer, API",
+			Status:       "published",
+			SortOrder:    3,
+			Featured:     true,
+			LiveURL:      "http://demo.wecrazy.my.id:8900",
+			RepoURL:      "https://github.com/wecrazy/cek-kurir-resi",
+			ThumbnailURL: "https://placehold.co/600x400/e11d48/ffffff?text=Cek+Resi",
+		},
+		{
+			Title:        "Warning Letter (SP) Sounding System",
+			Slug:         "warning-letter-sounding-system",
+			Description:  "A simple application build with golang for sounding about Technician's got SP (Surat Peringatan) 1-3 in mini PC.",
+			Tags:         "Go, WhatsApp, Sound, API",
+			Status:       "published",
+			SortOrder:    4,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/mini_pc_sounding_sp",
+			ThumbnailURL: "https://placehold.co/600x400/f59e0b/ffffff?text=Mini+PC+Sounding+SP",
+		},
+		{
+			Title:        "MS Daily Dashboard",
+			Slug:         "ms-daily-dashboard",
+			Description:  "A real-time monitoring dashboard that visualizes Odoo helpdesk task data across multiple partner companies with auto-rotating slideshows, interactive charts, and SLA deadline tracking.",
+			Tags:         "PHP, Dashboard, Android",
+			Status:       "published",
+			SortOrder:    5,
+			Featured:     true,
+			LiveURL:      "http://demo.wecrazy.my.id:8800/login",
+			RepoURL:      "https://github.com/wecrazy/ms-daily-dashboard",
+			ThumbnailURL: "https://placehold.co/600x400/10b981/ffffff?text=MS+Daily+Dashboard",
+		},
+		{
+			Title:        "MW Pending Error - TA",
+			Slug:         "mw-pending-error-ta",
+			Description:  "Manages error & pending task data from technician field visits. Integrates with Odoo ERP and an internal file store service.",
+			Tags:         "Go, Fiber, MySQL",
+			Status:       "published",
+			SortOrder:    6,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/mw-error-pending-ta",
+			ThumbnailURL: "https://placehold.co/600x400/3b82f6/ffffff?text=MW+Pending+Error+TA",
+		},
+		{
+			Title:        "Google Colab Projects",
+			Slug:         "google-colab-projects",
+			Description:  "A collection of projects and notebooks created using Google Colab or Jupyter Notebook, showcasing various applications of Python in machine learning, data analysis, and scientific computing.",
+			Tags:         "Python, Machine Learning, Data Science",
+			Status:       "published",
+			SortOrder:    7,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/google-colab-proj",
+			ThumbnailURL: "https://pythonprogramming.altervista.org/wp-content/uploads/2024/02/image-1.png",
+		},
+		{
+			Title:        "Toraya Maelo",
+			Slug:         "toraya-maelo",
+			Description:  "Simple dashboard of wonderful Toraja built with PHP, JS, HTML & CSS.",
+			Tags:         "PHP, JavaScript, HTML, CSS",
+			Status:       "published",
+			SortOrder:    8,
+			Featured:     true,
+			LiveURL:      "http://demo.wecrazy.my.id:8998/index.html",
+			RepoURL:      "https://github.com/wecrazy/toraya-maelo",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/toraya-maelo/refs/heads/main/preview.png",
+		},
+		{
+			Title:        "Call Center App",
+			Slug:         "call-center-app",
+			Description:  "A system to help Call Center / Customer Service agents manage and execute daily customer contact tasks efficiently. Agents can chat or call customers via WhatsApp Desktop while following guided scripts and viewing customer tickets — all in one interface.",
+			Tags:         "Go, WhatsApp, Dashboard",
+			Status:       "published",
+			SortOrder:    9,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/call-center-ms",
+			ThumbnailURL: "https://placehold.co/600x400/6366f1/ffffff?text=Call+Center+App",
+		},
+		{
+			Title:        "Rust Project",
+			Slug:         "rust-project",
+			Description:  "A simple Rust project that demonstrates dashboard Actix-web. This project still in early development stage, but you can check the code and give me suggestion to make it better.",
+			Tags:         "Rust, Actix-web, Dashboard",
+			Status:       "published",
+			SortOrder:    10,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/rust_project",
+			ThumbnailURL: "https://avatars.githubusercontent.com/u/5430905?s=200&v=4",
+		},
+		{
+			Title:        "Technical Assistance",
+			Slug:         "technical-assistance",
+			Description:  "Manageis an internal operations web application designed to manage and monitor the activities of technical assistance (TA) staff and field technicians.",
+			Tags:         "Go, Gin, MySQL, Dashboard",
+			Status:       "published",
+			SortOrder:    11,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/technical-assistance.git",
+			ThumbnailURL: "https://placehold.co/600x400/8b5cf6/ffffff?text=Technical+Assistance",
+		},
+		{
+			Title:        "Odoo Automations",
+			Slug:         "odoo-automations",
+			Description:  "A collection of automation scripts and modules designed to enhance and streamline operations within the Odoo ERP system. These automations cover various business processes, including inventory management, sales order processing, and customer relationship management.",
+			Tags:         "Python, Odoo, ERP, Automation",
+			Status:       "published",
+			SortOrder:    12,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/odoo-automations",
+			ThumbnailURL: "https://odoocdn.com/openerp_website/static/src/img/assets/svg/odoo_logo.svg",
+		},
+		{
+			Title:        "Webview Tracker",
+			Slug:         "webview-tracker",
+			Description:  "Show technician information and his history location visits & unvisited locations.",
+			Tags:         "PHP, Leaflet, MySQL",
+			Status:       "published",
+			SortOrder:    13,
+			Featured:     true,
+			RepoURL:      "https://github.com/wecrazy/odoo_webview_tracker",
+			ThumbnailURL: "https://placehold.co/600x400/4ade80/ffffff?text=Webview+Tracker",
+		},
+		{
+			Title:        "Report Generator",
+			Slug:         "report-generator",
+			Description:  "Client & internal report generator built with Go. It takes structured data input and generates well-formatted Excel reports using customizable templates, supporting various report types such as tickets, inventory, and performance reports.",
+			Tags:         "Go, Excel, Pivot",
+			Status:       "published",
+			SortOrder:    14,
+			Featured:     true,
+			LiveURL:      "https://drive.google.com/drive/folders/1Se3jI5zZQ36ibsRxYKLUnuJP9v0gIKd5?usp=sharing",
+			ThumbnailURL: "https://www.logo.wine/a/logo/Microsoft_Excel/Microsoft_Excel-Logo.wine.svg",
+		},
+	}
+	db.Create(&projects)
+}
