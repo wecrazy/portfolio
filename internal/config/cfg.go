@@ -2,7 +2,6 @@
 package config
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -196,22 +195,31 @@ func loadConfigWithEnv[T any](baseName string) (*configManager[T], error) {
 	return mgr, nil
 }
 
-// fileContainsProd checks if the given file contains the string "prod". It reads the file line by line and returns true if it finds a line containing "prod". If it encounters any error while opening or reading the file, it returns false along with the error.
-// This function is used to help determine the environment (dev/prod) based on the content of the config file when environment variables are not set.
+// fileContainsProd inspects the YAML config file at the given path and returns
+// true if the top‑level `config_mode` value is set to "prod" (case insensitive).
+//
+// Previously this helper simply scanned for the literal string "prod", which
+// could produce false positives. We now unmarshal the file and explicitly
+// look at the config_mode field so that environment detection is accurate
+// when no ENV/GO_ENV variable is provided.
 func fileContainsProd(path string) (bool, error) {
-	file, err := os.Open(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return false, err
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), `"prod"`) {
-			return true, nil
+	// parse only top level keys, we don't care about the rest of the structure
+	var m map[string]interface{}
+	if err := yaml.Unmarshal(data, &m); err != nil {
+		return false, err
+	}
+
+	if v, ok := m["config_mode"]; ok {
+		if s, ok := v.(string); ok {
+			return strings.EqualFold(s, "prod"), nil
 		}
 	}
-	return false, scanner.Err()
+	return false, nil
 }
 
 // update safely updates the configuration data in the configs struct. It acquires a write lock on the mutex to ensure that no other goroutine can read or write the configuration data while it is being updated. Once the new configuration data is set, it releases the lock, allowing other goroutines to access the updated configuration.

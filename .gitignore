@@ -43,3 +43,6 @@ uploads/resume/*
 *.fiber.br
 log/
 bin/
+
+internal/config/my-portfolio.dev.yaml
+internal/config/my-portfolio.prod.yaml
