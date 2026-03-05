@@ -63,6 +63,23 @@ document.addEventListener('DOMContentLoaded', function () {
         document.documentElement.setAttribute('lang', currentLang);
     }
 
+    // helper used by HTMX-injected fragments (error messages, comment batches)
+    // to translate just that piece of DOM without touching the rest of the page.
+    function applyInlineTranslations(el) {
+        if (!el || !i18nCache[currentLang]) return;
+        var dict = i18nCache[currentLang];
+        el.querySelectorAll('[data-i18n]').forEach(function (node) {
+            var key = node.getAttribute('data-i18n');
+            if (dict[key]) node.textContent = dict[key];
+        });
+        el.querySelectorAll('[data-i18n-placeholder]').forEach(function (node) {
+            var key = node.getAttribute('data-i18n-placeholder');
+            if (dict[key]) node.setAttribute('placeholder', dict[key]);
+        });
+    }
+    // expose for inline snippets in templates
+    window.applyInlineTranslations = applyInlineTranslations;
+
     // Translate elements that carry data-translate (DB-driven content).
     // Originals are stashed in data-translate-orig so we can restore on lang revert.
     function translateDynamicContent(lang) {
@@ -446,7 +463,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (windowLabel) {
                 windowLabel.style.display = '';
                 // Apply current i18n if already loaded
-                if (typeof applyI18n === 'function') applyI18n();
+                if (typeof applyInlineTranslations === 'function') {
+                    // translate the window label itself
+                    applyInlineTranslations(windowLabel);
+                }
             }
         });
 

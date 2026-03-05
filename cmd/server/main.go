@@ -148,6 +148,7 @@ func main() {
 		}
 		return s
 	})
+
 	engine.AddFunc("add", func(a, b int) int { return a + b })
 	engine.AddFunc("sub", func(a, b int) int { return a - b })
 	engine.AddFunc("appVersion", func() string { return cfg.App.Version })

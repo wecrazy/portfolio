@@ -2,6 +2,7 @@
 package service
 
 import (
+	"crypto/tls"
 	"fmt"
 	"html"
 
@@ -78,5 +79,14 @@ func SendContactEmail(name, email, subject, message string) error {
 	m.AddAlternative("text/html", htmlBody)
 
 	d := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
-	return d.DialAndSend(m)
+	// Ensure proper TLS hostname verification for providers that require SNI.
+	d.TLSConfig = &tls.Config{ServerName: smtp.Host}
+
+	dialErr := d.DialAndSend(m)
+	if dialErr != nil {
+		// Surface SMTP host and user in the error for easier diagnosis (no password).
+		return fmt.Errorf("smtp send to %s as %s: %w", smtp.Host, smtp.Username, dialErr)
+	}
+
+	return nil
 }
