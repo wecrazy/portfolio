@@ -7,8 +7,17 @@
                 <img src="{{.OAuthUser.AvatarURL}}" class="rounded-circle" width="32" height="32" alt="">
                 {{end}}
                 <div>
+                    {{ $prov := lower .OAuthUser.Provider }}
                     <strong>{{.OAuthUser.DisplayName}}</strong>
+                    {{if eq $prov "github"}}
+                    <span class="badge bg-dark ms-1"><i class="bx bx-git-repo-forked me-1"></i>{{.OAuthUser.Provider}}</span>
+                    {{else if eq $prov "google"}}
+                    <span class="badge bg-danger ms-1"><i class="bx bx-globe me-1"></i>{{.OAuthUser.Provider}}</span>
+                    {{else if eq $prov "facebook"}}
+                    <span class="badge bg-primary ms-1"><i class="bx bxl-facebook me-1"></i>{{.OAuthUser.Provider}}</span>
+                    {{else}}
                     <span class="badge bg-secondary ms-1">{{.OAuthUser.Provider}}</span>
+                    {{end}}
                     <br><small class="text-muted">{{formatDateTime .CreatedAt}}</small>
                 </div>
             </div>

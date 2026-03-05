@@ -11,8 +11,17 @@
         {{end}}
         <div class="flex-grow-1 min-w-0">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                {{ $prov := lower .OAuthUser.Provider }}
                 <strong>{{.OAuthUser.DisplayName}}</strong>
+                {{if eq $prov "github"}}
+                <span class="badge bg-dark small"><i class="bx bx-git-repo-forked me-1"></i>{{.OAuthUser.Provider}}</span>
+                {{else if eq $prov "google"}}
+                <span class="badge bg-danger small"><i class="bx bx-globe me-1"></i>{{.OAuthUser.Provider}}</span>
+                {{else if eq $prov "facebook"}}
+                <span class="badge bg-primary small"><i class="bx bxl-facebook me-1"></i>{{.OAuthUser.Provider}}</span>
+                {{else}}
                 <span class="badge bg-secondary bg-opacity-50 small">{{.OAuthUser.Provider}}</span>
+                {{end}}
                 <small class="text-muted ms-auto">{{formatDateTime .CreatedAt}}</small>
             </div>
             <p class="mb-2">{{.Body}}</p>
