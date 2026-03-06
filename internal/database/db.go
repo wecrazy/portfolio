@@ -7,12 +7,11 @@ import (
 	"path/filepath"
 	"time"
 
-	_ "modernc.org/sqlite"
+	"github.com/glebarez/sqlite"
 
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )

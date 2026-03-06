@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
+	github.com/glebarez/sqlite v1.11.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/goccy/go-yaml v1.17.1
 	github.com/gofiber/contrib/v3/circuitbreaker v1.0.0
@@ -30,9 +31,7 @@ require (
 	golang.org/x/text v0.34.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/lumberjack.v2 v2.0.0
-	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
-	modernc.org/sqlite v1.46.1
 )
 
 require (
@@ -52,6 +51,7 @@ require (
 	github.com/fasthttp/websocket v1.5.12 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.22.4 // indirect
 	github.com/go-openapi/jsonreference v0.21.4 // indirect
@@ -83,7 +83,6 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.3 // indirect
-	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.6.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
@@ -121,4 +120,5 @@ require (
 	modernc.org/libc v1.67.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
+	modernc.org/sqlite v1.46.1 // indirect
 )
