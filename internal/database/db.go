@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	_ "modernc.org/sqlite"
+
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 
