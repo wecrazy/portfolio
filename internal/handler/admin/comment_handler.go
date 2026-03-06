@@ -80,10 +80,11 @@ func CommentReply(db *gorm.DB) fiber.Handler {
 		var ownerOAuth model.OAuthUser
 		db.Where("provider = ? AND provider_id = ?", "system", "owner").First(&ownerOAuth)
 		if ownerOAuth.ID == 0 {
+			cfg := config.MyPortfolio.Get()
 			ownerOAuth = model.OAuthUser{
 				Provider:    "system",
 				ProviderID:  "owner",
-				DisplayName: "Owner",
+				DisplayName: cfg.Owner.Name,
 			}
 			db.Create(&ownerOAuth)
 		}

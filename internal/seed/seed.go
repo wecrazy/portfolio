@@ -35,7 +35,7 @@ func seedDemoData(db *gorm.DB) {
 		seedSkills(db)
 		seedSocialLinks(db)
 		seedTechStacks(db)
-		seedComments(db)
+		// seedComments(db)
 		log.Println("Seeded demo data")
 	}
 
