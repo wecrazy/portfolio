@@ -46,7 +46,7 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) 
 				strings.HasPrefix(p, "/ws") ||
 				strings.HasPrefix(p, "/lang") ||
 				strings.HasPrefix(p, "/comments") ||
-				strings.HasPrefix(p, "/api/translate") // TODO: exclude the /api/translate soon if it will be overloaded
+				strings.HasPrefix(p, "/api/translate") // Note: exclude the /api/translate soon if it will be overloaded request
 		},
 		OnShed: func(c fiber.Ctx) error {
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{

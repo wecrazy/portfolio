@@ -22,6 +22,7 @@ import (
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/router"
 	"my-portfolio/internal/seed"
+	"my-portfolio/pkg/find"
 	"my-portfolio/pkg/installer"
 
 	contribzap "github.com/gofiber/contrib/v3/zap"
@@ -267,10 +268,48 @@ func main() {
 	})
 
 	// 13. Start server in background, wait for Ctrl+C (SIGINT/SIGTERM).
+	if cfg.Cert.CertFile == "" || cfg.Cert.KeyFile == "" {
+		log.Fatal("cannot find cert and key file!")
+	}
+
+	certPaths := []string{
+		cfg.Cert.CertFile,
+		filepath.Join("..", cfg.Cert.CertFile),
+		filepath.Join("..", "..", cfg.Cert.CertFile),
+		filepath.Join("..", "..", "..", cfg.Cert.CertFile),
+	}
+	certFile, err := find.FindValidDirectory(certPaths)
+	if err != nil {
+		log.Fatalf("Failed to find valid cert file: %v", err)
+	}
+
+	keyPaths := []string{
+		cfg.Cert.KeyFile,
+		filepath.Join("..", cfg.Cert.KeyFile),
+		filepath.Join("..", "..", cfg.Cert.KeyFile),
+		filepath.Join("..", "..", "..", cfg.Cert.KeyFile),
+	}
+
+	keyFile, err := find.FindValidDirectory(keyPaths)
+	if err != nil {
+		log.Fatalf("Failed to find valid key file: %v", err)
+	}
+
+	if certFile == "" || keyFile == "" {
+		log.Fatal("Certificate or key file not found. Please check your configuration.")
+	}
+
 	go func() {
 		addr := fmt.Sprintf("%s:%d", cfg.App.Host, cfg.App.Port)
 		log.Printf("Starting %s on http://%s (Ctrl+C to stop)", cfg.App.Name, addr)
-		if err := app.Listen(addr); err != nil {
+		// if err := app.Listen(addr); err != nil {
+		// 	log.Fatalf("Server error: %v", err)
+		// }
+		tlsCfg := fiber.ListenConfig{
+			CertFile:    certFile,
+			CertKeyFile: keyFile,
+		}
+		if err := app.Listen(addr, tlsCfg); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()

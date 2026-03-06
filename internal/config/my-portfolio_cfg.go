@@ -132,4 +132,9 @@ type TypeMyPortfolio struct {
 		Phone        string `yaml:"phone" validate:"required"`
 		Location     string `yaml:"location" validate:"required"`
 	} `yaml:"owner" validate:"required"`
+
+	Cert struct {
+		CertFile string `yaml:"cert_file" validate:"required"`
+		KeyFile  string `yaml:"key_file" validate:"required"`
+	} `yaml:"cert" validate:"required"`
 }

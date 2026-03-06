@@ -13,13 +13,13 @@ func seedProjects(db *gorm.DB) {
 	// jupyter notebook code
 	// web gereja katolik
 	// web enrekang
-
+	
 	projects := []model.Project{
 		{
 			Title:        "Service Platform",
 			Slug:         "service-platform",
 			Description:  "A modular Go platform delivering APIs, WhatsApp/Twilio messaging, schedulers, monitoring, and automation services in one repo.",
-			Tags:         "Go, Gin, Swagger, WhatsApp, Twilio, Telegram, Scheduler, Mongo, Redis, PostgreSQL, gRPC, Protobuf, Prometheus, Grafana, n8n, Docker",
+			Tags:         "Go, Gin, Swagger, WhatsApp, Twilio, Telegram, Scheduler, Mongo, Redis, PostgreSQL, gRPC, Protobuf, Prometheus, Grafana, n8n, Docker, ChatBot, CLI, k6",
 			Status:       "published",
 			SortOrder:    1,
 			Featured:     true,
@@ -34,9 +34,9 @@ func seedProjects(db *gorm.DB) {
 			Status:       "published",
 			SortOrder:    2,
 			Featured:     true,
-			LiveURL:      "https://go.pltmhpalesan.biz.id:6990/welcome",
+			LiveURL:      "https://go.pltmhpalesan.biz.id:7997/welcome",
 			RepoURL:      "https://github.com/wecrazy/electric_payment",
-			ThumbnailURL: "https://go.pltmhpalesan.biz.id:6990/assets/img/front-pages/landing-page/hero-dashboard-light.png",
+			ThumbnailURL: "https://go.pltmhpalesan.biz.id:7997/assets/img/front-pages/landing-page/hero-dashboard-light.png",
 		},
 		{
 			Title:        "Cek Resi",
