@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white" alt="Go 1.26" />
   <img src="https://img.shields.io/badge/Fiber-v3-00ACD7?logo=go&logoColor=white" alt="Fiber v3" />
   <img src="https://img.shields.io/badge/SQLite-WAL-003B57?logo=sqlite&logoColor=white" alt="SQLite" />
-  <img src="https://img.shields.io/badge/Redis-sessions-DC382D?logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Redis-session-DC382D?logo=redis" alt="Redis" />
   <img src="https://img.shields.io/badge/HTMX-dynamic%20UI-3366CC" alt="HTMX" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License" />
 </p>
