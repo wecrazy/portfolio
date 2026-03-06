@@ -167,6 +167,18 @@ func seedProjects(db *gorm.DB) {
 			LiveURL:      "https://drive.google.com/drive/folders/1Se3jI5zZQ36ibsRxYKLUnuJP9v0gIKd5?usp=sharing",
 			ThumbnailURL: "https://www.logo.wine/a/logo/Microsoft_Excel/Microsoft_Excel-Logo.wine.svg",
 		},
+		{
+			Title:        "My Portfolio",
+			Slug:         "my-portfolio",
+			Description:  "My personal portfolio website built with Go, Fiber v3, HTMX and GORM. It showcases my projects, skills, and experience in a clean and modern design.",
+			Tags:         "Go, Fiber v3, HTMX, GORM",
+			Status:       "published",
+			SortOrder:    15,
+			Featured:     true,
+			LiveURL:      "https://wecrazy.my.id:6996",
+			RepoURL:      "https://github.com/wecrazy/portfolio",
+			ThumbnailURL: "https://placehold.co/600x400/ef4444/ffffff?text=My+Portfolio",
+		},
 	}
 	db.Create(&projects)
 }
