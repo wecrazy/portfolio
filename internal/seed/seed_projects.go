@@ -8,12 +8,6 @@ import (
 
 // seedProjects creates demo projects. It is intentionally kept in the seed package because it depends on internal/model.
 func seedProjects(db *gorm.DB) {
-	// TODO: add :
-	// dashboards
-	// jupyter notebook code
-	// web gereja katolik
-	// web enrekang
-	
 	projects := []model.Project{
 		{
 			Title:        "Service Platform",
