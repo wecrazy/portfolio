@@ -197,6 +197,23 @@ func main() {
 	logLevel := zapcore.InfoLevel
 	if cfg.App.Debug {
 		logLevel = zapcore.DebugLevel
+	} else {
+		switch strings.ToUpper(cfg.App.LogLevel) {
+		case "DEBUG":
+			logLevel = zapcore.DebugLevel
+		case "INFO":
+			logLevel = zapcore.InfoLevel
+		case "WARN", "WARNING":
+			logLevel = zapcore.WarnLevel
+		case "ERROR":
+			logLevel = zapcore.ErrorLevel
+		case "PANIC":
+			logLevel = zapcore.PanicLevel
+		case "FATAL":
+			logLevel = zapcore.FatalLevel
+		default:
+			log.Fatalf("Unknown log level %s, defaulting to INFO", cfg.App.LogLevel)
+		}
 	}
 
 	cores := []zapcore.Core{

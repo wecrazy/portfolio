@@ -44,5 +44,6 @@ uploads/resume/*
 log/
 bin/
 
+internal/config/conf.yaml
 internal/config/my-portfolio.dev.yaml
 internal/config/my-portfolio.prod.yaml
