@@ -104,7 +104,7 @@ make seed
 
 # 5. Run the server
 make run
-# → http://localhost:6969
+# → http://localhost:{port}
 ```
 
 ## Configuration
