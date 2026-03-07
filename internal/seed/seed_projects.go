@@ -28,9 +28,9 @@ func seedProjects(db *gorm.DB) {
 			Status:       "published",
 			SortOrder:    2,
 			Featured:     true,
-			LiveURL:      "https://go.pltmhpalesan.biz.id:7997/welcome",
+			LiveURL:      "https://demo.wecrazy.my.id:7997/welcome",
 			RepoURL:      "https://github.com/wecrazy/electric_payment",
-			ThumbnailURL: "https://go.pltmhpalesan.biz.id:7997/assets/img/front-pages/landing-page/hero-dashboard-light.png",
+			ThumbnailURL: "https://demo.wecrazy.my.id:7997/assets/img/front-pages/landing-page/cta-dashboard.png",
 		},
 		{
 			Title:        "Cek Resi",

@@ -82,6 +82,16 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 
 		visitorLoggedIn := c.Cookies("visitor_session") != ""
 
+		// Certificates (first page, min 6, paginated, searchable)
+		var certificates []model.Certificate
+		var totalCertificates int64
+		db.Model(&model.Certificate{}).Where("is_visible = ?", true).Count(&totalCertificates)
+		db.Where("is_visible = ?", true).
+			Preload("File").
+			Order("sort_order ASC, issue_date DESC").
+			Limit(6).Find(&certificates)
+		certificateTotalPages := int(math.Ceil(float64(totalCertificates) / 6.0))
+
 		cfg := config.MyPortfolio.Get()
 		ogImage := cfg.App.BaseURL + "/static/img/favicon.svg"
 		if owner.ProfileImage != nil {
@@ -96,28 +106,30 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 		}
 
 		return c.Render("public/portfolio", fiber.Map{
-			"Title":               owner.FullName,
-			"BaseURL":             cfg.App.BaseURL,
-			"OGImage":             ogImage,
-			"OGDescription":       ogDesc,
-			"Owner":               owner,
-			"Projects":            projects,
-			"ProjectCurrentPage":  1,
-			"ProjectTotalPages":   projectTotalPages,
-			"Experiences":         experiences,
-			"Skills":              skills,
-			"SkillsByCategory":    skillsByCategory,
-			"TechByCategory":      techByCategory,
-			"SocialLinks":         socialLinks,
-			"UpcomingItems":       upcomingItems,
-			"UpcomingCurrentPage": 1,
-			"UpcomingTotalPages":  upcomingTotalPages,
-			"VisitorLoggedIn":     visitorLoggedIn,
-			"SupportedLangs":      cfg.I18n.SupportedLangs,
-			"DefaultLang":         cfg.I18n.DefaultLang,
-			"IsPortfolio":         true,
-			"HCaptchaEnabled":     cfg.HCaptcha.Enabled,
-			"HCaptchaKey":         cfg.HCaptcha.SiteKey,
+			"Title":                 owner.FullName,
+			"BaseURL":               cfg.App.BaseURL,
+			"OGImage":               ogImage,
+			"OGDescription":         ogDesc,
+			"Owner":                 owner,
+			"Projects":              projects,
+			"ProjectCurrentPage":    1,
+			"ProjectTotalPages":     projectTotalPages,
+			"Experiences":           experiences,
+			"Skills":                skills,
+			"SkillsByCategory":      skillsByCategory,
+			"TechByCategory":        techByCategory,
+			"SocialLinks":           socialLinks,
+			"UpcomingItems":         upcomingItems,
+			"UpcomingCurrentPage":   1,
+			"UpcomingTotalPages":    upcomingTotalPages,
+			"Certificates":          certificates,
+			"CertificateTotalPages": certificateTotalPages,
+			"VisitorLoggedIn":       visitorLoggedIn,
+			"SupportedLangs":        cfg.I18n.SupportedLangs,
+			"DefaultLang":           cfg.I18n.DefaultLang,
+			"IsPortfolio":           true,
+			"HCaptchaEnabled":       cfg.HCaptcha.Enabled,
+			"HCaptchaKey":           cfg.HCaptcha.SiteKey,
 		}, "layouts/public_base")
 	}
 }

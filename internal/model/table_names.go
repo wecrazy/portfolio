@@ -15,6 +15,7 @@ type TableNameConfig struct {
 	TechStacks      string
 	Posts           string
 	UpcomingItems   string
+	Certificates    string
 }
 
 // tables holds the active table name configuration.
@@ -33,6 +34,7 @@ var tables = TableNameConfig{
 	TechStacks:      "tech_stacks",
 	Posts:           "posts",
 	UpcomingItems:   "upcoming_items",
+	Certificates:    "certificates",
 }
 
 // SetTableNames overrides default table names with non-empty values from cfg.
@@ -75,5 +77,8 @@ func SetTableNames(cfg TableNameConfig) {
 	}
 	if cfg.UpcomingItems != "" {
 		tables.UpcomingItems = cfg.UpcomingItems
+	}
+	if cfg.Certificates != "" {
+		tables.Certificates = cfg.Certificates
 	}
 }

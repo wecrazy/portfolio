@@ -15,19 +15,21 @@ import "github.com/gofiber/fiber/v3"
 //   - X-DNS-Prefetch-Control    — disables speculative DNS lookups
 func Security() fiber.Handler {
 	// Content-Security-Policy: allow known CDNs used by the portfolio and
-	// admin UI (Bootstrap, Boxicons, HTMX, Alpine.js, highlight.js, hCaptcha).
+	// admin UI (Bootstrap, Boxicons, HTMX, Alpine.js, highlight.js, hCaptcha)
+	// plus pdf.js which is pulled from cdnjs.cloudflare.com.  We also allow
+	// embedded objects from our own domain so that <embed> of /cert/preview.pdf
+	// is permitted.
 	// 'unsafe-inline' is required by HTMX hx-* event handlers and inline styles.
 	const csp = "default-src 'self'; " +
 		"script-src 'self' 'unsafe-inline' " +
-		"cdn.jsdelivr.net unpkg.com newassets.hcaptcha.com js.hcaptcha.com; " +
+		"cdn.jsdelivr.net unpkg.com newassets.hcaptcha.com js.hcaptcha.com cdnjs.cloudflare.com; " +
 		"style-src 'self' 'unsafe-inline' " +
 		"cdn.jsdelivr.net fonts.googleapis.com cdn.boxicons.com unpkg.com; " +
 		"font-src 'self' fonts.gstatic.com cdn.boxicons.com data:; " +
 		"img-src 'self' data: blob: https:; " +
-		"connect-src 'self' ws: wss: cdn.jsdelivr.net hcaptcha.com newassets.hcaptcha.com; " +
-		"frame-src 'self' newassets.hcaptcha.com hcaptcha.com www.youtube.com youtube.com player.vimeo.com; " +
+		"connect-src 'self' ws: wss: cdn.jsdelivr.net hcaptcha.com newassets.hcaptcha.com; " + "worker-src 'self' blob:; " + "frame-src 'self' newassets.hcaptcha.com hcaptcha.com www.youtube.com youtube.com player.vimeo.com; " +
 		"frame-ancestors 'self'; " +
-		"object-src 'none'; " +
+		"object-src 'self'; " +
 		"base-uri 'self'; " +
 		"form-action 'self';"
 

@@ -18,13 +18,20 @@ func AdminAuth(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
 		token := c.Cookies(cfg.Admin.CookieName)
+		// debug: always log what we received, even if empty
+		// log.Printf("AdminAuth: received cookie %s=%q", cfg.Admin.CookieName, token)
 		if token == "" {
 			return c.Redirect().To("/admin/login")
 		}
 
 		// Look up session in Redis — returns 0 when token is missing / expired.
 		adminID, err := session.Get(rdb, token)
-		if err != nil || adminID == 0 {
+		if err != nil {
+			_ = err
+			// log.Printf("AdminAuth: redis error lookup token %s: %v", token, err)
+		}
+		if adminID == 0 {
+			// log.Printf("AdminAuth: token %s returned adminID=0", token)
 			return c.Redirect().To("/admin/login")
 		}
 

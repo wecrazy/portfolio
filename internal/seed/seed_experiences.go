@@ -38,7 +38,7 @@ func seedExperiences(db *gorm.DB) {
 			IsCurrent:   false,
 			Description: "Graduated Cum Laude from the Faculty of Engineering, Department of Informatics Engineering with a GPA of 3.89, earning recognition as the best graduate of the class",
 			SortOrder:   2,
-			CertURL:     "https://drive.google.com/file/d/1A0hDQingopqunPV87WMY93O3JOWjg92I/view?usp=drive_link",
+			CertURL:     "https://drive.google.com/file/d/1A0hDQingopqunPV87WMY93O3JOWjg92I/view?usp=sharing",
 			ImageURL:    "https://ukitoraja.ac.id/wp-content/uploads/2019/05/Logo-UKIT.png",
 		},
 	}

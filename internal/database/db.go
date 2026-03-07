@@ -80,6 +80,7 @@ func AutoMigrate(db *gorm.DB) {
 		&model.TechStack{},
 		&model.Post{},
 		&model.UpcomingItem{},
+		&model.Certificate{},
 	); err != nil {
 		log.Fatalf("Auto-migration failed: %v", err)
 	}

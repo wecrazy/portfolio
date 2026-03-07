@@ -524,4 +524,119 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // ensure pdf.js worker is configured
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+    }
+    // ---------- Certificate preview click handler ----------
+    document.addEventListener('click', function(e) {
+        const el = e.target.closest('.cert-view');
+        if (!el) return;
+        e.preventDefault();
+        e.stopPropagation();
+        let url = el.getAttribute('data-url');
+        const type = el.getAttribute('data-type');
+        const title = el.getAttribute('data-title') || '';
+        // console.log('cert click', {url,type,title});
+        const modalElem = document.getElementById('certModal');
+        if (!modalElem) return;
+        // ensure body can't scroll while modal open (bootstrap should do this
+        // automatically via .modal-open but we reinforce it for our fullscreen
+        // case).
+        document.body.style.overflow = 'hidden';
+        const modal = new bootstrap.Modal(modalElem);
+        const body = modalElem.querySelector('.modal-body');
+        modalElem.querySelector('.modal-title').textContent = title;
+        if (type === 'pdf') {
+            // the server already proxies, so just embed whatever we get
+            // height calc subtracts approx header height (56px) so we don't get
+            // a scrollbar on the entire modal; blob/pdf workers handle the rest.
+            body.innerHTML = '<embed src="' + url + '" type="application/pdf" ' +
+                             'width="100%" style="height:calc(100vh - 56px);"></embed>' +
+                             '<p class="mt-2 text-end"><a href="' + url + '" target="_blank" class="btn btn-sm btn-outline-light">Open in new tab</a></p>';
+            // intercept events directly on embed in case its own scrollability is
+            // limited (unzoomed PDF); this prevents wheel/touch from leaking out.
+            setTimeout(function() {
+                const emb = body.querySelector('embed');
+                if (emb) {
+                    const block = function(ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        return false;
+                    };
+                    emb.addEventListener('wheel', block, {passive:false});
+                    emb.addEventListener('touchmove', block, {passive:false});
+                    // remove when modal closes
+                    modalElem.addEventListener('hidden.bs.modal', function() {
+                        emb.removeEventListener('wheel', block);
+                        emb.removeEventListener('touchmove', block);
+                    }, {once:true});
+                }
+            }, 0);
+        } else {
+            body.innerHTML = '<img src="' + url + '" class="img-fluid w-100 h-auto">';
+        }
+        modal.show();
+        modalElem.addEventListener('hidden.bs.modal', function() {
+            document.body.style.overflow = '';
+            // remove event listeners we added below
+            modalElem.removeEventListener('wheel', stopScroll, {passive: false});
+            modalElem.removeEventListener('touchmove', stopScroll, {passive: false});
+        }, {once: true});
+
+        // prevent any scroll event from reaching the document while the
+        // modal is open by capturing at the document level.  This avoids
+        // leaks from <embed> or other deep elements that don't bubble to
+        // modalElem itself.
+        function stopScroll(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            return false;
+        }
+        document.addEventListener('wheel', stopScroll, {passive: false, capture: true});
+        document.addEventListener('touchmove', stopScroll, {passive: false, capture: true});
+        modalElem.addEventListener('hidden.bs.modal', function() {
+            document.body.style.overflow = '';
+            document.removeEventListener('wheel', stopScroll, {capture: true});
+            document.removeEventListener('touchmove', stopScroll, {capture: true});
+        }, {once: true});
+    });
+
+    // ---------- PDF thumbnail rendering using pdf.js ----------
+    function renderPdfThumb(canvas, id) {
+        if (!window.pdfjsLib) return;
+        const url = '/cert/preview?id=' + id;
+        const loadingTask = pdfjsLib.getDocument(url);
+        loadingTask.promise.then(function(pdf) {
+            pdf.getPage(1).then(function(page) {
+                const viewport = page.getViewport({ scale: 1 });
+                const ctx = canvas.getContext('2d');
+                // use parent width to account for responsive sizing
+                const parent = canvas.parentElement;
+                const width = (parent ? parent.clientWidth : canvas.clientWidth) || viewport.width;
+                const scale = width / viewport.width;
+                const scaled = page.getViewport({ scale });
+                canvas.width = scaled.width;
+                canvas.height = scaled.height;
+                page.render({ canvasContext: ctx, viewport: scaled });
+            });
+        }).catch(function(err){
+            console.warn('pdf thumb failed', err);
+        });
+    }
+    function initPdfThumbs() {
+        document.querySelectorAll('canvas[data-pdf-id]').forEach(function(c){
+            const id = c.getAttribute('data-pdf-id');
+            renderPdfThumb(c, id);
+        });
+    }
+    // initial render
+    initPdfThumbs();
+    // re-render after HTMX swaps partials
+    document.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail && evt.detail.target && evt.detail.target.id === 'certificate-list-area') {
+            initPdfThumbs();
+        }
+    });
+
 });

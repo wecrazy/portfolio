@@ -1,0 +1,38 @@
+<!-- ======================= ADMIN: CERTIFICATES ======================= -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="section-title text-center mb-5" data-i18n="admin.certificates.title">Manage Certificates</h2>
+        <div class="mb-4 text-end">
+            <a href="/admin/certificates/new" class="btn btn-gradient">Add Certificate</a>
+        </div>
+        <div id="admin-certificate-list-area">
+            <table class="table table-hover table-bordered" id="admin-certificate-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Issuer</th>
+                        <th>Issue Date</th>
+                        <th>Type</th>
+                        <th>Visible</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Certificates}}
+                    <tr>
+                        <td>{{.Title}}</td>
+                        <td>{{.Issuer}}</td>
+                        <td>{{formatDate .IssueDate}}</td>
+                        <td>{{if .File}}File{{else if .CertURL}}URL{{else}}-{{end}}</td>
+                        <td>{{if .IsVisible}}Yes{{else}}No{{end}}</td>
+                        <td>
+                            <a href="/admin/certificates/edit/{{.ID}}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="/admin/certificates/delete/{{.ID}}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

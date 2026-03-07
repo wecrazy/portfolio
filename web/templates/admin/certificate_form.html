@@ -1,0 +1,42 @@
+<!-- ======================= ADMIN: CERTIFICATE FORM ======================= -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="section-title text-center mb-5" data-i18n="admin.certificates.title">Certificate Form</h2>
+        <form method="post" enctype="multipart/form-data" action="{{.FormAction}}">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{.Certificate.Title}}" required>
+            </div>
+            <div class="mb-3">
+                <label for="issuer" class="form-label">Issuer</label>
+                <input type="text" class="form-control" id="issuer" name="issuer" value="{{.Certificate.Issuer}}">
+            </div>
+            <div class="mb-3">
+                <label for="issue_date" class="form-label">Issue Date</label>
+                <input type="date" class="form-control" id="issue_date" name="issue_date" value="{{formatDateInput .Certificate.IssueDate}}">
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3">{{.Certificate.Description}}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="cert_url" class="form-label">Certificate URL</label>
+                <input type="url" class="form-control" id="cert_url" name="cert_url" value="{{.Certificate.CertURL}}">
+            </div>
+            <div class="mb-3">
+                <label for="file" class="form-label">Upload File (Image/PDF)</label>
+                <input type="file" class="form-control" id="file" name="file">
+                {{if .Certificate.File}}
+                <div class="mt-2">
+                    <a href="/uploads/{{.Certificate.File.StoredName}}" target="_blank">Current File</a>
+                </div>
+                {{end}}
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_visible" name="is_visible" {{if .Certificate.IsVisible}}checked{{end}}>
+                <label class="form-check-label" for="is_visible">Visible</label>
+            </div>
+            <button type="submit" class="btn btn-gradient">Save</button>
+        </form>
+    </div>
+</section>

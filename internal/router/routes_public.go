@@ -62,9 +62,14 @@ func registerPublicRoutes(
 	app.Get("/", handler.PortfolioPage(db))
 	app.Get("/resume", handler.ServeResumePDF(db))
 	app.Get("/resume/download", handler.DownloadResumePDF(db))
-	// HTMX partials for project + upcoming pagination/search
+	// HTMX partials for project + upcoming + certificate pagination/search
 	app.Get("/projects", handler.ProjectsPage(db))
 	app.Get("/upcoming", handler.UpcomingPage(db))
+	// preview proxy keeps CORS/CSP issues away from the client
+	app.Get("/cert/preview", handler.CertPreview(db))
+	// start background cache cleaner (only once)
+	go handler.StartCacheCleaner()
+	app.Get("/certificates", handler.CertificatesPage(db))
 
 	// ── OAuth ──────────────────────────────────────────────────────
 	app.Get("/auth/google", handler.GoogleLogin())

@@ -32,10 +32,16 @@ func AdminLoginPage(_ *gorm.DB, rdb *redis.Client) fiber.Handler {
 			}
 		}
 
+		// if secure cookies are required but we're not on HTTPS, warn the user.
+		insecureMsg := ""
+		if cfg.Admin.CookieSecure && c.Protocol() != "https" {
+			insecureMsg, _ = appI18n.T.Localize(c, "login_insecure")
+		}
 		return c.Render("admin/login", fiber.Map{
 			"Title":          "Admin Login",
 			"HCaptchaKey":    cfg.HCaptcha.SiteKey,
 			"HCaptchaEnable": cfg.HCaptcha.Enabled,
+			"InsecureNotice": insecureMsg,
 		})
 	}
 }
@@ -80,34 +86,39 @@ func AdminLoginSubmit(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 		token := cryptoutil.RandomHex(32)
 		ttl := time.Duration(cfg.Admin.SessionTTL) * time.Minute
 		if err := session.Set(rdb, token, admin.ID, ttl); err != nil {
+			// log.Printf("AdminLoginSubmit: session set error: %v", err)
 			return c.Status(fiber.StatusInternalServerError).SendString("session store error")
 		}
+		// log.Printf("AdminLoginSubmit: token %s stored for adminID=%d ttl=%v", token, admin.ID, ttl)
 
-		// Only update last_login_at in SQLite (for audit); token is in Redis.
-		now := time.Now().UTC()
-		db.Model(&admin).Update("last_login_at", now)
+		// Build a cookie configuration that respects the current request
+		// protocol.  In development the config file often sets CookieSecure
+		// true, which prevents storage over plain HTTP and results in a
+		// perpetual login loop.  Override when the request is not HTTPS.
+		secure := cfg.Admin.CookieSecure
+		if c.Protocol() != "https" {
+			secure = false
+		}
 
-		// Expire any old cookie that was previously set with Path: "/admin"
-		// (narrower path takes precedence in browsers, so we must clear it first).
-		c.Cookie(&fiber.Cookie{
-			Name:     cfg.Admin.CookieName,
-			Value:    "",
-			Path:     "/admin",
-			HTTPOnly: true,
-			Secure:   cfg.Admin.CookieSecure,
-			SameSite: "Strict",
-			MaxAge:   -1,
-		})
+		// Helper to apply domain if provided (blank = omit field).
+		makeCookie := func(name, value, path string, maxAge int) *fiber.Cookie {
+			ck := &fiber.Cookie{
+				Name:     name,
+				Value:    value,
+				Path:     path,
+				HTTPOnly: true,
+				Secure:   secure,
+				SameSite: "Lax", // Lax relaxes strict navigation rules, more forgiving
+				MaxAge:   maxAge,
+			}
+			if cfg.Admin.CookieDomain != "" {
+				ck.Domain = cfg.Admin.CookieDomain
+			}
+			return ck
+		}
 
-		c.Cookie(&fiber.Cookie{
-			Name:     cfg.Admin.CookieName,
-			Value:    token,
-			Path:     "/",
-			HTTPOnly: true,
-			Secure:   cfg.Admin.CookieSecure,
-			SameSite: "Strict",
-			MaxAge:   cfg.Admin.SessionTTL * 60,
-		})
+		// Clear any legacy /admin cookie first (narrow path wins).
+		c.Cookie(makeCookie(cfg.Admin.CookieName, "", "/admin", -1))
 
 		return c.Redirect().To("/admin?toast=login_success")
 	}

@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-// FindValidDirectory iterates through the provided paths and returns the first one that exists on the filesystem. If none of the paths exist, it returns an error.
-func FindValidDirectory(paths []string) (string, error) {
+// ValidDirectory iterates through the provided paths and returns the first one that exists on the filesystem. If none of the paths exist, it returns an error.
+func ValidDirectory(paths []string) (string, error) {
 	for _, dir := range paths {
 		if _, err := os.Stat(dir); err == nil {
 			return dir, nil
