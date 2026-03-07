@@ -1,0 +1,136 @@
+# Example configuration file for My Portfolio application.
+# Copy this to conf.yaml and replace placeholder values with your settings.
+
+app:
+  # path to runtime configuration (do not change unless you know what you're doing)
+  config_mode_path: "internal/config/conf.yaml"
+
+  # application metadata
+  name: "Your App Name"                    # e.g. "My Portfolio"
+  version: "0.0.1"                         # semantic version string
+  host: "127.0.0.1"                        # bind address (use 0.0.0.0 for all)
+  port: 6996                               # HTTP port
+  base_url: "http://127.0.0.1:6996"        # full base URL
+  debug: true                              # set to false in production
+  log_level: "DEBUG"                       # one of DEBUG, INFO, WARN, ERROR
+  secret_key: "replace-with-random-string" # 32+ byte secret for sessions, tokens
+  static_dir: "./web"                      # path to static assets
+  upload_dir: "./uploads"                  # where uploaded files are stored
+  shutdown_timeout: 3                      # graceful shutdown seconds
+
+database:
+  dsn: "./data/portfolio.db"               # connection string (SQLite, Postgres, etc.)
+  max_idle_conns: 5                        # database connection pool settings
+  max_open_conns: 10
+  conn_max_lifetime: 30
+  log_level: "error"                       # database query logging level
+
+admin:
+  default_username: "admin"                # initial admin username
+  default_password: "changeme!"            # initial admin password
+  default_email: "admin@example.com"       # admin email
+  session_ttl: 480                         # minutes until admin session expires
+  cookie_name: "portfolio_session"
+  cookie_secure: false                     # true if using HTTPS
+  cookie_domain: ""                        # set if cookie should be restricted
+
+oauth:
+  google:
+    client_id: ""                          # your Google OAuth client ID
+    client_secret: ""                      # your Google OAuth client secret
+    redirect_url: ""                       # e.g. "https://yourdomain.com/auth/google/callback"
+  github:
+    client_id: ""
+    client_secret: ""
+    redirect_url: ""
+
+smtp:
+  host: ""                                 # SMTP server host
+  port: 587                                # SMTP port, 587 or 465
+  username: ""                             # SMTP username
+  password: ""                             # SMTP password
+  from: ""                                 # example: "Name <noreply@domain.com>"
+  to: ""                                   # default recipient for contact form
+
+upload:
+  max_image_size: 3                        # max image size in MB
+  max_resume_size: 6
+  max_video_size: 20
+  max_audio_size: 9
+  allowed_image_types:
+    - "image/jpeg"
+    - "image/png"
+    - "image/webp"
+  allowed_resume_types:
+    - "application/pdf"
+  allowed_video_types:
+    - "video/mp4"
+    - "video/webm"
+    - "video/ogg"
+  allowed_audio_types:
+    - "audio/mpeg"
+    - "audio/ogg"
+    - "audio/wav"
+    - "audio/aac"
+    - "audio/flac"
+
+log:
+  dir: "./log"                            # directory for log files
+  filename: "app.log"                     # log file name
+  max_size_mb: 100
+  max_backups: 7
+  max_age_days: 30
+  compress: true
+  stdout: false                            # whether to log to stdout
+
+hcaptcha:
+  enabled: false                          # set to true to enable hcaptcha
+  site_key: ""                            # obtain from hcaptcha.com
+  secret: ""                              # obtain from hcaptcha.com
+
+rate_limit:
+  enabled: true
+  contact_form: 5                         # max requests per minute
+  comments: 20
+
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+
+i18n:
+  default_lang: "en"                      # default language code
+  supported_langs:
+    - "en"
+    - "id"                                # add others as needed
+
+table_names:
+  admins: "admins"
+  owners: "owners"
+  projects: "projects"
+  experiences: "experiences"
+  skills: "skills"
+  social_links: "social_links"
+  uploaded_files: "uploaded_files"
+  oauth_users: "oauth_users"
+  comments: "comments"
+  contact_messages: "contact_messages"
+  tech_stacks: "tech_stacks"
+  posts: "posts"
+  upcoming_items: "upcoming_items"
+  certificates: "certificates"
+
+owner:
+  name: "Your Name"
+  title: "Your Title"
+  tagline: "A short tagline about yourself"
+  bio: "A longer biography. You can use {years_experience} to insert your experience."
+  profile_image: "/static/img/profile.jpg"
+  email: "you@example.com"
+  phone: "+1234567890"
+  location: "Your City, Country"
+
+cert:
+  cert_file: "path/to/your.crt"            # SSL certificate file
+  key_file: "path/to/your.key"             # SSL key file
+
