@@ -182,6 +182,7 @@ The installer creates a systemd unit on Linux and a Windows SCM service on Windo
 | `GET` | `/blog/:slug` | Single blog post |
 | `GET` | `/projects` | Projects (HTMX partial) |
 | `GET` | `/upcoming` | Upcoming items (HTMX partial) |
+| `GET` | `/cert/preview?id={id}` | Certificate PDF proxy/preview |
 | `GET` | `/resume` | View resume PDF |
 | `GET` | `/resume/download` | Download resume PDF |
 | `POST` | `/contact` | Submit contact form |
@@ -196,6 +197,14 @@ The installer creates a systemd unit on Linux and a Windows SCM service on Windo
 | `GET` | `/livez` | Liveness probe |
 | `GET` | `/readyz` | Readiness probe |
 
+---
+
 ## License
 
-[MIT](LICENSE) — Wegirandol Histara Littu
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License" /></a>
+</p>
+
+<p align="center">
+  &copy; 2026 <strong>Wegirandol Histara Littu</strong>. Released under the <a href="LICENSE">MIT License</a>.
+</p>
