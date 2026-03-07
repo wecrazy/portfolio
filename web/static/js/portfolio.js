@@ -276,6 +276,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // ---------- 3D Tilt Effect ----------
+    var tiltElements = document.querySelectorAll('.about-image-wrapper');
+    tiltElements.forEach(function(el) {
+        el.addEventListener('mousemove', function(e) {
+            var rect = el.getBoundingClientRect();
+            var x = e.clientX - rect.left - rect.width/2;
+            var y = e.clientY - rect.top - rect.height/2;
+            el.style.transform = 'perspective(800px) rotateX(' + (-y/15) + 'deg) rotateY(' + (x/15) + 'deg) scale(1.05)';
+            el.style.transition = 'none';
+        });
+        el.addEventListener('mouseleave', function() {
+            el.style.transform = '';
+            el.style.transition = 'transform 0.5s ease';
+        });
+    });
+
     // ---------- AOS Init ----------
     if (typeof AOS !== 'undefined') {
         AOS.init({

@@ -11,7 +11,6 @@ require (
 	github.com/gofiber/contrib/v3/fgprof v1.0.0
 	github.com/gofiber/contrib/v3/hcaptcha v1.0.0
 	github.com/gofiber/contrib/v3/i18n v1.0.0
-	github.com/gofiber/contrib/v3/loadshed v1.0.0
 	github.com/gofiber/contrib/v3/monitor v1.0.0
 	github.com/gofiber/contrib/v3/swaggo v1.0.0
 	github.com/gofiber/contrib/v3/websocket v1.0.0
@@ -91,7 +90,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 // indirect
-	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v4 v4.26.1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect

@@ -174,9 +174,10 @@ func main() {
 				code = e.Code
 			}
 			return c.Status(code).Render("public/error", fiber.Map{
-				"Code":    code,
-				"Message": err.Error(),
-			}, "layouts/public_base")
+				"Code":       code,
+				"Message":    err.Error(),
+				"RetryAfter": 0,
+			})
 		},
 	})
 

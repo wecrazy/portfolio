@@ -1,9 +1,350 @@
-<section class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-    <div class="text-center">
-        <h1 class="display-1 fw-bold gradient-text mb-3">{{.Code}}</h1>
-        <p class="fs-5 text-muted mb-4">{{.Message}}</p>
-        <a href="/" class="btn btn-gradient">
-            <i class="bx bx-home me-2"></i>Back to Home
-        </a>
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Code}} — Error</title>
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <script>
+        (function () {
+            var t = localStorage.getItem('portfolio-theme');
+            if (t) document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
+    <style>
+        /* ---------- Design tokens ---------- */
+        :root {
+            --primary: #6c63ff;
+            --accent: #00d4aa;
+            --bg-dark: #0a0a1a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --gradient-primary: linear-gradient(135deg, #6c63ff 0%, #00d4aa 100%);
+            --gradient-bg: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a2e 100%);
+            --text-primary: #e8e8f0;
+            --text-muted: #8888a8;
+            --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.15);
+        }
+
+        [data-bs-theme="light"] {
+            --bg-dark: #f5f5fa;
+            --glass-bg: rgba(0, 0, 0, 0.03);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --gradient-bg: linear-gradient(135deg, #f5f5fa 0%, #ece8f5 50%, #e8f0f5 100%);
+            --text-primary: #1a1a2e;
+            --text-muted: #666680;
+            --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.1);
+        }
+
+        /* ---------- Reset / global ---------- */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* ---------- Orbs ---------- */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: 10%;
+            left: -5%;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            bottom: 15%;
+            right: -5%;
+            animation-delay: 3s;
+        }
+
+        .orb-3 {
+            width: 200px;
+            height: 200px;
+            background: #ff6b9d;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: orbCenter 8s ease-in-out 5s infinite;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            33% {
+                transform: translate(30px, -30px);
+            }
+
+            66% {
+                transform: translate(-20px, 20px);
+            }
+        }
+
+        @keyframes orbCenter {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%);
+            }
+
+            33% {
+                transform: translate(calc(-50% + 30px), calc(-50% - 30px));
+            }
+
+            66% {
+                transform: translate(calc(-50% - 20px), calc(-50% + 20px));
+            }
+        }
+
+        /* ---------- Layout ---------- */
+        .error-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ---------- Glass card ---------- */
+        .error-card {
+            position: relative;
+            z-index: 1;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: var(--shadow-glow);
+            padding: 3rem 2.5rem;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ---------- Status code ---------- */
+        .error-code {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: clamp(4.5rem, 14vw, 8rem);
+            line-height: 1;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 0.25rem;
+            animation: codePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes codePulse {
+
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+
+            50% {
+                filter: brightness(1.3);
+            }
+        }
+
+        /* ---------- Message ---------- */
+        .error-msg {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin: 0 0 1.75rem;
+            line-height: 1.6;
+        }
+
+        /* ---------- Retry section ---------- */
+        .retry-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: dotPulse 1.4s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes dotPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.35;
+                transform: scale(0.65);
+            }
+        }
+
+        .countdown-track {
+            width: 100%;
+            height: 4px;
+            background: var(--glass-border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1.75rem;
+        }
+
+        .countdown-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        /* ---------- Button ---------- */
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--gradient-primary);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            border: none;
+            border-radius: 50px;
+            padding: 0.65rem 1.75rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 99, 255, 0.35);
+            color: #fff;
+        }
+
+        .btn-home svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* ---------- Mobile ---------- */
+        @media (max-width: 576px) {
+            .orb-1 {
+                width: 200px;
+                height: 200px;
+            }
+
+            .orb-2 {
+                width: 150px;
+                height: 150px;
+            }
+
+            .orb-3 {
+                width: 100px;
+                height: 100px;
+            }
+
+            .error-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-wrapper">
+        <!-- Decorative orbs -->
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+
+        <div class="error-card">
+            <h1 class="error-code">{{.Code}}</h1>
+            <p class="error-msg">{{.Message}}</p>
+
+            {{if .RetryAfter}}
+            <div class="retry-info" id="retryText">
+                <span class="pulse-dot"></span>
+                Retrying in <strong id="retryCount">{{.RetryAfter}}</strong>s…
+            </div>
+            <div class="countdown-track">
+                <div class="countdown-bar" id="retryBar" data-retry="{{.RetryAfter}}"></div>
+            </div>
+            {{end}}
+
+            <a href="/" class="btn-home">
+                <svg viewBox="0 0 24 24">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+                Back to Home
+            </a>
+        </div>
     </div>
-</section>
+
+    <script>
+        (function () {
+            var bar = document.getElementById('retryBar');
+            if (!bar || !bar.dataset.retry) return;
+            var total = parseInt(bar.dataset.retry, 10), left = total,
+                num = document.getElementById('retryCount'),
+                txt = document.getElementById('retryText');
+            bar.style.transition = 'width 1s linear';
+            var iv = setInterval(function () {
+                left--;
+                if (num) num.textContent = left;
+                bar.style.width = ((left / total) * 100) + '%';
+                if (left <= 0) {
+                    clearInterval(iv);
+                    if (txt) txt.innerHTML = '<span class="pulse-dot"></span> Retrying\u2026';
+                    setTimeout(function () { location.reload(); }, 600);
+                }
+            }, 1000);
+        })();
+    </script>
+</body>
+
+</html>

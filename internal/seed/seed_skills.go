@@ -19,7 +19,7 @@ func seedSkills(db *gorm.DB) {
 		{Name: "HTMX", Category: "Frontend", IconClass: "bxf bx-bolt-circle", IconURL: "https://cdn.jsdelivr.net/gh/bigskysoftware/htmx@v2.0.4/www/static/img/htmx_logo.1.png", Proficiency: 90, SortOrder: 1},
 		{Name: "Fiber", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gofiber/docs/master/static/img/logo.svg", Proficiency: 90, SortOrder: 1},
 		{Name: "Gin", Category: "Backend", IconClass: "bxf bx-bolt-circle", IconURL: "https://raw.githubusercontent.com/gin-gonic/logo/master/color.png", Proficiency: 90, SortOrder: 2},
-		{Name: "Code Igniter", Category: "Backend", IconClass: "devicon-codeigniter-plain", IconURL: deviconCDN + "/codeigniter/codeigniter-plain.svg", Proficiency: 80, SortOrder: 3},
+		{Name: "Code Igniter", Category: "Backend", IconClass: "devicon-codeigniter-plain", IconURL: deviconCDN + "/codeigniter/codeigniter-plain.svg", Proficiency: 70, SortOrder: 3},
 		{Name: "Docker", Category: "DevOps", IconClass: "devicon-docker-plain", IconURL: deviconCDN + "/docker/docker-original.svg", Proficiency: 76, SortOrder: 1},
 		{Name: "Linux", Category: "DevOps", IconClass: "devicon-linux-plain", IconURL: deviconCDN + "/linux/linux-original.svg", Proficiency: 80, SortOrder: 2},
 		{Name: "Git", Category: "DevOps", IconClass: "devicon-git-plain", IconURL: deviconCDN + "/git/git-original.svg", Proficiency: 85, SortOrder: 3},

@@ -21,7 +21,7 @@
     showCloseButton: true,
     timer: 4500,
     timerProgressBar: true,
-    width: '360px',
+    width: 'auto',
     padding: '0.85em 1.2em',
     didOpen: function (popup) {
       popup.addEventListener('mouseenter', Swal.stopTimer);

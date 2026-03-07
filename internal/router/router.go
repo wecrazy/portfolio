@@ -3,6 +3,7 @@ package router
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"my-portfolio/pkg/translate"
 
 	contribcb "github.com/gofiber/contrib/v3/circuitbreaker"
-	contribloadshed "github.com/gofiber/contrib/v3/loadshed"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
@@ -20,41 +20,63 @@ import (
 	"gorm.io/gorm"
 )
 
+// renderError returns a pretty HTML error page to browsers and a JSON body to
+// API / HTMX callers.  retryAfter is optional (pass 0 to omit the countdown).
+func renderError(c fiber.Ctx, code int, message string, retryAfter int) error {
+	accept := c.Get("Accept")
+	// Serve JSON when the caller explicitly prefers it or is an HTMX request.
+	if c.Get("HX-Request") == "true" ||
+		(strings.Contains(accept, "application/json") && !strings.Contains(accept, "text/html")) {
+		data := fiber.Map{"error": message}
+		if retryAfter > 0 {
+			data["retry_after"] = retryAfter
+		}
+		return c.Status(code).JSON(data)
+	}
+	data := fiber.Map{
+		"Code":    code,
+		"Message": message,
+		"Title":   "Error",
+	}
+	if retryAfter > 0 {
+		data["RetryAfter"] = retryAfter
+		c.Set("Retry-After", fmt.Sprintf("%d", retryAfter))
+	}
+	return c.Status(code).Render("public/error", data)
+}
+
 // RegisterRoutes wires up every route and middleware in the application.
 func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) {
 	cfg := config.MyPortfolio.Get()
 
 	// ── 1. Load shedding ───────────────────────────────────────────
-	// Shed requests when CPU > 90%; skip health, static and WebSocket paths.
-	app.Use(contribloadshed.New(contribloadshed.Config{
-		Criteria: &contribloadshed.CPULoadCriteria{
-			LowerThreshold: 0.75,
-			UpperThreshold: 0.90,
-			Interval:       500 * time.Millisecond,
-			Getter:         &contribloadshed.DefaultCPUPercentGetter{},
-		},
-		Next: func(c fiber.Ctx) bool {
-			p := c.Path()
-			// these routes are lightweight and should always be served even
-			// when we are shedding load; clients rely on them for i18n and
-			// comment display. skipping them avoids 503 responses that broke
-			// the frontend.
-			return p == healthcheck.LivenessEndpoint ||
-				p == healthcheck.ReadinessEndpoint ||
-				strings.HasPrefix(p, "/static") ||
-				strings.HasPrefix(p, "/uploads") ||
-				strings.HasPrefix(p, "/ws") ||
-				strings.HasPrefix(p, "/lang") ||
-				strings.HasPrefix(p, "/comments") ||
-				strings.HasPrefix(p, "/api/translate") // Note: exclude the /api/translate soon if it will be overloaded request
-		},
-		OnShed: func(c fiber.Ctx) error {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-				"error":       "Server is temporarily overloaded",
-				"retry_after": 5,
-			})
-		},
-	}))
+	// Shed requests when CPU > 95%; skip health, static and WebSocket paths.
+	// app.Use(contribloadshed.New(contribloadshed.Config{
+	// 	Criteria: &contribloadshed.CPULoadCriteria{
+	// 		LowerThreshold: 0.90,
+	// 		UpperThreshold: 0.95,
+	// 		Interval:       500 * time.Millisecond,
+	// 		Getter:         &contribloadshed.DefaultCPUPercentGetter{},
+	// 	},
+	// 	Next: func(c fiber.Ctx) bool {
+	// 		p := c.Path()
+	// 		// these routes are lightweight and should always be served even
+	// 		// when we are shedding load; clients rely on them for i18n and
+	// 		// comment display. skipping them avoids 503 responses that broke
+	// 		// the frontend.
+	// 		return p == healthcheck.LivenessEndpoint ||
+	// 			p == healthcheck.ReadinessEndpoint ||
+	// 			strings.HasPrefix(p, "/static") ||
+	// 			strings.HasPrefix(p, "/uploads") ||
+	// 			strings.HasPrefix(p, "/ws") ||
+	// 			strings.HasPrefix(p, "/lang") ||
+	// 			strings.HasPrefix(p, "/comments") ||
+	// 			strings.HasPrefix(p, "/api/translate") // Note: exclude the /api/translate soon if it will be overloaded request
+	// 	},
+	// 	OnShed: func(c fiber.Ctx) error {
+	// 		return renderError(c, fiber.StatusServiceUnavailable, "Server is temporarily overloaded", 5)
+	// 	},
+	// }))
 
 	// ── 2. Rate limiting ───────────────────────────────────────────
 	// makeLimiter builds an IP-keyed rate limiter with a standard 429 response.
@@ -86,10 +108,7 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) 
 				p == healthcheck.ReadinessEndpoint
 		},
 		LimitReached: func(c fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"error":       "Too many requests — please slow down",
-				"retry_after": 60,
-			})
+			return renderError(c, fiber.StatusTooManyRequests, "Too many requests — please slow down", 60)
 		},
 	}))
 
@@ -141,10 +160,7 @@ func RegisterRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, h *hub.Hub) 
 		Timeout:          10 * time.Second,
 		SuccessThreshold: 2,
 		OnOpen: func(c fiber.Ctx) error {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-				"error":       "Service temporarily unavailable",
-				"retry_after": 10,
-			})
+			return renderError(c, fiber.StatusServiceUnavailable, "Service temporarily unavailable", 10)
 		},
 	})
 	app.Hooks().OnPreShutdown(func() error {

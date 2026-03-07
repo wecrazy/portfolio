@@ -106,8 +106,6 @@ github.com/gofiber/contrib/v3/hcaptcha v1.0.0 h1:RkMBbBUIZWq/MsNvvmp0RLT39hd0Sy1
 github.com/gofiber/contrib/v3/hcaptcha v1.0.0/go.mod h1:rkCNmIDRPay4mgV21kK5Ena27kydwvy7nXGatQj0hyY=
 github.com/gofiber/contrib/v3/i18n v1.0.0 h1:PInMGjcnQb8QxFRMSwcDR2Z8gsFa24fLOJ8Q7akhYl0=
 github.com/gofiber/contrib/v3/i18n v1.0.0/go.mod h1:9xPnXtuAV9DTIYUAGyDbbQXK9JLNPK+GtFNx0kekf7Q=
-github.com/gofiber/contrib/v3/loadshed v1.0.0 h1:fCkyOatRgjgE1hwLvQtQo+erkX5stffaBVKu8GR1JFk=
-github.com/gofiber/contrib/v3/loadshed v1.0.0/go.mod h1:s/REREgMylQv6dZWmDBPWGG7aYcvkz+/zumVzJrXGj8=
 github.com/gofiber/contrib/v3/monitor v1.0.0 h1:M8TK73oka7wgiZZy+L51wy7xoi97sOAcd/oILgUmepM=
 github.com/gofiber/contrib/v3/monitor v1.0.0/go.mod h1:CEpO0IJbCON3V5QsdOvnhikRdaYXMgU6ahzw+c5NfP0=
 github.com/gofiber/contrib/v3/swaggo v1.0.0 h1:TF8eiLQnd41hle9cMKlmDGfnWLrIAC3OWR2kSCcVLrY=
@@ -212,8 +210,6 @@ github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761 h1:McifyVxygw1d67y6
 github.com/savsgio/gotils v0.0.0-20250924091648-bce9a52d7761/go.mod h1:Vi9gvHvTw4yCUHIznFl5TPULS7aXwgaTByGeBY75Wko=
 github.com/shamaton/msgpack/v3 v3.1.0 h1:jsk0vEAqVvvS9+fTZ5/EcQ9tz860c9pWxJ4Iwecz8gU=
 github.com/shamaton/msgpack/v3 v3.1.0/go.mod h1:DcQG8jrdrQCIxr3HlMYkiXdMhK+KfN2CitkyzsQV4uc=
-github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKlUeu/erjjvaPEYiI=
-github.com/shirou/gopsutil v3.21.11+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
 github.com/shirou/gopsutil/v4 v4.26.1 h1:TOkEyriIXk2HX9d4isZJtbjXbEjf5qyKPAzbzY0JWSo=
 github.com/shirou/gopsutil/v4 v4.26.1/go.mod h1:medLI9/UNAb0dOI9Q3/7yWSqKkj00u+1tgY8nvv41pc=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=

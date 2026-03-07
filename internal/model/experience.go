@@ -21,6 +21,7 @@ type Experience struct {
 	ImageURL    string        `gorm:"column:image_url;size:500" json:"image_url" form:"image_url"`
 	ImageID     *uint         `gorm:"column:image_id" json:"image_id"`
 	Image       *UploadedFile `gorm:"foreignKey:ImageID" json:"image,omitempty"`
+	CertURL     string        `gorm:"column:cert_url;size:500" json:"cert_url" form:"cert_url"`
 }
 
 // TableName returns the database table name for Experience.

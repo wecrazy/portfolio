@@ -55,11 +55,11 @@
                 <h1 class="display-1 fw-bold mb-3 gradient-text" data-aos="fade-down">{{.Owner.FullName}}</h1>
                 <p class="lead fs-4 text-secondary mb-4" data-aos="fade-up" data-aos-delay="100">{{.Owner.Title}}</p>
                 {{if .Owner.Tagline}}
-                <blockquote class="blockquote pretty-quote mb-4 mx-auto" style="max-width: 650px; position: relative; background: rgba(255,255,255,0.05); border-left: 6px solid #6c63ff; padding: 1.5rem 2rem 1.5rem 2.5rem; border-radius: 1rem; box-shadow: 0 2px 16px rgba(0,0,0,0.04);">
-                    <span class="quote-icon" style="position: absolute; left: 1rem; top: 1rem; font-size: 2.5rem; color: #6c63ff; opacity: 0.25;">
+                <blockquote class="blockquote pretty-quote mb-4 mx-auto" data-aos="fade-up" data-aos-delay="200" style="max-width: 650px; position: relative; background: var(--glass-bg); border: 1px solid var(--glass-border); border-left: 6px solid var(--primary); padding: 1.5rem 2rem 1.5rem 2.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow-glow);">
+                    <span class="quote-icon" style="position: absolute; left: 1rem; top: 1rem; font-size: 2.5rem; color: var(--primary); opacity: 0.25;">
                         <i class="bx bxs-quote-alt-left"></i>
                     </span>
-                    <span data-translate style="font-size: 1.25rem; font-style: italic; color: #c8c8ca;">{{.Owner.Tagline}}</span>
+                    <span data-translate style="font-size: 1.25rem; font-style: italic; color: var(--text-primary);">{{.Owner.Tagline}}</span>
                 </blockquote>
                 {{end}}
                 <div class="d-flex justify-content-center gap-3 mb-4" data-aos="fade-up" data-aos-delay="300">
@@ -204,6 +204,13 @@
                         {{if $exp.Description}}
                         <div class="truncate-wrapper">
                             <p class="mb-0 text-muted text-truncate-clamp" data-translate>{{$exp.Description}}</p>
+                            {{if $exp.CertURL}}
+                            <p class="mt-2">
+                                <a href="{{$exp.CertURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                                    <i class="bx bx-paperclip me-1"></i><span data-i18n="experience.attachment">Attachment</span>
+                                </a>
+                            </p>
+                            {{end}}
                             <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;"
                                 data-i18n="common.see_more">See more</button>
                         </div>

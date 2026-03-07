@@ -32,6 +32,16 @@ func registerAuthRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client, loginLim
 			return c.FormValue("h-captcha-response"), nil
 		},
 		ValidateFunc: func(success bool, c fiber.Ctx) error {
+			// resp := c.FormValue("h-captcha-response")
+			// cfg := config.MyPortfolio.Get()
+			// sec := cfg.HCaptcha.Secret
+			// secMasked := ""
+			// if len(sec) > 8 {
+			// 	secMasked = sec[:4] + "..." + sec[len(sec)-4:]
+			// } else {
+			// 	secMasked = "****"
+			// }
+			// fmt.Printf("[DEBUG] hCaptcha verification: success=%v, response_len=%d, secret=%s\n", success, len(resp), secMasked)
 			if !success {
 				liveCfg := config.MyPortfolio.Get()
 				_ = c.Render("admin/login", fiber.Map{

@@ -13,19 +13,24 @@
     --bg-card: rgba(255, 255, 255, 0.03);
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-hover: rgba(255, 255, 255, 0.08);
-    --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-    --gradient-bg: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a2e 100%);
+    --glass-hover: rgba(255, 255, 255, 0.12);
+    --gradient-primary: linear-gradient(135deg, var(--primary) 0%, #a78bfa 50%, var(--accent) 100%);
+    --gradient-bg: linear-gradient(135deg, #050510 0%, #0a0a1a 50%, #0f0a20 100%);
     --text-primary: #e8e8f0;
     --text-muted: #8888a8;
-    --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.15);
-    --border-radius: 16px;
+    --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.3);
+    --border-radius: 20px;
     --font-heading: 'Poppins', sans-serif;
     --font-body: 'Inter', sans-serif;
-    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* ---------- Global ---------- */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 html {
     scroll-behavior: smooth;
 }
@@ -34,7 +39,22 @@ body {
     font-family: var(--font-body);
     background: var(--gradient-bg);
     color: var(--text-primary);
-    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+/* ---------- Noise Overlay ---------- */
+.bg-noise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9998;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.03;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -81,15 +101,16 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--border-radius);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 
 .glass-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-8px);
     box-shadow: var(--shadow-glow);
-    border-color: rgba(108, 99, 255, 0.2);
+    border-color: rgba(108, 99, 255, 0.3);
+    background: var(--glass-hover);
 }
 
 /* ---------- Gradient Text ---------- */
@@ -223,53 +244,48 @@ h1, h2, h3, h4, h5, h6 {
 .hero-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.3;
-    animation: orbFloat 8s ease-in-out infinite;
+    filter: blur(100px);
+    opacity: 0.4;
+    animation: orbFloat 10s ease-in-out infinite alternate;
 }
 
 .hero-orb-1 {
-    width: 400px;
-    height: 400px;
+    width: 450px;
+    height: 450px;
     background: var(--primary);
-    top: 10%;
-    left: -5%;
+    top: -5%;
+    left: -10%;
     animation-delay: 0s;
 }
 
 .hero-orb-2 {
-    width: 300px;
-    height: 300px;
+    width: 350px;
+    height: 350px;
     background: var(--accent);
-    bottom: 15%;
-    right: -5%;
+    bottom: 5%;
+    right: -10%;
     animation-delay: 3s;
 }
 
 .hero-orb-3 {
-    width: 200px;
-    height: 200px;
-    background: #ff6b9d;
-    top: 50%;
-    left: 50%;
+    width: 250px;
+    height: 250px;
+    background: #a78bfa;
+    top: 40%;
+    left: 45%;
     transform: translate(-50%, -50%);
     animation-delay: 5s;
-}
-
-@keyframes orbFloat {
-    0%, 100% { transform: translate(0, 0); }
-    33% { transform: translate(30px, -30px); }
-    66% { transform: translate(-20px, 20px); }
-}
-
-.hero-orb-3 {
     animation-name: orbFloatCenter;
 }
 
+@keyframes orbFloat {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -40px) scale(1.1); }
+}
+
 @keyframes orbFloatCenter {
-    0%, 100% { transform: translate(-50%, -50%); }
-    33% { transform: translate(calc(-50% + 30px), calc(-50% - 30px)); }
-    66% { transform: translate(calc(-50% - 20px), calc(-50% + 20px)); }
+    0% { transform: translate(-50%, -50%) scale(1); }
+    100% { transform: translate(calc(-50% + 30px), calc(-50% - 30px)) scale(1.2); }
 }
 
 .z-1 {
@@ -915,4 +931,69 @@ h1, h2, h3, h4, h5, h6 {
     border: none;
     border-top: 1px solid var(--glass-border);
     margin: 2rem 0;
+}
+
+/* ===================================================
+   ERROR PAGE
+   =================================================== */
+.error-page {
+    min-height: 100vh;
+}
+
+.error-glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-glow);
+    animation: errorCardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes errorCardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.error-code {
+    font-size: clamp(4rem, 12vw, 7rem);
+    line-height: 1;
+    animation: errorCodePulse 3s ease-in-out infinite;
+}
+
+@keyframes errorCodePulse {
+    0%, 100% { filter: brightness(1); }
+    50%      { filter: brightness(1.25); }
+}
+
+/* Countdown track + animated bar */
+.error-countdown-track {
+    width: 100%;
+    height: 4px;
+    background: var(--glass-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.error-countdown-bar {
+    width: 100%;
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+}
+
+/* Pulsing green dot */
+.error-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    animation: dotPulse 1.4s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.7); }
 }
