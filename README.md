@@ -26,12 +26,13 @@
 | Area | Details |
 |---|---|
 | **Portfolio** | Projects, experience, skills, tech stacks, social links, upcoming items |
+| **Certificates** | PDF/image gallery with HTMX search, Google Drive proxy + pdf.js thumbnail previews |
 | **Blog** | Markdown posts with thumbnail/media/video/audio uploads, slug-based URLs |
 | **Comments** | OAuth (Google & GitHub) login, real-time WebSocket broadcast, admin moderation |
 | **Contact** | Form with email notification (SMTP), hCaptcha spam protection |
-| **Admin Panel** | Full CRUD dashboard for every entity, file/media upload manager, server monitor & profiler |
+| **Admin Panel** | Full CRUD dashboard for every entity, file/media upload manager, server monitor & profiler; improved login with cookie/HTTPS guidance |
 | **i18n** | Multi-language support (English / Indonesian out of the box) with client-side locale switching |
-| **Security** | Rate limiting (per-route), load shedding (CPU-aware), circuit breaker, security headers |
+| **Security** | CSP tuned for pdf.js & object embeds, rate limiting (per-route), load shedding (CPU-aware), circuit breaker, security headers |
 | **Config** | YAML-based, environment-aware (`dev`/`prod`), hot-reload via fsnotify |
 | **Deployment** | Installable as a systemd service (Linux) or Windows SCM service |
 
@@ -98,6 +99,9 @@ make init
 # 3. Copy and edit the config
 cp internal/config/my-portfolio.dev.yaml internal/config/my-portfolio.prod.yaml
 # Edit the .yaml with your own secrets, SMTP, OAuth credentials, etc.
+# NOTE: set `admin.cookie_secure: false` for local HTTP or follow the
+# warning rendered on the login page.  HTTPS is required when secure cookies
+# are enabled.
 
 # 4. Seed the database with default admin + demo data
 make seed
@@ -117,7 +121,7 @@ Key sections:
 |---|---|
 | `app` | Name, host, port, base URL, secret key, debug toggle |
 | `database` | SQLite DSN, connection pool settings |
-| `admin` | Default admin credentials, session TTL, cookie settings |
+| `admin` | Default admin credentials, session TTL, cookie settings (`cookie_secure` toggle with HTTP/HTTPS guidance) |
 | `oauth` | Google & GitHub OAuth client ID/secret/redirect |
 | `smtp` | Email server for contact form notifications |
 | `upload` | Max file sizes, allowed MIME types |
@@ -173,7 +177,7 @@ The installer creates a systemd unit on Linux and a Windows SCM service on Windo
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/` | Portfolio home page |
+| `GET` | `/` | Portfolio home page (includes certificate preview modal with PDF proxy) |
 | `GET` | `/blog` | Blog listing |
 | `GET` | `/blog/:slug` | Single blog post |
 | `GET` | `/projects` | Projects (HTMX partial) |
@@ -187,7 +191,7 @@ The installer creates a systemd unit on Linux and a Windows SCM service on Windo
 | `GET` | `/auth/github` | GitHub OAuth login |
 | `POST` | `/api/translate` | Machine-translate content |
 | `GET` | `/lang/:code` | Locale JSON for client-side i18n |
-| `GET` | `/admin/*` | Admin panel (session-protected) |
+| `GET` | `/admin/*` | Admin panel (session-protected, improved login with cookie hints if running over HTTP) |
 | `GET` | `/swagger/*` | Swagger UI (admin-only) |
 | `GET` | `/livez` | Liveness probe |
 | `GET` | `/readyz` | Readiness probe |
