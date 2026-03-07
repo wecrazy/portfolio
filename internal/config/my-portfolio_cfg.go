@@ -7,6 +7,7 @@ var MyPortfolio = &configs[TypeMyPortfolio]{}
 // TypeMyPortfolio represents the structure of my-portfolio.<env>.yaml
 type TypeMyPortfolio struct {
 	App struct {
+		ConfigModePath  string `yaml:"config_mode_path" validate:"required"`
 		Name            string `yaml:"name" validate:"required"`
 		Version         string `yaml:"version" validate:"required"`
 		Host            string `yaml:"host" validate:"required"`

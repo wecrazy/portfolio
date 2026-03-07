@@ -178,7 +178,7 @@ func loadConfigWithEnv[T any](baseName string) (*configManager[T], error) {
 			if _, err := os.Stat(fullPath); err != nil {
 				continue
 			}
-			if prod, err := fileContainsProd(fullPath); err == nil && prod {
+			if prod, err := FileContainsProd(fullPath); err == nil && prod {
 				env = "prod"
 				break
 			}
@@ -195,14 +195,14 @@ func loadConfigWithEnv[T any](baseName string) (*configManager[T], error) {
 	return mgr, nil
 }
 
-// fileContainsProd inspects the YAML config file at the given path and returns
+// FileContainsProd inspects the YAML config file at the given path and returns
 // true if the top‑level `config_mode` value is set to "prod" (case insensitive).
 //
 // Previously this helper simply scanned for the literal string "prod", which
 // could produce false positives. We now unmarshal the file and explicitly
 // look at the config_mode field so that environment detection is accurate
 // when no ENV/GO_ENV variable is provided.
-func fileContainsProd(path string) (bool, error) {
+func FileContainsProd(path string) (bool, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return false, err

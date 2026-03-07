@@ -1,0 +1,83 @@
+<!-- ======================= CERTIFICATES PARTIAL (HTMX) ======================= -->
+<div id="certificate-list-area">
+    {{if .Certificates}}
+    <div class="row g-4 mb-4">
+        {{range $i, $cert := .Certificates}}
+        <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+            <div class="glass-card certificate-card h-100 d-flex flex-column">
+                <div class="certificate-thumbnail">
+                    {{- /* compute URL and type similarly to full page template */ -}}
+                    {{- $url := "" -}}
+                    {{- if $cert.File -}}
+                        {{- $url = printf "/uploads/%s" $cert.File.StoredName -}}
+                    {{- else if $cert.CertURL -}}
+                        {{- $url = $cert.CertURL -}}
+                    {{- else -}}
+                        {{- $url = "/static/img/default-cert.png" -}}
+                    {{- end -}}
+                    {{- $type := "other" -}}
+                    {{- if hasSuffix $url ".pdf" -}}
+                        {{- $type = "pdf" -}}
+                    {{- else if or (hasSuffix $url ".jpg") (hasSuffix $url ".jpeg") (hasSuffix $url ".png") (hasSuffix $url ".gif") -}}
+                        {{- $type = "image" -}}
+                    {{- else if (contains $url "drive.google.com") -}}
+                        {{- $type = "pdf" -}}
+                    {{- end -}}
+                    {{- $preview := $url -}}
+                    {{- if eq $type "pdf" -}}
+                        {{- $preview = printf "/cert/preview?id=%d" $cert.ID -}}
+                    {{- end -}}
+                    <a href="javascript:void(0)" class="cert-view" data-url="{{$preview}}" data-type="{{$type}}" data-title="{{ $cert.Title }}">
+                        {{- if eq $type "pdf" }}
+                            <div class="pdf-thumb mb-2" style="height:150px; overflow:hidden;">
+                                <canvas data-pdf-id="{{$cert.ID}}" width="100%" height="150"></canvas>
+                            </div>
+                            <span class="badge bg-secondary text-white">PDF</span>
+                        {{- else }}
+                            <img src="{{$url}}" alt="{{ $cert.Title }}" class="img-fluid rounded-top-4" loading="lazy" onerror="this.onerror=null;this.src='/static/img/default-cert.png';">
+                        {{- end }}
+                    </a>
+                </div>
+                <div class="p-4 flex-grow-1 d-flex flex-column">
+                    <h5 class="fw-bold mb-2" data-translate>{{ $cert.Title }}</h5>
+                    {{if $cert.Description}}
+                    <p class="text-muted small mb-3 flex-grow-1" data-translate>{{ $cert.Description }}</p>
+                    {{end}}
+                    <div class="mb-3">
+                        <span class="badge bg-glass me-1 mb-1">{{ $cert.Issuer }}</span>
+                        <span class="badge bg-glass me-1 mb-1">{{ formatDate $cert.IssueDate }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="text-center py-5">
+        <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
+        <p class="text-muted fs-5" data-i18n="certificate.not_found">No certificates found.</p>
+    </div>
+    {{end}}
+    {{if gt .CertificateTotalPages 1}}
+    <nav aria-label="Certificates pagination" class="d-flex justify-content-center mt-2">
+        <ul class="pagination pagination-sm gap-1 mb-0">
+            <li class="page-item disabled">
+                <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
+            </li>
+            {{range seq .CertificateTotalPages}}
+            {{$p := add . 1}}
+            <li class="page-item {{if eq $p 1}}active{{end}}">
+                <button class="page-link bg-transparent border-glass text-body rounded-3"
+                    hx-get="/certificates?page={{$p}}" hx-include="#certificate-search" hx-target="#certificate-list-area"
+                    hx-swap="innerHTML">{{$p}}</button>
+            </li>
+            {{end}}
+            <li class="page-item">
+                <button class="page-link bg-transparent border-glass text-body rounded-3"
+                    hx-get="/certificates?page=2" hx-include="#certificate-search" hx-target="#certificate-list-area"
+                    hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
+            </li>
+        </ul>
+    </nav>
+    {{end}}
+</div>

@@ -105,7 +105,7 @@
             </div>
             <div class="col-lg-7" data-aos="fade-left">
                 {{if .Owner.Bio}}
-                <p class="fs-5 text-muted mb-4" data-translate>{{.Owner.Bio}}</p>
+                <p class="fs-5 text-muted mb-4 text-justify bio-indent" data-translate>{{.Owner.Bio}}</p>
                 {{end}}
                 <div class="row g-3">
                     {{if .Owner.Title}}
@@ -303,6 +303,154 @@
     </div>
 </section>
 {{end}}
+<!-- ======================= E3. CERTIFICATES ======================= -->
+{{if .Certificates}}
+<section id="certificates" class="section-padding bg-darker">
+    <div class="container">
+        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.certificates">Certificates</h2>
+        <!-- Search bar -->
+        <div class="row justify-content-center mb-4" data-aos="fade-up">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-glass">
+                        <i class="bx bx-search text-muted"></i>
+                    </span>
+                    <input type="search" id="certificate-search" name="q" class="form-control bg-transparent border-glass"
+                        placeholder="Search certificates..." data-i18n-placeholder="certificate.search" hx-get="/certificates"
+                        hx-trigger="input changed delay:400ms, search" hx-target="#certificate-list-area"
+                        hx-swap="innerHTML">
+                </div>
+            </div>
+        </div>
+        <!-- Card grid + pagination (replaced by HTMX on search/page click) -->
+        <div id="certificate-list-area">
+            {{if .Certificates}}
+            <div class="row g-4 mb-4">
+                {{range $i, $cert := .Certificates}}
+                <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+                    <div class="glass-card certificate-card h-100 d-flex flex-column">
+                        <div class="certificate-thumbnail">
+                            {{- /* derive url and type */ -}}
+                            {{- $url := "" -}}
+                            {{- if $cert.File -}}
+                                {{- $url = printf "/uploads/%s" $cert.File.StoredName -}}
+                            {{- else if $cert.CertURL -}}
+                                {{- $url = $cert.CertURL -}}
+                            {{- else -}}
+                                {{- $url = "/static/img/default-cert.png" -}}
+                            {{- end -}}
+                            {{- $type := "other" -}}
+                            {{- if hasSuffix $url ".pdf" -}}
+                                {{- $type = "pdf" -}}
+                            {{- else if or (hasSuffix $url ".jpg") (hasSuffix $url ".jpeg") (hasSuffix $url ".png") (hasSuffix $url ".gif") -}}
+                                {{- $type = "image" -}}
+                            {{- else if (contains $url "drive.google.com") -}}
+                                {{- $type = "pdf" -}}
+                            {{- end -}}
+                            {{if eq $type "pdf"}}
+                            <a href="javascript:void(0)" class="cert-view" data-url="/cert/preview?id={{$cert.ID}}" data-type="{{$type}}" data-title="{{ $cert.Title }}">
+                            {{else}}
+                            <a href="javascript:void(0)" class="cert-view" data-url="{{$url}}" data-type="{{$type}}" data-title="{{ $cert.Title }}">
+                            {{end}}
+                                {{- if eq $type "pdf" }}
+                                    <div class="pdf-thumb mb-2" style="height:150px; overflow:hidden;">
+                                        <canvas data-pdf-id="{{$cert.ID}}" width="100%" height="150"></canvas>
+                                    </div>
+                                    <span class="badge bg-secondary text-white">PDF</span>
+                                {{- else }}
+                                    <img src="{{$url}}" alt="{{ $cert.Title }}" class="img-fluid rounded-top-4" loading="lazy" onerror="this.onerror=null;this.src='/static/img/default-cert.png';">
+                                {{- end }}
+                            </a>
+                        </div>
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <h5 class="fw-bold mb-2" data-translate>{{ $cert.Title }}</h5>
+                            {{if $cert.Description}}
+                            <p class="text-muted small mb-3 flex-grow-1" data-translate>{{ $cert.Description }}</p>
+                            {{end}}
+                            <div class="mb-3">
+                                <span class="badge bg-glass me-1 mb-1">{{ $cert.Issuer }}</span>
+                                <span class="badge bg-glass me-1 mb-1">{{ formatDate $cert.IssueDate }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="text-center py-5">
+                <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
+                <p class="text-muted fs-5" data-i18n="certificate.not_found">No certificates found.</p>
+            </div>
+            {{end}}
+            {{if gt .CertificateTotalPages 1}}
+            <nav aria-label="Certificates pagination" class="d-flex justify-content-center mt-2">
+                <ul class="pagination pagination-sm gap-1 mb-0">
+                    <li class="page-item disabled">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
+                    </li>
+                    {{range seq .CertificateTotalPages}}
+                    {{$p := add . 1}}
+                    <li class="page-item {{if eq $p 1}}active{{end}}">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/certificates?page={{$p}}" hx-include="#certificate-search" hx-target="#certificate-list-area"
+                            hx-swap="innerHTML">{{$p}}</button>
+                    </li>
+                    {{end}}
+                    <li class="page-item">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/certificates?page=2" hx-include="#certificate-search" hx-target="#certificate-list-area"
+                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+            {{end}}
+            {{if gt .CertificateTotalPages 1}}
+            <nav aria-label="Certificates pagination" class="d-flex justify-content-center mt-2">
+                <ul class="pagination pagination-sm gap-1 mb-0">
+                    <li class="page-item disabled">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
+                    </li>
+                    {{range seq .CertificateTotalPages}}
+                    {{$p := add . 1}}
+                    <li class="page-item {{if eq $p 1}}active{{end}}">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/certificates?page={{$p}}" hx-include="#certificate-search" hx-target="#certificate-list-area"
+                            hx-swap="innerHTML">{{$p}}</button>
+                    </li>
+                    {{end}}
+                    <li class="page-item">
+                        <button class="page-link bg-transparent border-glass text-body rounded-3"
+                            hx-get="/certificates?page=2" hx-include="#certificate-search" hx-target="#certificate-list-area"
+                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
+            {{end}}
+        </div>
+    </div>
+</section>
+
+<!-- modal used by certificates -->
+<div class="modal fade" id="certModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title" id="certModalLabel"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0" style="height:100vh; overflow:hidden;">
+        <!-- dynamic content -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- ======================= F. PROJECTS ======================= -->
 <section id="projects" class="section-padding">

@@ -3,6 +3,7 @@ package router
 import (
 	"my-portfolio/internal/handler/admin"
 	"my-portfolio/internal/middleware"
+	"my-portfolio/internal/model"
 
 	contribfgprof "github.com/gofiber/contrib/v3/fgprof"
 	contribmonitor "github.com/gofiber/contrib/v3/monitor"
@@ -97,6 +98,21 @@ func registerAdminRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	adm.Post("/tech-stacks", admin.TechStackCreate(db))
 	adm.Put("/tech-stacks/:id", admin.TechStackUpdate(db))
 	adm.Delete("/tech-stacks/:id", admin.TechStackDelete(db))
+
+	// ── Certificates ────────────────────────────────────────────────
+	adm.Get("/certificates", admin.ListCertificates(db))
+	adm.Get("/certificates/new", admin.CertificateForm(&model.Certificate{}, "/admin/certificates/new"))
+	adm.Post("/certificates/new", admin.CreateCertificate(db))
+	adm.Get("/certificates/edit/:id", func(c fiber.Ctx) error {
+		var cert model.Certificate
+		if err := db.First(&cert, c.Params("id")).Error; err != nil {
+			return c.Status(404).SendString("Certificate not found")
+		}
+		// call the handler returned by CertificateForm with current context
+		return admin.CertificateForm(&cert, "/admin/certificates/edit/"+c.Params("id"))(c)
+	})
+	adm.Post("/certificates/edit/:id", admin.EditCertificate(db))
+	adm.Get("/certificates/delete/:id", admin.DeleteCertificate(db))
 
 	// ── Blog Posts ─────────────────────────────────────────────────
 	adm.Get("/posts", admin.PostListPage())
