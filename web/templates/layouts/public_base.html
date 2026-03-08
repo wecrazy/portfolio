@@ -64,8 +64,8 @@
     <!-- AOS 2.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
-    <!-- Portfolio CSS -->
-    <link href="/static/css/portfolio.css" rel="stylesheet">
+    <!-- Portfolio CSS (cache-busted by app version) -->
+    <link href="/static/css/portfolio.css?v={{appVersion}}" rel="stylesheet">
 </head>
 <body>
     <div class="bg-noise"></div>
@@ -84,12 +84,12 @@
     <!-- HTMX 2.0.8 -->
     <script src="https://unpkg.com/htmx.org@2.0.8"></script>
 
-    <!-- Portfolio JS -->
-    <script src="/static/js/portfolio.js"></script>
+    <!-- Portfolio JS (cache-busted by version) -->
+    <script src="/static/js/portfolio.js?v={{appVersion}}"></script>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-    <script src="/static/js/toast.js"></script>
+    <script src="/static/js/toast.js?v={{appVersion}}"></script>
 
     <!-- hCaptcha JS: only loaded when hcaptcha is enabled in config -->
     {{if .HCaptchaEnabled}}
@@ -104,6 +104,6 @@
     </script>
 
     <!-- WebSocket: real-time comment updates + shutdown notifications -->
-    <script src="/static/js/events.js"></script>
+    <script src="/static/js/events.js?v={{appVersion}}"></script>
 </body>
 </html>
