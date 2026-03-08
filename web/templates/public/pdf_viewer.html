@@ -11,8 +11,26 @@
                 <i class="bx bx-download me-1"></i><span data-i18n="resume.download_pdf">Download PDF</span>
             </a>
         </div>
-        <div class="glass-card p-3">
+        <div class="glass-card p-3" id="pdfWrapper">
             <iframe src="/uploads/resume/{{.ResumeFilename}}" class="w-100 rounded-3" style="height: 80vh; border: none;" title="Resume PDF Viewer"></iframe>
         </div>
+        <script>
+            // mobile user agents generally cannot show PDFs inline, so offer a
+            // direct link instead and/or redirect automatically.
+            function isMobileBrowser() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+            document.addEventListener('DOMContentLoaded', function(){
+                if (isMobileBrowser()) {
+                    var wrapper = document.getElementById('pdfWrapper');
+                    wrapper.innerHTML =
+                        '<p class="text-center py-5">' +
+                        '<a href="/uploads/resume/{{.ResumeFilename}}" target="_blank" class="btn btn-gradient btn-lg">' +
+                        'Open Resume in Browser</a></p>';
+                    // optionally redirect immediately instead of waiting for click
+                    // window.location.href = '/uploads/resume/{{.ResumeFilename}}';
+                }
+            });
+        </script>
     </div>
 </section>

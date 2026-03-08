@@ -228,6 +228,12 @@ document.addEventListener('DOMContentLoaded', function () {
         handleNavbarScroll();
     }
 
+    // ---------- Mobile detection helper ----------
+    // reused by resume link interception and certificate click handler
+    function isMobileBrowser() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     // ---------- Mobile Navbar Auto-Close ----------
     // Bootstrap collapses its own dropdown menus on outside click, but does NOT
     // collapse the main navbar toggle (#navContent) automatically. Fix it here.
@@ -528,6 +534,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
     }
+
+    // also intercept resume button clicks and redirect mobile users
+    document.querySelectorAll('a[href="/resume"]').forEach(function(link){
+        link.addEventListener('click', function(e){
+            if (!isMobileBrowser()) return;
+            var raw = link.getAttribute('data-resume-url');
+            if (raw) {
+                e.preventDefault();
+                // open the direct PDF link instead of the viewer on mobile
+                window.open(raw, '_blank');
+            }
+        });
+    });
     // ---------- Certificate preview click handler ----------
     document.addEventListener('click', function(e) {
         const el = e.target.closest('.cert-view');
@@ -547,7 +566,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const modal = new bootstrap.Modal(modalElem);
         const body = modalElem.querySelector('.modal-body');
         modalElem.querySelector('.modal-title').textContent = title;
+            // helper to detect mobile browsers via user agent
+        function isMobileBrowser() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         if (type === 'pdf') {
+            // on phones we can't reliably embed a PDF; open it directly instead
+            if (isMobileBrowser()) {
+                window.open(url, '_blank');
+                return;
+            }
+
             // the server already proxies, so just embed whatever we get
             // height calc subtracts approx header height (56px) so we don't get
             // a scrollbar on the entire modal; blob/pdf workers handle the rest.

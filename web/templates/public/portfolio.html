@@ -19,7 +19,7 @@
             </ul>
             <div class="d-flex align-items-center gap-2">
                 {{if .Owner.ResumeFile}}
-                <a href="/resume" class="btn btn-outline-light btn-sm" target="_blank">
+                <a href="/resume" data-resume-url="/uploads/resume/{{.Owner.ResumeFile.StoredName}}" class="btn btn-outline-light btn-sm" target="_blank">
                     <i class="bx bx-file-detail me-1"></i><span data-i18n="nav.resume">Resume</span>
                 </a>
                 {{end}}
@@ -147,7 +147,7 @@
                 </div>
                 {{if .Owner.ResumeFile}}
                 <div class="d-flex gap-3 mt-4">
-                    <a href="/resume" target="_blank" class="btn btn-gradient px-4">
+                    <a href="/resume" data-resume-url="/uploads/resume/{{.Owner.ResumeFile.StoredName}}" target="_blank" class="btn btn-gradient px-4">
                         <i class="bx bx-eye me-2"></i><span data-i18n="about.resume_view">View Resume</span>
                     </a>
                     <a href="/resume/download" class="btn btn-outline-light px-4">
