@@ -43,6 +43,7 @@ func AdminLoginPage(_ *gorm.DB, rdb *redis.Client) fiber.Handler {
 			"HCaptchaKey":    cfg.HCaptcha.SiteKey,
 			"HCaptchaEnable": cfg.HCaptcha.Enabled,
 			"InsecureNotice": insecureMsg,
+			"AppVersion":     cfg.App.Version,
 		})
 	}
 }
@@ -75,6 +76,7 @@ func AdminLoginSubmit(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 				"Error":          loginErrMsg,
 				"HCaptchaKey":    cfg.HCaptcha.SiteKey,
 				"HCaptchaEnable": cfg.HCaptcha.Enabled,
+				"AppVersion":     cfg.App.Version,
 			})
 		}
 
@@ -85,6 +87,7 @@ func AdminLoginSubmit(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 				"Error":          loginErrMsg,
 				"HCaptchaKey":    cfg.HCaptcha.SiteKey,
 				"HCaptchaEnable": cfg.HCaptcha.Enabled,
+				"AppVersion":     cfg.App.Version,
 			})
 		}
 
@@ -98,6 +101,7 @@ func AdminLoginSubmit(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 				"Error":          "session store error", // shown to user
 				"HCaptchaKey":    cfg.HCaptcha.SiteKey,
 				"HCaptchaEnable": cfg.HCaptcha.Enabled,
+				"AppVersion":     cfg.App.Version,
 			})
 		}
 		log.Printf("AdminLoginSubmit: token %s stored for adminID=%d ttl=%v", token, admin.ID, ttl)
