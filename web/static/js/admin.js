@@ -291,6 +291,17 @@ document.addEventListener('DOMContentLoaded', function () {
         window.reloadList(entity);
     };
 
+    // listen for clicks on pagination buttons created by HTMX partials
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.page-btn');
+        if (!btn) return;
+        var entity = btn.dataset.entity;
+        var page = btn.dataset.page;
+        if (entity && page) {
+            window.loadPage(entity, page);
+        }
+    });
+
     window.loadPage = function (entity, page) {
         var params = getListParams(entity);
         var target = document.getElementById(entity + '-list');

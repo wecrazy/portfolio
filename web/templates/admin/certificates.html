@@ -1,38 +1,43 @@
 <!-- ======================= ADMIN: CERTIFICATES ======================= -->
-<section class="section-padding">
-    <div class="container">
-        <h2 class="section-title text-center mb-5" data-i18n="admin.certificates.title">Manage Certificates</h2>
-        <div class="mb-4 text-end">
-            <a href="/admin/certificates/new" class="btn btn-gradient">Add Certificate</a>
-        </div>
-        <div id="admin-certificate-list-area">
-            <table class="table table-hover table-bordered" id="admin-certificate-table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Issuer</th>
-                        <th>Issue Date</th>
-                        <th>Type</th>
-                        <th>Visible</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{range .Certificates}}
-                    <tr>
-                        <td>{{.Title}}</td>
-                        <td>{{.Issuer}}</td>
-                        <td>{{formatDate .IssueDate}}</td>
-                        <td>{{if .File}}File{{else if .CertURL}}URL{{else}}-{{end}}</td>
-                        <td>{{if .IsVisible}}Yes{{else}}No{{end}}</td>
-                        <td>
-                            <a href="/admin/certificates/edit/{{.ID}}" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a href="/admin/certificates/delete/{{.ID}}" class="btn btn-sm btn-outline-danger">Delete</a>
-                        </td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold" data-i18n="admin.certificates.title">Certificates</h2>
+    <button class="btn btn-primary" hx-get="/admin/certificates/new" hx-target="#form-container" hx-swap="innerHTML">
+        <i class="bx bx-plus"></i> <span data-i18n="admin.certificates.new">New Certificate</span>
+    </button>
+</div>
+
+<div id="form-container" class="mb-4"></div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <select id="certificates-per-page" class="form-select form-select-sm" style="width: auto;" onchange="reloadList('certificates')">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+        </select>
+        <span class="text-muted small" data-i18n="admin.table.per_page">per page</span>
     </div>
-</section>
+    <div>
+        <input type="text" id="certificates-search" class="form-control form-control-sm" data-i18n-placeholder="admin.table.search" placeholder="Search..." oninput="debounceReloadList('certificates')">
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th onclick="sortList('certificates','title')" style="cursor:pointer"><span data-i18n="admin.col.title">Title</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th onclick="sortList('certificates','issuer')" style="cursor:pointer"><span data-i18n="admin.col.issuer">Issuer</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th onclick="sortList('certificates','issue_date')" style="cursor:pointer"><span data-i18n="admin.col.issue_date">Issue Date</span> <i class="bx bx-sort-alt-2 text-muted small"></i></th>
+                    <th><span data-i18n="admin.col.type">Type</span></th>
+                    <th><span data-i18n="admin.col.visible">Visible</span></th>
+                    <th><span data-i18n="admin.col.actions">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody id="certificates-list" data-list-url="/admin/certificates/list" hx-get="/admin/certificates/list" hx-trigger="load" hx-swap="innerHTML">
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -2,6 +2,7 @@ package admin
 
 import (
 	"my-portfolio/internal/config"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
 
@@ -15,8 +16,9 @@ func OwnerEditPage(db *gorm.DB) fiber.Handler {
 		var owner model.Owner
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
 		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.owner.title")
 		return c.Render("admin/owner", fiber.Map{
-			"Title":          "Owner Profile",
+			"Title":          title,
 			"Owner":          owner,
 			"Admin":          c.Locals("admin"),
 			"SupportedLangs": cfg.I18n.SupportedLangs,
@@ -44,8 +46,9 @@ func OwnerUpdate(db *gorm.DB) fiber.Handler {
 		setToast(c, "owner_updated", "success")
 		db.Preload("ProfileImage").Preload("ResumeFile").First(&owner)
 		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.owner.title")
 		return c.Render("admin/owner", fiber.Map{
-			"Title":          "Owner Profile",
+			"Title":          title,
 			"Owner":          owner,
 			"Admin":          c.Locals("admin"),
 			"SupportedLangs": cfg.I18n.SupportedLangs,

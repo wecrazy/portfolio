@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"my-portfolio/internal/config"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
 	"my-portfolio/pkg/pagination"
@@ -16,8 +17,9 @@ import (
 func UploadListPage() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.uploads.title")
 		return c.Render("admin/uploads", fiber.Map{
-			"Title":          "Uploads",
+			"Title":          title,
 			"Admin":          c.Locals("admin"),
 			"SupportedLangs": cfg.I18n.SupportedLangs,
 			"DefaultLang":    cfg.I18n.DefaultLang,

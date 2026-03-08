@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"my-portfolio/internal/config"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
 	"my-portfolio/pkg/pagination"
@@ -18,8 +19,9 @@ import (
 func PostListPage() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.posts.title")
 		return c.Render("admin/posts", fiber.Map{
-			"Title":          "Blog Posts",
+			"Title":          title,
 			"Admin":          c.Locals("admin"),
 			"SupportedLangs": cfg.I18n.SupportedLangs,
 			"DefaultLang":    cfg.I18n.DefaultLang,
