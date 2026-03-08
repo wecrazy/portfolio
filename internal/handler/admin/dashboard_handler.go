@@ -2,6 +2,7 @@ package admin
 
 import (
 	"my-portfolio/internal/config"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 
 	"github.com/gofiber/fiber/v3"
@@ -18,8 +19,9 @@ func Dashboard(db *gorm.DB) fiber.Handler {
 		db.Model(&model.ContactMessage{}).Where("is_read = ?", false).Count(&unreadCount)
 
 		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.dashboard.title")
 		return c.Render("admin/dashboard", fiber.Map{
-			"Title":          "Dashboard",
+			"Title":          title,
 			"ProjectCount":   projectCount,
 			"CommentCount":   commentCount,
 			"ContactCount":   contactCount,

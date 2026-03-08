@@ -2,8 +2,11 @@ package admin
 
 import (
 	"io"
+	"my-portfolio/internal/config"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/service"
+	"my-portfolio/pkg/pagination"
 	"os"
 	"time"
 
@@ -11,13 +14,33 @@ import (
 	"gorm.io/gorm"
 )
 
-// ListCertificates handles admin listing of certificates.
-func ListCertificates(db *gorm.DB) fiber.Handler {
+// CertificateListPage renders the skeleton certificates page.  The
+// actual table rows are loaded via HTMX from CertificateListPartial so that
+// search, sorting and pagination behave the same as other admin sections.
+func CertificateListPage() fiber.Handler {
 	return func(c fiber.Ctx) error {
-		var certificates []model.Certificate
-		db.Preload("File").Order("sort_order ASC, issue_date DESC").Find(&certificates)
+		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.certificates.title")
 		return c.Render("admin/certificates", fiber.Map{
+			"Title":          title,
+			"Admin":          c.Locals("admin"),
+			"SupportedLangs": cfg.I18n.SupportedLangs,
+			"DefaultLang":    cfg.I18n.DefaultLang,
+		}, "layouts/admin_base")
+	}
+}
+
+// CertificateListPartial returns the certificates table rows as an HTMX
+// partial, including pagination controls.
+func CertificateListPartial(db *gorm.DB) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		params := pagination.ParseParams(c, "issue_date", []string{"issue_date", "title", "issuer"})
+		var certificates []model.Certificate
+		query, pageResult := pagination.Paginate(db.Preload("File"), &model.Certificate{}, params, []string{"title", "issuer", "description"})
+		query.Order("sort_order ASC, issue_date DESC").Find(&certificates)
+		return c.Render("partials/certificate_rows", fiber.Map{
 			"Certificates": certificates,
+			"Pagination":   pageResult,
 		})
 	}
 }
@@ -130,13 +153,21 @@ func EditCertificate(db *gorm.DB) fiber.Handler {
 	}
 }
 
-// DeleteCertificate handles deletion of a certificate.
+// DeleteCertificate handles deletion of a certificate.  When invoked via
+// HTMX (DELETE) it responds with an empty body so the row can be removed
+// client-side; for plain GET requests we fall back to a redirect for
+// backwards compatibility.
 func DeleteCertificate(db *gorm.DB) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		id := c.Params("id")
 		if err := db.Delete(&model.Certificate{}, id).Error; err != nil {
 			return c.Status(500).SendString("Failed to delete certificate")
 		}
+		setToast(c, "certificate_deleted", "success")
+		if c.Method() == "DELETE" {
+			return c.SendString("")
+		}
+		// legacy GET route
 		c.Redirect().To("/admin/certificates")
 		return nil
 	}

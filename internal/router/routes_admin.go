@@ -100,7 +100,8 @@ func registerAdminRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	adm.Delete("/tech-stacks/:id", admin.TechStackDelete(db))
 
 	// ── Certificates ────────────────────────────────────────────────
-	adm.Get("/certificates", admin.ListCertificates(db))
+	adm.Get("/certificates", admin.CertificateListPage())
+	adm.Get("/certificates/list", admin.CertificateListPartial(db))
 	adm.Get("/certificates/new", admin.CertificateForm(&model.Certificate{}, "/admin/certificates/new"))
 	adm.Post("/certificates/new", admin.CreateCertificate(db))
 	adm.Get("/certificates/edit/:id", func(c fiber.Ctx) error {
@@ -112,6 +113,8 @@ func registerAdminRoutes(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 		return admin.CertificateForm(&cert, "/admin/certificates/edit/"+c.Params("id"))(c)
 	})
 	adm.Post("/certificates/edit/:id", admin.EditCertificate(db))
+	// legacy GET delete kept for compatibility, new HTMX uses DELETE
+	adm.Delete("/certificates/:id", admin.DeleteCertificate(db))
 	adm.Get("/certificates/delete/:id", admin.DeleteCertificate(db))
 
 	// ── Blog Posts ─────────────────────────────────────────────────

@@ -2,6 +2,7 @@ package admin
 
 import (
 	"my-portfolio/internal/config"
+	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
 	"my-portfolio/pkg/pagination"
 
@@ -13,8 +14,9 @@ import (
 func SocialListPage() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
+		title, _ := appI18n.T.Localize(c, "admin.social.title")
 		return c.Render("admin/social_links", fiber.Map{
-			"Title":          "Social Links",
+			"Title":          title,
 			"Admin":          c.Locals("admin"),
 			"SupportedLangs": cfg.I18n.SupportedLangs,
 			"DefaultLang":    cfg.I18n.DefaultLang,

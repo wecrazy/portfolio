@@ -187,7 +187,11 @@ func initLogger(cfg config.TypeMyPortfolio) *zap.Logger {
 	}
 	level := determineLogLevel(cfg)
 	cores := buildLoggerCores(cfg, level)
-	logger := zap.New(zapcore.NewTee(cores...), zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+	logger := zap.New(
+		zapcore.NewTee(cores...),
+		zap.WithCaller(false),
+		zap.AddStacktrace(zapcore.ErrorLevel),
+	)
 	return logger
 }
 

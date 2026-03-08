@@ -6,13 +6,14 @@
                 <div class="col-md-4 mb-2">
                     <label class="form-label">Platform</label>
                     <select name="platform" class="form-select">
-                        <option value="github" {{if eq .Social.Platform "github"}}selected{{end}}>GitHub</option>
-                        <option value="linkedin" {{if eq .Social.Platform "linkedin"}}selected{{end}}>LinkedIn</option>
-                        <option value="instagram" {{if eq .Social.Platform "instagram"}}selected{{end}}>Instagram</option>
-                        <option value="twitter" {{if eq .Social.Platform "twitter"}}selected{{end}}>Twitter / X</option>
-                        <option value="youtube" {{if eq .Social.Platform "youtube"}}selected{{end}}>YouTube</option>
-                        <option value="website" {{if eq .Social.Platform "website"}}selected{{end}}>Website</option>
-                        <option value="other" {{if eq .Social.Platform "other"}}selected{{end}}>Other</option>
+                        <option value="github" {{if eq (lower .Social.Platform) "github"}}selected{{end}}>GitHub</option>
+                        <option value="linkedin" {{if eq (lower .Social.Platform) "linkedin"}}selected{{end}}>LinkedIn</option>
+                        <option value="instagram" {{if eq (lower .Social.Platform) "instagram"}}selected{{end}}>Instagram</option>
+                        <option value="twitter" {{if eq (lower .Social.Platform) "twitter"}}selected{{end}}>Twitter / X</option>
+                        <option value="youtube" {{if eq (lower .Social.Platform) "youtube"}}selected{{end}}>YouTube</option>
+                        <option value="website" {{if eq (lower .Social.Platform) "website"}}selected{{end}}>Website</option>
+                        <option value="jobstreet" {{if eq (lower .Social.Platform) "jobstreet"}}selected{{end}}>Jobstreet</option>
+                        <option value="other" {{if eq (lower .Social.Platform) "other"}}selected{{end}}>Other</option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-2">

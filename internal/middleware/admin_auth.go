@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"log"
 	"my-portfolio/internal/config"
 	"my-portfolio/internal/model"
 	"my-portfolio/internal/session"
@@ -18,8 +19,7 @@ func AdminAuth(db *gorm.DB, rdb *redis.Client) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		cfg := config.MyPortfolio.Get()
 		token := c.Cookies(cfg.Admin.CookieName)
-		// debug: always log what we received, even if empty
-		// log.Printf("AdminAuth: received cookie %s=%q", cfg.Admin.CookieName, token)
+		log.Printf("AdminAuth: received cookie %s=%q", cfg.Admin.CookieName, token)
 		if token == "" {
 			return c.Redirect().To("/admin/login")
 		}
