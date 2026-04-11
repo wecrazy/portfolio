@@ -59,6 +59,8 @@ about.resume_download: "Unduh"
 about.resume_view: "Lihat Resume"
 about.role: "Jabatan"
 
+profile.image_download: "Unduh Gambar"
+
 admin.action.approve: "Setujui"
 admin.action.cancel: "Batal"
 admin.action.delete: "Hapus"

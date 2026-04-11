@@ -59,6 +59,8 @@ about.resume_download: "Download"
 about.resume_view: "View Resume"
 about.role: "Role"
 
+profile.image_download: "Download Image"
+
 admin.action.approve: "Approve"
 admin.action.cancel: "Cancel"
 admin.action.delete: "Delete"
