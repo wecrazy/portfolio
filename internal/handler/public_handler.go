@@ -30,7 +30,12 @@ func experienceYears() int {
 //
 //	{years_experience} → "+3 years", "+4 years", etc.
 func expandText(s string) string {
-	yearsLabel := fmt.Sprintf("+%d years", experienceYears())
+	years := experienceYears()
+	yearUnit := "years"
+	if years == 1 {
+		yearUnit = "year"
+	}
+	yearsLabel := fmt.Sprintf("+%d %s", years, yearUnit)
 	s = strings.ReplaceAll(s, "{years_experience} years of experience", yearsLabel+" of experience")
 	s = strings.ReplaceAll(s, "{years_experience} years", yearsLabel)
 	return strings.ReplaceAll(s, "{years_experience}", yearsLabel)
