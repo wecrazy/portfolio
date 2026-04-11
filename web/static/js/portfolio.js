@@ -201,6 +201,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var counters = document.querySelectorAll('.count-up');
         if (!counters.length) return;
 
+        if (!('IntersectionObserver' in window)) {
+            counters.forEach(function (counter) {
+                animateCount(counter);
+            });
+            return;
+        }
+
         var observer = new IntersectionObserver(function (entries, obs) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {

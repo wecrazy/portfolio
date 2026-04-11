@@ -228,6 +228,15 @@ func addTemplateFuncs(engine *html.Engine, cfg config.TypeMyPortfolio) {
 	})
 	engine.AddFunc("add", func(a, b int) int { return a + b })
 	engine.AddFunc("sub", func(a, b int) int { return a - b })
+	engine.AddFunc("phoneDigits", func(s string) string {
+		var b strings.Builder
+		for _, r := range s {
+			if r >= '0' && r <= '9' {
+				b.WriteRune(r)
+			}
+		}
+		return b.String()
+	})
 	engine.AddFunc("appVersion", func() string { return cfg.App.Version })
 	engine.AddFunc("currentYear", func() int { return time.Now().Year() })
 	engine.AddFunc("humanSize", func(size int64) string {

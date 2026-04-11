@@ -142,6 +142,7 @@
                             <i class="bxf bx-user display-1 text-muted"></i>
                         </div>
                         {{end}}
+                        {{if .Owner.Location}}
                         <div class="hero-portrait-caption glass-card">
                             <span class="hero-portrait-caption-icon" aria-hidden="true">
                                 <i class="bx bx-location-pin"></i>
@@ -153,6 +154,7 @@
                                 <strong>{{.Owner.Location}}</strong>
                             </span>
                         </div>
+                        {{end}}
                     </div>
                     <div class="hero-support-card glass-card interactive-panel">
                         <div class="hero-support-row">
@@ -214,9 +216,7 @@
                             <span class="story-punchline-icon" aria-hidden="true">
                                 <i class="bx bx-terminal"></i>
                             </span>
-                            <span class="story-punchline-text">
-                                Fullstack Engineer | Golang | Scalable Systems, Chatbot Automation & Microservices | Odoo ERP | DevOps & Observability
-                            </span>
+                            <span class="story-punchline-text" data-translate>{{.Owner.Tagline}}</span>
                             <!-- DEPRECATED:
                             <span class="meta-chip"><i class="bx bx-layer me-1"></i>{{.ProjectCount}} shipped builds</span>
                              -->
@@ -621,7 +621,7 @@
                     </a>
                     {{end}}
                     {{if .Owner.Phone}}
-                    <a href="https://wa.me/{{.Owner.Phone}}" class="contact-line-item">
+                    <a href="https://wa.me/{{phoneDigits .Owner.Phone}}" class="contact-line-item">
                         <span class="contact-line-icon"><i class="bx bx-phone"></i></span>
                         <span>
                             <small class="text-muted d-block" data-i18n="about.phone">Phone</small>

@@ -27,7 +27,7 @@
             <a href="javascript:void(0)" class="certificate-media cert-view" data-url="{{$preview}}" data-type="{{$type}}" data-title="{{$cert.Title}}">
                 {{if eq $type "pdf"}}
                 <div class="pdf-thumb">
-                    <canvas data-pdf-id="{{$cert.ID}}" width="100%" height="180"></canvas>
+                    <canvas data-pdf-id="{{$cert.ID}}" width="600" height="180" style="width: 100%; height: auto;"></canvas>
                 </div>
                 {{else}}
                 <img src="{{$url}}" alt="{{$cert.Title}}" class="img-fluid" loading="lazy" onerror="this.onerror=null;this.src='/static/img/default-cert.png';">
