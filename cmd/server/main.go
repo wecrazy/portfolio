@@ -136,12 +136,71 @@ func initTemplates(cfg config.TypeMyPortfolio) *html.Engine {
 	return engine
 }
 
+func experienceBullets(raw string) []string {
+	normalized := strings.ReplaceAll(raw, "\r\n", "\n")
+	lines := strings.Split(normalized, "\n")
+	items := make([]string, 0, len(lines))
+	foundListMarker := false
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "*") || strings.HasPrefix(trimmed, "-") || strings.HasPrefix(trimmed, "•") {
+			foundListMarker = true
+			trimmed = strings.TrimSpace(strings.TrimLeft(trimmed, "*-•"))
+			if trimmed == "" {
+				continue
+			}
+			items = append(items, trimmed)
+		}
+	}
+
+	if !foundListMarker {
+		return nil
+	}
+
+	return items
+}
+
+func splitCSVItems(raw string) []string {
+	if strings.TrimSpace(raw) == "" {
+		return nil
+	}
+
+	parts := strings.Split(raw, ",")
+	items := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			items = append(items, trimmed)
+		}
+	}
+
+	return items
+}
+
+func langFlag(lang string) string {
+	switch strings.ToLower(strings.TrimSpace(lang)) {
+	case "id":
+		return "🇮🇩"
+	case "en":
+		return "🇺🇸"
+	default:
+		return "🌐"
+	}
+}
+
 func addTemplateFuncs(engine *html.Engine, cfg config.TypeMyPortfolio) {
 	engine.AddFunc("upper", strings.ToUpper)
 	engine.AddFunc("lower", strings.ToLower)
+	engine.AddFunc("langFlag", langFlag)
 	engine.AddFunc("contains", strings.Contains)
 	engine.AddFunc("hasSuffix", strings.HasSuffix)
 	engine.AddFunc("split", strings.Split)
+	engine.AddFunc("csvItems", splitCSVItems)
+	engine.AddFunc("experienceBullets", experienceBullets)
 	engine.AddFunc("join", strings.Join)
 	engine.AddFunc("safeHTML", func(s string) template.HTML { return template.HTML(s) })
 	engine.AddFunc("formatDate", func(t time.Time) string { return t.Format("Jan 2006") })
@@ -169,6 +228,15 @@ func addTemplateFuncs(engine *html.Engine, cfg config.TypeMyPortfolio) {
 	})
 	engine.AddFunc("add", func(a, b int) int { return a + b })
 	engine.AddFunc("sub", func(a, b int) int { return a - b })
+	engine.AddFunc("phoneDigits", func(s string) string {
+		var b strings.Builder
+		for _, r := range s {
+			if r >= '0' && r <= '9' {
+				b.WriteRune(r)
+			}
+		}
+		return b.String()
+	})
 	engine.AddFunc("appVersion", func() string { return cfg.App.Version })
 	engine.AddFunc("currentYear", func() int { return time.Now().Year() })
 	engine.AddFunc("humanSize", func(size int64) string {

@@ -7,7 +7,7 @@ app:
 
   # application metadata
   name: "Your App Name"                    # e.g. "My Portfolio"
-  version: "0.0.1"                         # semantic version string
+  version: "0.0.14"                         # semantic version string
   host: "127.0.0.1"                        # bind address (use 0.0.0.0 for all)
   port: 6996                               # HTTP port
   base_url: "http://127.0.0.1:6996"        # full base URL

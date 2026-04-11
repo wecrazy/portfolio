@@ -1,0 +1,79 @@
+{{define "public_upcoming_grid"}}
+{{if .UpcomingItems}}
+<div class="row g-4 mb-4">
+    {{range .UpcomingItems}}
+    <div class="col-md-6 col-xl-4" data-aos="fade-up">
+        <article class="portfolio-card upcoming-card interactive-panel h-100">
+            <div class="upcoming-icon-wrap">
+                {{if .IconClass}}
+                <i class="{{.IconClass}} fs-2 gradient-text"></i>
+                {{else}}
+                <i class="bx bx-rocket fs-2 gradient-text"></i>
+                {{end}}
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                {{if eq .Type "project"}}
+                <span class="editorial-pill editorial-pill-solid" data-i18n="upcoming.type.project">Future Project</span>
+                {{else}}
+                <span class="editorial-pill editorial-pill-muted" data-i18n="upcoming.type.announcement">Announcement</span>
+                {{end}}
+                {{if eq .Status "in-progress"}}
+                <span class="editorial-pill editorial-pill-success" data-i18n="upcoming.status.in_progress">In Progress</span>
+                {{else if eq .Status "coming-soon"}}
+                <span class="editorial-pill editorial-pill-warning" data-i18n="upcoming.status.coming_soon">Coming Soon</span>
+                {{else}}
+                <span class="editorial-pill editorial-pill-outline" data-i18n="upcoming.status.planned">Planned</span>
+                {{end}}
+            </div>
+            <h3 class="project-title mb-2" data-translate>{{.Title}}</h3>
+            {{if .Description}}
+            <div class="truncate-wrapper mt-auto">
+                <p class="project-copy text-truncate-clamp mb-0" data-translate>{{.Description}}</p>
+                <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+            </div>
+            {{end}}
+        </article>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="empty-state text-center py-5">
+    <i class="bx bx-rocket display-3 text-muted mb-3 d-block"></i>
+    <p class="text-muted fs-5 mb-0" data-i18n="upcoming.empty">No upcoming plans yet — stay tuned!</p>
+</div>
+{{end}}
+{{if gt .UpcomingTotalPages 1}}
+<nav aria-label="Upcoming pagination" class="d-flex justify-content-center mt-2">
+    <ul class="pagination pagination-sm gap-1 mb-0">
+        <li class="page-item {{if le .UpcomingCurrentPage 1}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/upcoming?page={{sub .UpcomingCurrentPage 1}}"
+                hx-include="#upcoming-search"
+                hx-target="#upcoming-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-left"></i>
+            </button>
+        </li>
+        {{range seq .UpcomingTotalPages}}
+        {{$p := add . 1}}
+        <li class="page-item {{if eq $p $.UpcomingCurrentPage}}active{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/upcoming?page={{$p}}"
+                hx-include="#upcoming-search"
+                hx-target="#upcoming-list-area"
+                hx-swap="innerHTML">{{$p}}</button>
+        </li>
+        {{end}}
+        <li class="page-item {{if ge .UpcomingCurrentPage .UpcomingTotalPages}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/upcoming?page={{add .UpcomingCurrentPage 1}}"
+                hx-include="#upcoming-search"
+                hx-target="#upcoming-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-right"></i>
+            </button>
+        </li>
+    </ul>
+</nav>
+{{end}}
+{{end}}

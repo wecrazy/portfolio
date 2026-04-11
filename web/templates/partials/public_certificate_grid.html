@@ -1,0 +1,95 @@
+{{define "public_certificate_grid"}}
+{{if .Certificates}}
+<div class="row g-4 mb-4">
+    {{range $cert := .Certificates}}
+    {{- $url := "" -}}
+    {{- if $cert.File -}}
+        {{- $url = printf "/uploads/%s" $cert.File.StoredName -}}
+    {{- else if $cert.CertURL -}}
+        {{- $url = $cert.CertURL -}}
+    {{- else -}}
+        {{- $url = "/static/img/default-cert.png" -}}
+    {{- end -}}
+    {{- $type := "other" -}}
+    {{- if hasSuffix $url ".pdf" -}}
+        {{- $type = "pdf" -}}
+    {{- else if or (hasSuffix $url ".jpg") (hasSuffix $url ".jpeg") (hasSuffix $url ".png") (hasSuffix $url ".gif") -}}
+        {{- $type = "image" -}}
+    {{- else if (contains $url "drive.google.com") -}}
+        {{- $type = "pdf" -}}
+    {{- end -}}
+    {{- $preview := $url -}}
+    {{- if eq $type "pdf" -}}
+        {{- $preview = printf "/cert/preview?id=%d" $cert.ID -}}
+    {{- end -}}
+    <div class="col-md-6 col-xl-4" data-aos="fade-up">
+        <article class="portfolio-card certificate-card interactive-panel h-100 d-flex flex-column">
+            <a href="javascript:void(0)" class="certificate-media cert-view" data-url="{{$preview}}" data-type="{{$type}}" data-title="{{$cert.Title}}">
+                {{if eq $type "pdf"}}
+                <div class="pdf-thumb">
+                    <canvas data-pdf-id="{{$cert.ID}}" width="600" height="180" style="width: 100%; height: auto;"></canvas>
+                </div>
+                {{else}}
+                <img src="{{$url}}" alt="{{$cert.Title}}" class="img-fluid" loading="lazy" onerror="this.onerror=null;this.src='/static/img/default-cert.png';">
+                {{end}}
+            </a>
+            <div class="project-body d-flex flex-column flex-grow-1">
+                <div class="eyebrow-meta mb-3">
+                    <span class="meta-chip">{{$cert.Issuer}}</span>
+                    <span class="meta-chip">{{formatDate $cert.IssueDate}}</span>
+                </div>
+                <h3 class="project-title mb-2" data-translate>{{$cert.Title}}</h3>
+                {{if $cert.Description}}
+                <p class="project-copy flex-grow-1" data-translate>{{$cert.Description}}</p>
+                {{end}}
+                <div class="project-actions mt-auto">
+                    <a href="javascript:void(0)" class="btn btn-outline-light btn-sm cert-view" data-url="{{$preview}}" data-type="{{$type}}" data-title="{{$cert.Title}}">
+                        <i class="bx bx-expand-alt me-1"></i><span data-i18n="certificate.view">View</span>
+                    </a>
+                </div>
+            </div>
+        </article>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="empty-state text-center py-5">
+    <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
+    <p class="text-muted fs-5 mb-0" data-i18n="certificate.not_found">No certificates found.</p>
+</div>
+{{end}}
+{{if gt .CertificateTotalPages 1}}
+<nav aria-label="Certificates pagination" class="d-flex justify-content-center mt-2">
+    <ul class="pagination pagination-sm gap-1 mb-0">
+        <li class="page-item {{if le .CertificateCurrentPage 1}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/certificates?page={{sub .CertificateCurrentPage 1}}"
+                hx-include="#certificate-search"
+                hx-target="#certificate-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-left"></i>
+            </button>
+        </li>
+        {{range seq .CertificateTotalPages}}
+        {{$p := add . 1}}
+        <li class="page-item {{if eq $p $.CertificateCurrentPage}}active{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/certificates?page={{$p}}"
+                hx-include="#certificate-search"
+                hx-target="#certificate-list-area"
+                hx-swap="innerHTML">{{$p}}</button>
+        </li>
+        {{end}}
+        <li class="page-item {{if ge .CertificateCurrentPage .CertificateTotalPages}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/certificates?page={{add .CertificateCurrentPage 1}}"
+                hx-include="#certificate-search"
+                hx-target="#certificate-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-right"></i>
+            </button>
+        </li>
+    </ul>
+</nav>
+{{end}}
+{{end}}

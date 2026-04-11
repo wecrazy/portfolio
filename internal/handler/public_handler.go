@@ -17,13 +17,28 @@ import (
 // careerStart is the date Wegil started his professional career.
 var careerStart = time.Date(2023, time.February, 13, 0, 0, 0, 0, time.UTC)
 
+func experienceYears() int {
+	years := int(time.Since(careerStart).Hours() / (24 * 365.25))
+	if years < 1 {
+		return 1
+	}
+	return years
+}
+
 // expandText replaces dynamic placeholders in owner text fields so the values
 // stay accurate over time without any manual edits to the database.
 //
 //	{years_experience} → "+3 years", "+4 years", etc.
 func expandText(s string) string {
-	years := int(time.Since(careerStart).Hours() / (24 * 365.25))
-	return strings.ReplaceAll(s, "{years_experience}", fmt.Sprintf("+%d years", years))
+	years := experienceYears()
+	yearUnit := "years"
+	if years == 1 {
+		yearUnit = "year"
+	}
+	yearsLabel := fmt.Sprintf("+%d %s", years, yearUnit)
+	s = strings.ReplaceAll(s, "{years_experience} years of experience", yearsLabel+" of experience")
+	s = strings.ReplaceAll(s, "{years_experience} years", yearsLabel)
+	return strings.ReplaceAll(s, "{years_experience}", yearsLabel)
 }
 
 const projectPageSize = 6
@@ -106,30 +121,36 @@ func PortfolioPage(db *gorm.DB) fiber.Handler {
 		}
 
 		return c.Render("public/portfolio", fiber.Map{
-			"Title":                 owner.FullName,
-			"BaseURL":               cfg.App.BaseURL,
-			"OGImage":               ogImage,
-			"OGDescription":         ogDesc,
-			"Owner":                 owner,
-			"Projects":              projects,
-			"ProjectCurrentPage":    1,
-			"ProjectTotalPages":     projectTotalPages,
-			"Experiences":           experiences,
-			"Skills":                skills,
-			"SkillsByCategory":      skillsByCategory,
-			"TechByCategory":        techByCategory,
-			"SocialLinks":           socialLinks,
-			"UpcomingItems":         upcomingItems,
-			"UpcomingCurrentPage":   1,
-			"UpcomingTotalPages":    upcomingTotalPages,
-			"Certificates":          certificates,
-			"CertificateTotalPages": certificateTotalPages,
-			"VisitorLoggedIn":       visitorLoggedIn,
-			"SupportedLangs":        cfg.I18n.SupportedLangs,
-			"DefaultLang":           cfg.I18n.DefaultLang,
-			"IsPortfolio":           true,
-			"HCaptchaEnabled":       cfg.HCaptcha.Enabled,
-			"HCaptchaKey":           cfg.HCaptcha.SiteKey,
+			"Title":                  owner.FullName,
+			"BaseURL":                cfg.App.BaseURL,
+			"OGImage":                ogImage,
+			"OGDescription":          ogDesc,
+			"Owner":                  owner,
+			"ExperienceYears":        experienceYears(),
+			"ExperienceCount":        len(experiences),
+			"ProjectCount":           int(totalProjects),
+			"CertificateCount":       int(totalCertificates),
+			"TechCount":              len(techStacks),
+			"Projects":               projects,
+			"ProjectCurrentPage":     1,
+			"ProjectTotalPages":      projectTotalPages,
+			"Experiences":            experiences,
+			"Skills":                 skills,
+			"SkillsByCategory":       skillsByCategory,
+			"TechByCategory":         techByCategory,
+			"SocialLinks":            socialLinks,
+			"UpcomingItems":          upcomingItems,
+			"UpcomingCurrentPage":    1,
+			"UpcomingTotalPages":     upcomingTotalPages,
+			"Certificates":           certificates,
+			"CertificateCurrentPage": 1,
+			"CertificateTotalPages":  certificateTotalPages,
+			"VisitorLoggedIn":        visitorLoggedIn,
+			"SupportedLangs":         cfg.I18n.SupportedLangs,
+			"DefaultLang":            cfg.I18n.DefaultLang,
+			"IsPortfolio":            true,
+			"HCaptchaEnabled":        cfg.HCaptcha.Enabled,
+			"HCaptchaKey":            cfg.HCaptcha.SiteKey,
 		}, "layouts/public_base")
 	}
 }
@@ -161,9 +182,9 @@ func ProjectsPage(db *gorm.DB) fiber.Handler {
 		totalPages := int(math.Ceil(float64(total) / float64(projectPageSize)))
 
 		return c.Render("partials/project_cards", fiber.Map{
-			"Projects":    projects,
-			"CurrentPage": page,
-			"TotalPages":  totalPages,
+			"Projects":           projects,
+			"ProjectCurrentPage": page,
+			"ProjectTotalPages":  totalPages,
 		})
 	}
 }
@@ -195,9 +216,9 @@ func UpcomingPage(db *gorm.DB) fiber.Handler {
 		totalPages := int(math.Ceil(float64(total) / float64(upcomingPageSize)))
 
 		return c.Render("partials/upcoming_cards", fiber.Map{
-			"UpcomingItems": upcomingItems,
-			"CurrentPage":   page,
-			"TotalPages":    totalPages,
+			"UpcomingItems":       upcomingItems,
+			"UpcomingCurrentPage": page,
+			"UpcomingTotalPages":  totalPages,
 		})
 	}
 }

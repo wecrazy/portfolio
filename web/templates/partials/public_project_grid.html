@@ -1,0 +1,95 @@
+{{define "public_project_grid"}}
+{{if .Projects}}
+<div class="row g-4 mb-4">
+    {{range $proj := .Projects}}
+    <div class="col-md-6 col-xl-4" data-aos="fade-up">
+        <article class="portfolio-card project-card interactive-panel h-100 d-flex flex-column">
+            <div class="project-media">
+                <img src="{{if $proj.ThumbnailURL}}{{$proj.ThumbnailURL}}{{else}}/static/img/default-project.jpg{{end}}"
+                    alt="{{$proj.Title}}"
+                    class="img-fluid"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.src='/static/img/default-project.jpg';">
+            </div>
+            <div class="project-body d-flex flex-column flex-grow-1">
+                <div class="project-header-row">
+                    <h3 class="project-title mb-0" data-translate>{{$proj.Title}}</h3>
+                </div>
+                {{if $proj.LongDesc}}
+                <div class="project-copy-shell truncate-wrapper flex-grow-1">
+                    <p class="project-copy text-truncate-clamp" data-translate>{{$proj.LongDesc}}</p>
+                    <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+                </div>
+                {{else if $proj.Description}}
+                <div class="project-copy-shell truncate-wrapper flex-grow-1">
+                    <p class="project-copy text-truncate-clamp" data-translate>{{$proj.Description}}</p>
+                    <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;" data-i18n="common.see_more">See more</button>
+                </div>
+                {{end}}
+                {{if $proj.Tags}}
+                <div class="tag-list mb-4">
+                    {{range csvItems $proj.Tags}}
+                    <span class="tag-pill">{{.}}</span>
+                    {{end}}
+                </div>
+                {{end}}
+                {{if or $proj.LiveURL $proj.RepoURL}}
+                <div class="project-actions mt-auto">
+                    {{if $proj.LiveURL}}
+                    <a href="{{$proj.LiveURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-gradient btn-sm">
+                        <i class="bx bx-arrow-out-up-left-stroke-square me-1"></i><span data-i18n="project.live">Live</span>
+                    </a>
+                    {{end}}
+                    {{if $proj.RepoURL}}
+                    <a href="{{$proj.RepoURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm">
+                        <i class="bxl bx-github me-1"></i><span data-i18n="project.code">Code</span>
+                    </a>
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+        </article>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="empty-state text-center py-5">
+    <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
+    <p class="text-muted fs-5 mb-0" data-i18n="project.not_found">No projects found.</p>
+</div>
+{{end}}
+{{if gt .ProjectTotalPages 1}}
+<nav aria-label="Projects pagination" class="d-flex justify-content-center mt-2">
+    <ul class="pagination pagination-sm gap-1 mb-0">
+        <li class="page-item {{if le .ProjectCurrentPage 1}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/projects?page={{sub .ProjectCurrentPage 1}}"
+                hx-include="#project-search"
+                hx-target="#project-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-left"></i>
+            </button>
+        </li>
+        {{range seq .ProjectTotalPages}}
+        {{$p := add . 1}}
+        <li class="page-item {{if eq $p $.ProjectCurrentPage}}active{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/projects?page={{$p}}"
+                hx-include="#project-search"
+                hx-target="#project-list-area"
+                hx-swap="innerHTML">{{$p}}</button>
+        </li>
+        {{end}}
+        <li class="page-item {{if ge .ProjectCurrentPage .ProjectTotalPages}}disabled{{end}}">
+            <button class="page-link bg-transparent border-glass text-body rounded-3"
+                hx-get="/projects?page={{add .ProjectCurrentPage 1}}"
+                hx-include="#project-search"
+                hx-target="#project-list-area"
+                hx-swap="innerHTML">
+                <i class="bx bx-chevron-right"></i>
+            </button>
+        </li>
+    </ul>
+</nav>
+{{end}}
+{{end}}

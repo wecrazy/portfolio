@@ -32,7 +32,7 @@ func seedDemoData(db *gorm.DB) {
 	if count == 0 {
 		seedProjects(db)
 		seedExperiences(db)
-		seedSkills(db)
+		// seedSkills(db)
 		seedSocialLinks(db)
 		seedTechStacks(db)
 		seedCertificates(db)
