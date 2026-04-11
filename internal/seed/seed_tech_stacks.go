@@ -27,9 +27,9 @@ func seedTechStacks(db *gorm.DB) {
 		{Name: "GORM", Category: "Framework", IconClass: "bxf bx-data", IconURL: "https://media.brand.dev/196dd3de-5580-4788-9d77-708172bc9cda.svg", Desc: "ORM library for Golang", SortOrder: 4},
 
 		// ===================== Architecture =====================
-		{Name: "REST API", Category: "Architecture", IconClass: "bxf bx-network-chart", IconURL: "https://cdn.worldvectorlogo.com/logos/rest-api.svg", Desc: "RESTful API design & development", SortOrder: 1},
+		{Name: "REST API", Category: "Architecture", IconClass: "bxf bx-network-chart", IconURL: "https://latenode.com/_next/image?url=https%3A%2F%2Fblog-static.latenode.com%2Flatenode-strapi-blog%2Fhow_to_reduce_api_latency_in_integrations_featured_89ab3e0e7e.jpg&w=384&q=75", Desc: "RESTful API design & development", SortOrder: 1},
 		{Name: "gRPC", Category: "Architecture", IconClass: "bxf bx-transfer", IconURL: "https://grpc.io/img/logos/grpc-icon-color.png", Desc: "High-performance RPC framework", SortOrder: 2},
-		{Name: "Protocol Buffers", Category: "Architecture", IconClass: "bxf bx-code-block", IconURL: "https://cdn.worldvectorlogo.com/logos/protocol-buffers.svg", Desc: "Efficient serialization (Protobuf)", SortOrder: 3},
+		{Name: "Protocol Buffers", Category: "Architecture", IconClass: "bxf bx-code-block", IconURL: "https://dz2cdn1.dzone.com/storage/temp/15915735-1653483592719.png", Desc: "Efficient serialization (Protobuf)", SortOrder: 3},
 		{Name: "Monolith", Category: "Architecture", IconClass: "bx bx-git-pull-request-draft", Desc: "Single application architecture", SortOrder: 4},
 		{Name: "Monorepo", Category: "Architecture", IconClass: "bx bx-git-repo-forked", Desc: "Single repository for multiple services", SortOrder: 5},
 		{Name: "Microservices", Category: "Architecture", IconClass: "bx bx-cube", Desc: "Distributed system architecture", SortOrder: 6},
