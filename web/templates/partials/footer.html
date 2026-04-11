@@ -1,13 +1,13 @@
 {{define "footer"}}
-<footer class="py-4 text-center border-top border-glass">
+<footer class="site-footer py-4 text-center border-top border-glass">
     <div class="container">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <p class="mb-0 text-muted small">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 footer-shell">
+            <p class="mb-0 text-muted small footer-copy">
                 &copy; {{currentYear}} {{.Owner.FullName}}. <span data-i18n="footer.rights">All rights reserved.</span>
             </p>
             {{if .IsPortfolio}}
-            <p class="mb-0 text-muted small">
-                <span data-i18n="footer.built_with">Built with</span> <i class="bxf bx-heart text-danger"></i> — Go v1.26.0 + Fiber v3.1.0
+            <p class="mb-0 text-muted small footer-copy">
+                <span data-i18n="footer.built_with">Built with</span> <i class="bxf bx-heart text-danger"></i> — Go + Fiber
             </p>
             {{else}}
             <a href="/" class="btn btn-sm btn-outline-light">
@@ -15,9 +15,9 @@
             </a>
             {{end}}
             {{if .SocialLinks}}
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 footer-social-row">
                 {{range .SocialLinks}}
-                <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="text-muted" title="{{.Platform}}">
+                <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="footer-social-link" title="{{.Platform}}">
                     <i class="{{.IconClass}}"></i>
                 </a>
                 {{end}}

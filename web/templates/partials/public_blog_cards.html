@@ -1,0 +1,58 @@
+{{define "public_blog_cards"}}
+{{range $post := .Posts}}
+<div class="col-md-6 col-xl-4" data-aos="fade-up">
+    <article class="portfolio-card blog-card interactive-panel h-100">
+        <a href="/blog/{{$post.Slug}}" class="blog-card-link text-decoration-none">
+            <div class="blog-card-media">
+                {{if $post.ThumbnailFile}}
+                <img src="/uploads/images/{{$post.ThumbnailFile.StoredName}}" alt="{{$post.Title}}" loading="lazy">
+                {{else}}
+                <div class="blog-card-fallback">
+                    <i class="bx bx-news"></i>
+                </div>
+                {{end}}
+                <div class="blog-card-overlay">
+                    <span class="editorial-pill editorial-pill-solid" data-i18n="nav.blog">Blog</span>
+                    {{if $post.PublishedAt}}
+                    <span class="editorial-pill editorial-pill-muted"><i class="bx bx-calendar me-1"></i>{{formatDate (derefTime $post.PublishedAt)}}</span>
+                    {{end}}
+                </div>
+            </div>
+            <div class="blog-card-body">
+                <h3 class="blog-card-title" data-translate>{{$post.Title}}</h3>
+                {{if $post.Excerpt}}
+                <p class="blog-card-excerpt" data-translate>{{$post.Excerpt}}</p>
+                {{end}}
+                {{if $post.Tags}}
+                <div class="tag-list mb-0">
+                    {{range csvItems $post.Tags}}
+                    <span class="tag-pill">{{.}}</span>
+                    {{end}}
+                </div>
+                {{end}}
+                <span class="blog-card-cta"><span data-i18n="blog.read_more">Read More</span><i class="bx bx-arrow-right"></i></span>
+            </div>
+        </a>
+    </article>
+</div>
+{{end}}
+{{if .HasMorePosts}}
+<div id="load-more-posts" class="col-12 text-center py-4"
+    hx-get="/blog/more?page={{.NextPage}}" hx-trigger="revealed" hx-swap="outerHTML" hx-target="#load-more-posts">
+    <div class="glass-card blog-load-more-shell d-inline-flex align-items-center gap-3 px-4 py-3">
+        <div class="spinner-border spinner-border-sm text-muted" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <span class="text-muted" data-i18n="blog.read_more">Read More</span>
+    </div>
+</div>
+{{end}}
+{{if not .Posts}}
+<div class="col-12">
+    <div class="empty-state text-center py-5">
+        <i class="bx bx-book-content display-3 text-muted mb-3 d-block"></i>
+        <p class="text-muted fs-5 mb-0" data-i18n="blog.empty">No posts yet. Check back soon!</p>
+    </div>
+</div>
+{{end}}
+{{end}}

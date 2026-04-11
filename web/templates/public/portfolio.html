@@ -1,43 +1,44 @@
 <!-- ======================= A. NAVBAR ======================= -->
 <nav class="navbar navbar-expand-xl fixed-top glass-nav" id="mainNav">
-    <div class="container">
+    <div class="container nav-shell">
         <a class="navbar-brand fw-bold gradient-text" href="#hero">{{.Owner.FullName}}</a>
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
             aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navContent">
-            <ul class="navbar-nav ms-auto me-3 mb-2 mb-lg-0">
+            <ul class="navbar-nav ms-auto me-3 mb-2 mb-lg-0 nav-link-row">
                 <li class="nav-item"><a class="nav-link" href="#about" data-i18n="nav.about">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="#experience" data-i18n="nav.experience">Experience</a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="#skills" data-i18n="nav.skills">Skills</a></li>
+                <li class="nav-item"><a class="nav-link" href="#experience" data-i18n="nav.experience">Experience</a></li>
+                {{if .TechByCategory}}
+                <li class="nav-item"><a class="nav-link" href="#techstack" data-i18n="section.techstack">Tech Stack</a></li>
+                {{end}}
                 <li class="nav-item"><a class="nav-link" href="#projects" data-i18n="nav.projects">Projects</a></li>
                 <li class="nav-item"><a class="nav-link" href="#upcoming" data-i18n="nav.upcoming">What's Next</a></li>
                 <li class="nav-item"><a class="nav-link" href="/blog" data-i18n="nav.blog">Blog</a></li>
                 <li class="nav-item"><a class="nav-link" href="#contact" data-i18n="nav.contact">Contact</a></li>
             </ul>
-            <div class="d-flex align-items-center gap-2">
-                {{if .Owner.ResumeFile}}
-                <a href="/resume" data-resume-url="/uploads/resume/{{.Owner.ResumeFile.StoredName}}" class="btn btn-outline-light btn-sm" target="_blank">
-                    <i class="bx bx-file-detail me-1"></i><span data-i18n="nav.resume">Resume</span>
-                </a>
-                {{end}}
-                <!-- Language Switcher -->
+            <div class="nav-utility-cluster d-flex align-items-center gap-2">
                 <div class="dropdown">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="langSwitcher"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bx bx-globe me-1"></i><span id="langLabel">EN</span>
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle utility-toggle lang-toggle" type="button" id="langSwitcher"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Language">
+                        <span class="lang-flag-badge" id="langFlag">{{langFlag .DefaultLang}}</span>
+                        <span id="langLabel">{{upper .DefaultLang}}</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langSwitcher" id="langMenu">
                         {{range .SupportedLangs}}
-                        <li><a class="dropdown-item lang-option" href="#" data-lang="{{.}}"
-                                data-i18n="lang.{{.}}">{{upper .}}</a></li>
+                        <li><a class="dropdown-item lang-option d-flex align-items-center gap-2" href="#" data-lang="{{.}}" data-flag="{{langFlag .}}"><span class="lang-menu-flag">{{langFlag .}}</span><span data-i18n="lang.{{.}}">{{upper .}}</span></a></li>
                         {{end}}
                     </ul>
                 </div>
-                <button class="btn btn-outline-light btn-sm theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                    <i class="bxf bx-sun"></i>
+                <button class="btn btn-outline-light btn-sm theme-toggle utility-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+                    <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-sky"></span>
+                        <span class="theme-toggle-stars"></span>
+                        <span class="theme-toggle-cloud theme-toggle-cloud-1"></span>
+                        <span class="theme-toggle-cloud theme-toggle-cloud-2"></span>
+                        <span class="theme-toggle-thumb"></span>
+                    </span>
                 </button>
             </div>
         </div>
@@ -45,116 +46,246 @@
 </nav>
 
 <!-- ======================= B. HERO ======================= -->
-<section id="hero" class="hero-section d-flex align-items-center position-relative overflow-hidden">
+<section id="hero" class="hero-section editorial-hero position-relative overflow-hidden">
     <div class="hero-orb hero-orb-1"></div>
     <div class="hero-orb hero-orb-2"></div>
     <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grid-lines"></div>
     <div class="container position-relative z-1">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <h1 class="display-1 fw-bold mb-3 gradient-text" data-aos="fade-down">{{.Owner.FullName}}</h1>
-                <p class="lead fs-4 text-secondary mb-4" data-aos="fade-up" data-aos-delay="100">{{.Owner.Title}}</p>
-                {{if .Owner.Tagline}}
-                <blockquote class="blockquote pretty-quote mb-4 mx-auto" data-aos="fade-up" data-aos-delay="200" style="max-width: 650px; position: relative; background: var(--glass-bg); border: 1px solid var(--glass-border); border-left: 6px solid var(--primary); padding: 1.5rem 2rem 1.5rem 2.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow-glow);">
-                    <span class="quote-icon" style="position: absolute; left: 1rem; top: 1rem; font-size: 2.5rem; color: var(--primary); opacity: 0.25;">
-                        <i class="bx bxs-quote-alt-left"></i>
-                    </span>
-                    <span data-translate style="font-size: 1.25rem; font-style: italic; color: var(--text-primary);">{{.Owner.Tagline}}</span>
-                </blockquote>
-                {{end}}
-                <div class="d-flex justify-content-center gap-3 mb-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="row align-items-center g-5 hero-layout">
+            <div class="col-lg-7">
+                <div class="hero-copydeck" data-aos="fade-up">
+                    <!-- DEPRECATED:
+                    <span class="eyebrow-pill" data-i18n="hero.available">Open to backend, platform, and automation work</span>
+                     -->
+                    <h1 class="hero-title gradient-text">{{.Owner.FullName}}</h1>
+                    <p class="hero-role" data-translate>{{.Owner.Title}}</p>
+                    {{if .Owner.Tagline}}
+                    <p class="hero-tagline" data-translate>{{.Owner.Tagline}}</p>
+                    {{end}}
+                </div>
+
+                <div class="hero-actions d-flex flex-wrap gap-3" data-aos="fade-up" data-aos-delay="100">
                     <a href="#projects" class="btn btn-gradient btn-lg px-4">
-                        <i class="bx bx-git-repo-forked me-2"></i><span data-i18n="hero.view_projects">View
-                            Projects</span>
+                        <i class="bx bx-git-repo-forked me-2"></i><span data-i18n="hero.view_projects">View Projects</span>
                     </a>
                     <a href="#contact" class="btn btn-outline-light btn-lg px-4">
                         <i class="bx bx-envelope me-2"></i><span data-i18n="hero.contact_me">Contact Me</span>
                     </a>
+                    {{if .Owner.ResumeFile}}
+                    <a href="/resume" data-resume-url="/uploads/resume/{{.Owner.ResumeFile.StoredName}}" target="_blank" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bx bx-file-detail me-2"></i><span data-i18n="nav.resume">Resume</span>
+                    </a>
+                    {{end}}
                 </div>
+
+                <div class="hero-metrics row g-3 mt-3" data-aos="fade-up" data-aos-delay="160">
+                    <div class="col-6 col-md-3">
+                        <div class="metric-card glass-card interactive-panel h-100">
+                            <strong class="metric-number count-up" data-count="{{.ExperienceYears}}">0</strong>
+                            <span class="metric-label" data-i18n="hero.metric.experience">Years building</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-card glass-card interactive-panel h-100">
+                            <strong class="metric-number count-up" data-count="{{.ProjectCount}}">0</strong>
+                            <span class="metric-label" data-i18n="hero.metric.projects">Published builds</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-card glass-card interactive-panel h-100">
+                            <strong class="metric-number count-up" data-count="{{.TechCount}}">0</strong>
+                            <span class="metric-label" data-i18n="hero.metric.tech">Tools in stack</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="metric-card glass-card interactive-panel h-100">
+                            <strong class="metric-number count-up" data-count="{{.CertificateCount}}">0</strong>
+                            <span class="metric-label" data-i18n="hero.metric.certificates">Credentials</span>
+                        </div>
+                    </div>
+                </div>
+
                 {{if .SocialLinks}}
-                <div class="social-links d-flex justify-content-center gap-3 mt-4" data-aos="fade-up"
-                    data-aos-delay="400">
+                <div class="hero-social-grid" data-aos="fade-up" data-aos-delay="220">
                     {{range .SocialLinks}}
-                    <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="social-icon-link"
-                        title="{{.Platform}}">
-                        <i class="{{.IconClass}}"></i>
+                    <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="social-brand-link" data-bs-toggle="tooltip" data-bs-placement="top" title="{{.Label}}">
+                        <span class="social-brand-icon"><i class="{{.IconClass}}"></i></span>
+                        <span class="social-brand-label">{{.Label}}</span>
                     </a>
                     {{end}}
                 </div>
                 {{end}}
+
+                <a href="#about" class="hero-scroll-cue" data-aos="fade-up" data-aos-delay="280">
+                    <span class="hero-scroll-copy">
+                        <span class="hero-scroll-label" data-i18n="hero.scroll">Explore profile</span>
+                    </span>
+                    <span class="hero-scroll-icon" aria-hidden="true">
+                        <i class="bx bx-arrow-from-left"></i>
+                    </span>
+                </a>
+            </div>
+
+            <div class="col-lg-5" data-aos="fade-left" data-aos-delay="140">
+                <div class="hero-visual-stack">
+                    <div class="hero-portrait-card glass-card interactive-panel">
+                        {{if .Owner.ProfileImage}}
+                        <button type="button" class="hero-portrait-trigger" data-bs-toggle="modal" data-bs-target="#profileImageModal" aria-label="Open profile image">
+                            <img src="/uploads/images/{{.Owner.ProfileImage.StoredName}}" alt="{{.Owner.FullName}}" class="hero-portrait-image img-fluid">
+                            <span class="hero-portrait-zoom" aria-hidden="true">
+                                <i class="bx bx-zoom-in"></i>
+                            </span>
+                        </button>
+                        {{else}}
+                        <div class="hero-portrait-fallback d-flex align-items-center justify-content-center">
+                            <i class="bxf bx-user display-1 text-muted"></i>
+                        </div>
+                        {{end}}
+                        <div class="hero-portrait-caption glass-card">
+                            <span class="hero-portrait-caption-icon" aria-hidden="true">
+                                <i class="bx bx-location-pin"></i>
+                            </span>
+                            <span class="hero-portrait-caption-copy">
+                                <small class="text-muted d-block" data-i18n="about.location">
+                                    Location
+                                </small>
+                                <strong>{{.Owner.Location}}</strong>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="hero-support-card glass-card interactive-panel">
+                        <div class="hero-support-row">
+                            <span class="meta-chip"><i class="bx bx-briefcase me-1"></i><span data-translate>{{.Owner.Title}}</span></span>
+                            <span class="meta-chip hero-support-metric">
+                                <i class="bx bx-timer"></i>
+                                <span class="hero-support-metric-value">{{.ExperienceYears}}</span>
+                                <span class="hero-support-metric-label" data-i18n="hero.support.experience_years">years experience</span>
+                            </span>
+                        </div>
+                        {{if .Owner.Email}}
+                        <a href="mailto:{{.Owner.Email}}" class="hero-inline-link">
+                            <i class="bx bx-envelope"></i>
+                            <span>{{.Owner.Email}}</span>
+                        </a>
+                        {{end}}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
+{{if .Owner.ProfileImage}}
+<div class="modal fade" id="profileImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content profile-image-modal">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">{{.Owner.FullName}}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="profile-image-modal-shell">
+                    <img src="/uploads/images/{{.Owner.ProfileImage.StoredName}}" alt="{{.Owner.FullName}}" class="img-fluid profile-image-modal-image">
+                    <div class="profile-image-modal-actions">
+                        <a href="/uploads/images/{{.Owner.ProfileImage.StoredName}}" download class="btn btn-gradient">
+                            <i class="bx bx-download me-2"></i><span data-i18n="about.resume_download">Download</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
 <!-- ======================= C. ABOUT ======================= -->
 <section id="about" class="section-padding">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.about">About Me</h2>
-        <div class="row align-items-center g-5">
-            <div class="col-lg-5 text-center" data-aos="fade-right">
-                {{if .Owner.ProfileImage}}
-                <div class="about-image-wrapper mx-auto">
-                    <img src="/uploads/images/{{.Owner.ProfileImage.StoredName}}" alt="{{.Owner.FullName}}" class="about-image img-fluid rounded-4 shadow-lg">
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.about">About Me</h2>
+        </div>
+
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-7" data-aos="fade-right">
+                <div class="glass-card story-card interactive-panel h-100">
+                    <div class="story-card-head">
+                        <div class="story-punchline">
+                            <span class="story-punchline-icon" aria-hidden="true">
+                                <i class="bx bx-terminal"></i>
+                            </span>
+                            <span class="story-punchline-text">
+                                Fullstack Engineer | Golang | Scalable Systems, Chatbot Automation & Microservices | Odoo ERP | DevOps & Observability
+                            </span>
+                            <!-- DEPRECATED:
+                            <span class="meta-chip"><i class="bx bx-layer me-1"></i>{{.ProjectCount}} shipped builds</span>
+                             -->
+                        </div>
+                    </div>
+                    {{if .Owner.Bio}}
+                    <p class="story-copy story-copy-feature mb-0" data-translate>{{.Owner.Bio}}</p>
+                    {{end}}
                 </div>
-                {{else}}
-                <div class="about-image-placeholder mx-auto rounded-4 d-flex align-items-center justify-content-center">
-                    <i class="bxf bx-user display-1 text-muted"></i>
-                </div>
-                {{end}}
             </div>
-            <div class="col-lg-7" data-aos="fade-left">
-                {{if .Owner.Bio}}
-                <p class="fs-5 text-muted mb-4 text-justify bio-indent" data-translate>{{.Owner.Bio}}</p>
-                {{end}}
-                <div class="row g-3">
+
+            <div class="col-lg-5" data-aos="fade-left">
+                <div class="row g-3 h-100">
                     {{if .Owner.Title}}
-                    <div class="col-sm-6">
-                        <div class="glass-card p-3 text-center">
-                            <i class="bx bx-briefcase fs-4 gradient-text mb-2 d-block"></i>
-                            <small class="text-muted d-block" data-i18n="about.role">Role</small>
-                            <strong>{{.Owner.Title}}</strong>
+                    <div class="col-sm-4">
+                        <div class="glass-card detail-tile interactive-panel h-100">
+                            <i class="bx bx-briefcase fs-3 gradient-text mb-3 d-block"></i>
+                            <small class="text-muted d-block mb-1" data-i18n="about.role">Role</small>
+                            <strong data-translate>{{.Owner.Title}}</strong>
                         </div>
                     </div>
                     {{end}}
                     {{if .Owner.Location}}
-                    <div class="col-sm-6">
-                        <div class="glass-card p-3 text-center">
-                            <i class="bx bx-map fs-4 gradient-text mb-2 d-block"></i>
-                            <small class="text-muted d-block" data-i18n="about.location">Location</small>
+                    <div class="col-sm-4">
+                        <div class="glass-card detail-tile interactive-panel h-100">
+                            <i class="bx bx-map fs-3 gradient-text mb-3 d-block"></i>
+                            <small class="text-muted d-block mb-1" data-i18n="about.location">Location</small>
                             <strong>{{.Owner.Location}}</strong>
                         </div>
                     </div>
                     {{end}}
-                    {{if .Owner.Email}}
-                    <div class="col-sm-6">
-                        <div class="glass-card p-3 text-center">
-                            <i class="bx bx-envelope fs-4 gradient-text mb-2 d-block"></i>
-                            <small class="text-muted d-block" data-i18n="about.email">Email</small>
-                            <strong>{{.Owner.Email}}</strong>
-                        </div>
-                    </div>
-                    {{end}}
+
                     {{if .Owner.Phone}}
-                    <div class="col-sm-6">
-                        <div class="glass-card p-3 text-center">
-                            <i class="bx bx-phone fs-4 gradient-text mb-2 d-block"></i>
-                            <small class="text-muted d-block" data-i18n="about.phone">Phone</small>
+                    <div class="col-sm-4">
+                        <div class="glass-card detail-tile interactive-panel h-100">
+                            <i class="bx bx-phone fs-3 gradient-text mb-3 d-block"></i>
+                            <small class="text-muted d-block mb-1" data-i18n="about.phone">Phone</small>
                             <strong>{{.Owner.Phone}}</strong>
                         </div>
                     </div>
                     {{end}}
+                    {{if .Owner.Email}}
+                    <div class="col-12">
+                        <div class="glass-card detail-tile interactive-panel h-100">
+                            <i class="bx bx-envelope fs-3 gradient-text mb-3 d-block"></i>
+                            <small class="text-muted d-block mb-1" data-i18n="about.email">Email</small>
+                            <strong class="detail-value-compact">{{.Owner.Email}}</strong>
+                        </div>
+                    </div>
+                    {{end}}
+                    {{if .Owner.ResumeFile}}
+                    <div class="col-12">
+                        <div class="glass-card detail-banner interactive-panel">
+                            <div>
+                                <small class="text-muted d-block mb-1" data-i18n="nav.resume">Resume</small>
+                                <strong>{{.Owner.FullName}}</strong>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <a href="/resume" data-resume-url="/uploads/resume/{{.Owner.ResumeFile.StoredName}}" target="_blank" class="btn btn-gradient btn-sm px-3">
+                                    <i class="bx bx-eye me-1"></i><span data-i18n="about.resume_view">View Resume</span>
+                                </a>
+                                <a href="/resume/download" class="btn btn-outline-light btn-sm px-3">
+                                    <i class="bx bx-save me-1"></i><span data-i18n="about.resume_download">Download</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
                 </div>
-                {{if .Owner.ResumeFile}}
-                <div class="d-flex gap-3 mt-4">
-                    <a href="/resume" data-resume-url="/uploads/resume/{{.Owner.ResumeFile.StoredName}}" target="_blank" class="btn btn-gradient px-4">
-                        <i class="bx bx-eye me-2"></i><span data-i18n="about.resume_view">View Resume</span>
-                    </a>
-                    <a href="/resume/download" class="btn btn-outline-light px-4">
-                        <i class="bx bx-save me-2"></i><span data-i18n="about.resume_download">Download</span>
-                    </a>
-                </div>
-                {{end}}
             </div>
         </div>
     </div>
@@ -163,540 +294,262 @@
 <!-- ======================= D. EXPERIENCE ======================= -->
 <section id="experience" class="section-padding bg-darker">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.experience">Experience</h2>
-        <div class="timeline">
-            {{range $i, $exp := .Experiences}}
-            <div class="timeline-item {{if eq (sub (add $i 1) (sub (add $i 1) 1)) 1}}timeline-left{{end}}"
-                data-aos="fade-up" data-aos-delay="{{add (sub $i $i) 100}}">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content glass-card p-4" style="position: relative; overflow: hidden;">
-                    {{if or $exp.ImageURL $exp.Image}}
-                    <div class="experience-bg-image">
-                        {{if $exp.Image}}
-                        <img src="/uploads/images/{{$exp.Image.StoredName}}" alt="" loading="lazy">
-                        {{else}}
-                        <img src="{{$exp.ImageURL}}" alt="" loading="lazy">
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.experience">Experience</h2>
+        </div>
+
+        <div class="experience-stack">
+            {{range $exp := .Experiences}}
+            {{$bullets := experienceBullets $exp.Description}}
+            <article class="portfolio-card experience-card interactive-panel" data-aos="fade-up">
+                {{if or $exp.ImageURL $exp.Image}}
+                <div class="experience-backdrop" aria-hidden="true">
+                    {{if $exp.Image}}
+                    <img src="/uploads/images/{{$exp.Image.StoredName}}" alt="{{$exp.Org}}" loading="lazy">
+                    {{else}}
+                    <img src="{{$exp.ImageURL}}" alt="{{$exp.Org}}" loading="lazy">
+                    {{end}}
+                </div>
+                {{end}}
+                <div class="experience-layout">
+                    <div class="experience-intro">
+                        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                            <span class="editorial-pill editorial-pill-solid" data-translate>{{$exp.Type}}</span>
+                            {{if $exp.IsCurrent}}
+                            <span class="editorial-pill editorial-pill-success" data-i18n="experience.present">Present</span>
+                            {{end}}
+                        </div>
+                        <h3 class="experience-title" data-translate>{{$exp.Title}}</h3>
+                        <p class="experience-org mb-3">{{$exp.Org}}</p>
+                        <div class="eyebrow-meta mb-3">
+                            <span class="meta-chip">
+                                <i class="bx bx-calendar me-1"></i>
+                                {{formatDate $exp.StartDate}} &ndash;
+                                {{if $exp.IsCurrent}}
+                                <span data-i18n="experience.present">Present</span>
+                                {{else if not (isZeroTime (derefTime $exp.EndDate))}}
+                                {{formatDate (derefTime $exp.EndDate)}}
+                                {{else}}
+                                <span data-i18n="experience.present">Present</span>
+                                {{end}}
+                            </span>
+                            {{if $exp.Location}}
+                            <span class="meta-chip"><i class="bx bx-map me-1"></i>{{$exp.Location}}</span>
+                            {{end}}
+                        </div>
+                        {{if $exp.CertURL}}
+                        <a href="{{$exp.CertURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm">
+                            <i class="bx bx-paperclip me-1"></i><span data-i18n="experience.attachment">Attachment</span>
+                        </a>
                         {{end}}
                     </div>
-                    {{end}}
-                    <div class="experience-content">
-                        <span class="badge bg-gradient-primary mb-2" data-translate>{{$exp.Type}}</span>
-                        <h4 class="mb-1" data-translate>{{$exp.Title}}</h4>
-                        <h6 class="text-secondary mb-2">{{$exp.Org}}</h6>
-                        <p class="small text-muted mb-2">
-                            <i class="bx bx-calendar me-1"></i>
-                            {{formatDate $exp.StartDate}} &ndash;
-                            {{if $exp.IsCurrent}}
-                            <span class="badge bg-success" data-i18n="experience.present">Present</span>
-                            {{else}}
-                            {{if not (isZeroTime (derefTime $exp.EndDate))}}
-                            {{formatDate (derefTime $exp.EndDate)}}
-                            {{else}}
-                            <span class="badge bg-success" data-i18n="experience.present">Present</span>
+
+                    <div class="experience-body">
+                        {{if gt (len $bullets) 0}}
+                        <div class="experience-list-shell">
+                            <ul class="experience-points list-unstyled mb-0">
+                                {{range $idx, $bullet := $bullets}}
+                                {{if lt $idx 6}}
+                                <li class="experience-point"><span class="experience-point-marker"></span><span data-translate>{{$bullet}}</span></li>
+                                {{end}}
+                                {{end}}
+                            </ul>
+                            {{if gt (len $bullets) 6}}
+                            <div class="collapse experience-collapse" id="experience-more-{{$exp.ID}}">
+                                <ul class="experience-points list-unstyled mb-0 mt-3">
+                                    {{range $idx, $bullet := $bullets}}
+                                    {{if ge $idx 6}}
+                                    <li class="experience-point"><span class="experience-point-marker"></span><span data-translate>{{$bullet}}</span></li>
+                                    {{end}}
+                                    {{end}}
+                                </ul>
+                            </div>
+                            <button class="btn btn-link btn-sm experience-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#experience-more-{{$exp.ID}}" aria-expanded="false">
+                                <span data-i18n="common.see_more">See more</span>
+                                <i class="bx bx-chevron-down"></i>
+                            </button>
                             {{end}}
-                            {{end}}
-                        </p>
-                        {{if $exp.Location}}
-                        <p class="small text-muted mb-2">
-                            <i class="bx bx-map me-1"></i><span>{{$exp.Location}}</span>
-                        </p>
-                        {{end}}
-                        {{if $exp.Description}}
-                        <div class="truncate-wrapper">
-                            <p class="mb-0 text-muted text-truncate-clamp" data-translate>{{$exp.Description}}</p>
-                            {{if $exp.CertURL}}
-                            <p class="mt-2">
-                                <a href="{{$exp.CertURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
-                                    <i class="bx bx-paperclip me-1"></i><span data-i18n="experience.attachment">Attachment</span>
-                                </a>
-                            </p>
-                            {{end}}
-                            <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;"
-                                data-i18n="common.see_more">See more</button>
+                        </div>
+                        {{else if $exp.Description}}
+                        <div class="experience-prose">
+                            <p class="mb-0 text-muted" data-translate>{{$exp.Description}}</p>
                         </div>
                         {{end}}
                     </div>
                 </div>
-            </div>
+            </article>
             {{end}}
         </div>
     </div>
 </section>
 
-<!-- ======================= E. SKILLS ======================= -->
-<section id="skills" class="section-padding">
-    <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.skills">Skills</h2>
-        {{range $category, $skills := .SkillsByCategory}}
-        <div class="mb-5" data-aos="fade-up">
-            <h4 class="mb-4 gradient-text">{{$category}}</h4>
-            <div class="row g-3">
-                {{range $skills}}
-                <div class="col-md-6 col-lg-4">
-                    <div class="glass-card p-3 skill-card">
-                        <div class="d-flex align-items-center mb-2">
-                            {{if .IconURL}}
-                            {{if .IconURLDark}}
-                            <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}"
-                                class="theme-icon me-2" width="24" height="24" alt="{{.Name}}" loading="lazy">
-                            {{else}}
-                            <img src="{{.IconURL}}" class="icon-auto-theme me-2" width="24" height="24" alt="{{.Name}}"
-                                loading="lazy">
-                            {{end}}
-                            {{else if .IconClass}}
-                            <i class="{{.IconClass}} fs-5 me-2 gradient-text"></i>
-                            {{end}}
-                            <span class="fw-semibold">{{.Name}}</span>
-                            <span class="ms-auto small text-muted">{{.Proficiency}}%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-bar-fill" data-progress="{{.Proficiency}}" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-                {{end}}
-            </div>
-        </div>
-        {{end}}
-    </div>
-</section>
-
-<!-- ======================= E2. TECH STACK ======================= -->
+<!-- ======================= E. TECH STACK ======================= -->
 {{if .TechByCategory}}
-<section id="techstack" class="section-padding bg-darker">
+<section id="techstack" class="section-padding">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.techstack">Tech Stack</h2>
-        {{range $category, $stacks := .TechByCategory}}
-        <div class="mb-5" data-aos="fade-up">
-            <h4 class="mb-4 gradient-text">{{$category}}</h4>
-            <div class="row g-3">
-                {{range $stacks}}
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="glass-card p-3 text-center h-100">
-                        <div class="mb-2">
-                            {{if .IconURL}}
-                            {{if .IconURLDark}}
-                            <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}"
-                                class="theme-icon" width="48" height="48" alt="{{.Name}}" loading="lazy">
-                            {{else}}
-                            <img src="{{.IconURL}}" class="icon-auto-theme" width="48" height="48" alt="{{.Name}}"
-                                loading="lazy">
-                            {{end}}
-                            {{else if .IconClass}}
-                            <i class="{{.IconClass}} fs-1 gradient-text"></i>
-                            {{else}}
-                            <i class="bx bx-code-alt fs-1 gradient-text"></i>
-                            {{end}}
-                        </div>
-                        {{if .URL}}<a href="{{.URL}}" target="_blank" rel="noopener noreferrer"
-                            class="text-decoration-none">{{end}}
-                            <h6 class="fw-semibold mb-1">{{.Name}}</h6>
-                            {{if .URL}}
-                        </a>{{end}}
-                        {{if .Desc}}<small class="text-muted">{{.Desc}}</small>{{end}}
-                    </div>
-                </div>
-                {{end}}
-            </div>
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.techstack">Tech Stack</h2>
         </div>
-        {{end}}
+
+        <div class="row g-4">
+            {{range $category, $stacks := .TechByCategory}}
+            <div class="col-lg-6" data-aos="fade-up">
+                <section class="glass-card tech-cluster interactive-panel h-100">
+                    <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
+                        <h3 class="cluster-title mb-0">{{$category}}</h3>
+                        <span class="meta-chip">{{len $stacks}}</span>
+                    </div>
+                    <div class="tech-cloud">
+                        {{range $stacks}}
+                        {{if .URL}}<a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="tech-pill">{{else}}<div class="tech-pill">{{end}}
+                            <span class="tech-pill-icon">
+                                {{if .IconURL}}
+                                {{if .IconURLDark}}
+                                <img src="{{.IconURL}}" data-src-light="{{.IconURL}}" data-src-dark="{{.IconURLDark}}" class="theme-icon" width="28" height="28" alt="{{.Name}}" loading="lazy">
+                                {{else}}
+                                <img src="{{.IconURL}}" class="icon-auto-theme" width="28" height="28" alt="{{.Name}}" loading="lazy">
+                                {{end}}
+                                {{else if .IconClass}}
+                                <i class="{{.IconClass}} gradient-text"></i>
+                                {{else}}
+                                <i class="bx bx-code-alt gradient-text"></i>
+                                {{end}}
+                            </span>
+                            <span>
+                                <strong class="d-block">{{.Name}}</strong>
+                                {{if .Desc}}<small class="text-muted">{{.Desc}}</small>{{end}}
+                            </span>
+                        {{if .URL}}</a>{{else}}</div>{{end}}
+                        {{end}}
+                    </div>
+                </section>
+            </div>
+            {{end}}
+        </div>
     </div>
 </section>
 {{end}}
-<!-- ======================= E3. CERTIFICATES ======================= -->
+
+<!-- ======================= F. CERTIFICATES ======================= -->
 {{if .Certificates}}
 <section id="certificates" class="section-padding bg-darker">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.certificates">Certificates</h2>
-        <!-- Search bar -->
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.certificates">Certificates</h2>
+        </div>
+
         <div class="row justify-content-center mb-4" data-aos="fade-up">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-glass">
+            <div class="col-lg-6">
+                <div class="input-group section-search-shell">
+                    <span class="input-group-text bg-transparent border-glass section-search-icon">
                         <i class="bx bx-search text-muted"></i>
                     </span>
                     <input type="search" id="certificate-search" name="q" class="form-control bg-transparent border-glass"
                         placeholder="Search certificates..." data-i18n-placeholder="certificate.search" hx-get="/certificates"
-                        hx-trigger="input changed delay:400ms, search" hx-target="#certificate-list-area"
-                        hx-swap="innerHTML">
+                        hx-trigger="input changed delay:400ms, search" hx-target="#certificate-list-area" hx-swap="innerHTML">
                 </div>
             </div>
         </div>
-        <!-- Card grid + pagination (replaced by HTMX on search/page click) -->
+
         <div id="certificate-list-area">
-            {{if .Certificates}}
-            <div class="row g-4 mb-4">
-                {{range $i, $cert := .Certificates}}
-                <div class="col-md-6 col-lg-4" data-aos="zoom-in">
-                    <div class="glass-card certificate-card h-100 d-flex flex-column">
-                        <div class="certificate-thumbnail">
-                            {{- /* derive url and type */ -}}
-                            {{- $url := "" -}}
-                            {{- if $cert.File -}}
-                                {{- $url = printf "/uploads/%s" $cert.File.StoredName -}}
-                            {{- else if $cert.CertURL -}}
-                                {{- $url = $cert.CertURL -}}
-                            {{- else -}}
-                                {{- $url = "/static/img/default-cert.png" -}}
-                            {{- end -}}
-                            {{- $type := "other" -}}
-                            {{- if hasSuffix $url ".pdf" -}}
-                                {{- $type = "pdf" -}}
-                            {{- else if or (hasSuffix $url ".jpg") (hasSuffix $url ".jpeg") (hasSuffix $url ".png") (hasSuffix $url ".gif") -}}
-                                {{- $type = "image" -}}
-                            {{- else if (contains $url "drive.google.com") -}}
-                                {{- $type = "pdf" -}}
-                            {{- end -}}
-                            {{if eq $type "pdf"}}
-                            <a href="javascript:void(0)" class="cert-view" data-url="/cert/preview?id={{$cert.ID}}" data-type="{{$type}}" data-title="{{ $cert.Title }}">
-                            {{else}}
-                            <a href="javascript:void(0)" class="cert-view" data-url="{{$url}}" data-type="{{$type}}" data-title="{{ $cert.Title }}">
-                            {{end}}
-                                {{- if eq $type "pdf" }}
-                                    <div class="pdf-thumb mb-2" style="height:150px; overflow:hidden;">
-                                        <canvas data-pdf-id="{{$cert.ID}}" width="100%" height="150"></canvas>
-                                    </div>
-                                    <span class="badge bg-secondary text-white">PDF</span>
-                                {{- else }}
-                                    <img src="{{$url}}" alt="{{ $cert.Title }}" class="img-fluid rounded-top-4" loading="lazy" onerror="this.onerror=null;this.src='/static/img/default-cert.png';">
-                                {{- end }}
-                            </a>
-                        </div>
-                        <div class="p-4 flex-grow-1 d-flex flex-column">
-                            <h5 class="fw-bold mb-2" data-translate>{{ $cert.Title }}</h5>
-                            {{if $cert.Description}}
-                            <p class="text-muted small mb-3 flex-grow-1" data-translate>{{ $cert.Description }}</p>
-                            {{end}}
-                            <div class="mb-3">
-                                <span class="badge bg-glass me-1 mb-1">{{ $cert.Issuer }}</span>
-                                <span class="badge bg-glass me-1 mb-1">{{ formatDate $cert.IssueDate }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {{end}}
-            </div>
-            {{else}}
-            <div class="text-center py-5">
-                <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
-                <p class="text-muted fs-5" data-i18n="certificate.not_found">No certificates found.</p>
-            </div>
-            {{end}}
-            {{if gt .CertificateTotalPages 1}}
-            <nav aria-label="Certificates pagination" class="d-flex justify-content-center mt-2">
-                <ul class="pagination pagination-sm gap-1 mb-0">
-                    <li class="page-item disabled">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
-                    </li>
-                    {{range seq .CertificateTotalPages}}
-                    {{$p := add . 1}}
-                    <li class="page-item {{if eq $p 1}}active{{end}}">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/certificates?page={{$p}}" hx-include="#certificate-search" hx-target="#certificate-list-area"
-                            hx-swap="innerHTML">{{$p}}</button>
-                    </li>
-                    {{end}}
-                    <li class="page-item">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/certificates?page=2" hx-include="#certificate-search" hx-target="#certificate-list-area"
-                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
-                    </li>
-                </ul>
-            </nav>
-            {{end}}
+            {{template "public_certificate_grid" .}}
         </div>
     </div>
 </section>
+{{end}}
 
-            {{end}}
-            {{if gt .CertificateTotalPages 1}}
-            <nav aria-label="Certificates pagination" class="d-flex justify-content-center mt-2">
-                <ul class="pagination pagination-sm gap-1 mb-0">
-                    <li class="page-item disabled">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i class="bx bx-chevron-left"></i></button>
-                    </li>
-                    {{range seq .CertificateTotalPages}}
-                    {{$p := add . 1}}
-                    <li class="page-item {{if eq $p 1}}active{{end}}">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/certificates?page={{$p}}" hx-include="#certificate-search" hx-target="#certificate-list-area"
-                            hx-swap="innerHTML">{{$p}}</button>
-                    </li>
-                    {{end}}
-                    <li class="page-item">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/certificates?page=2" hx-include="#certificate-search" hx-target="#certificate-list-area"
-                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
-                    </li>
-                </ul>
-            </nav>
-            {{end}}
-        </div>
-    </div>
-</section>
-
-<!-- modal used by certificates -->
-<div class="modal fade" id="certModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-fullscreen modal-dialog-centered">
-    <div class="modal-content bg-dark text-light">
-      <div class="modal-header">
-        <h5 class="modal-title" id="certModalLabel"></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-0" style="height:100vh; overflow:hidden;">
-        <!-- dynamic content -->
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- ======================= F. PROJECTS ======================= -->
+<!-- ======================= G. PROJECTS ======================= -->
 <section id="projects" class="section-padding">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.projects">Projects</h2>
-        <!-- Search bar -->
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.projects">Projects</h2>
+        </div>
+
         <div class="row justify-content-center mb-4" data-aos="fade-up">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-glass">
+            <div class="col-lg-6">
+                <div class="input-group section-search-shell">
+                    <span class="input-group-text bg-transparent border-glass section-search-icon">
                         <i class="bx bx-search text-muted"></i>
                     </span>
                     <input type="search" id="project-search" name="q" class="form-control bg-transparent border-glass"
                         placeholder="Search projects..." data-i18n-placeholder="project.search" hx-get="/projects"
-                        hx-trigger="input changed delay:400ms, search" hx-target="#project-list-area"
-                        hx-swap="innerHTML">
+                        hx-trigger="input changed delay:400ms, search" hx-target="#project-list-area" hx-swap="innerHTML">
                 </div>
             </div>
         </div>
-        <!-- Card grid + pagination (replaced by HTMX on search/page click) -->
-        <div id="project-list-area">
-            {{if .Projects}}
-            <div class="row g-4 mb-4">
-                {{range $i, $proj := .Projects}}
-                <div class="col-md-6 col-lg-4" data-aos="zoom-in">
-                    <div class="glass-card project-card h-100 d-flex flex-column">
-                        <div class="project-thumbnail">
-                            <img src="{{if $proj.ThumbnailURL}}{{$proj.ThumbnailURL}}{{else}}/static/img/default-project.jpg{{end}}"
-                                alt="{{$proj.Title}}"
-                                class="img-fluid rounded-top-4"
-                                loading="lazy"
-                                onerror="this.onerror=null;this.src='/static/img/default-project.jpg';">
 
-                            {{if not $proj.ThumbnailURL}}
-                            <div class="text-center mt-2">
-                                <small class="text-muted">
-                                    Default image: <a href="http://www.freepik.com" target="_blank" rel="noopener">
-                                    Designed by stockgiu / Freepik
-                                    </a>
-                                </small>
-                            </div>
-                            {{end}}
-                        </div>
-                        <div class="p-4 flex-grow-1 d-flex flex-column">
-                            <h5 class="fw-bold mb-2" data-translate>{{$proj.Title}}</h5>
-                            {{if $proj.Description}}
-                            <p class="text-muted small mb-3 flex-grow-1" data-translate>{{$proj.Description}}</p>
-                            {{end}}
-                            {{if $proj.Tags}}
-                            <div class="mb-3">
-                                {{range split $proj.Tags ","}}
-                                <span class="badge bg-glass me-1 mb-1">{{.}}</span>
-                                {{end}}
-                            </div>
-                            {{end}}
-                            <div class="d-flex gap-2 mt-auto">
-                                {{if $proj.LiveURL}}
-                                <a href="{{$proj.LiveURL}}" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-sm btn-gradient">
-                                    <i class="bx bx-arrow-out-up-left-stroke-square me-1"></i><span
-                                        data-i18n="project.live">Live</span>
-                                </a>
-                                {{end}}
-                                {{if $proj.RepoURL}}
-                                <a href="{{$proj.RepoURL}}" target="_blank" rel="noopener noreferrer"
-                                    class="btn btn-sm btn-outline-light">
-                                    <i class="bxl bx-github me-1"></i><span data-i18n="project.code">Code</span>
-                                </a>
-                                {{end}}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {{end}}
-            </div>
-            {{else}}
-            <div class="text-center py-5">
-                <i class="bx bx-ghost display-3 text-muted mb-3 d-block"></i>
-                <p class="text-muted fs-5" data-i18n="project.not_found">No projects found.</p>
-            </div>
-            {{end}}
-            {{if gt .ProjectTotalPages 1}}
-            <nav aria-label="Projects pagination" class="d-flex justify-content-center mt-2">
-                <ul class="pagination pagination-sm gap-1 mb-0">
-                    <li class="page-item disabled">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i
-                                class="bx bx-chevron-left"></i></button>
-                    </li>
-                    {{range seq .ProjectTotalPages}}
-                    {{$p := add . 1}}
-                    <li class="page-item {{if eq $p 1}}active{{end}}">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/projects?page={{$p}}" hx-include="#project-search" hx-target="#project-list-area"
-                            hx-swap="innerHTML">{{$p}}</button>
-                    </li>
-                    {{end}}
-                    <li class="page-item">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/projects?page=2" hx-include="#project-search" hx-target="#project-list-area"
-                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
-                    </li>
-                </ul>
-            </nav>
-            {{end}}
+        <div id="project-list-area">
+            {{template "public_project_grid" .}}
         </div>
     </div>
 </section>
 
-<!-- ======================= F2. WHAT'S NEXT / UPCOMING ======================= -->
+<!-- ======================= H. UPCOMING ======================= -->
 <section id="upcoming" class="section-padding bg-darker">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.upcoming">What's Next</h2>
-        <!-- Search bar -->
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.upcoming">What's Next</h2>
+        </div>
+
         <div class="row justify-content-center mb-4" data-aos="fade-up">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-glass">
+            <div class="col-lg-6">
+                <div class="input-group section-search-shell">
+                    <span class="input-group-text bg-transparent border-glass section-search-icon">
                         <i class="bx bx-search text-muted"></i>
                     </span>
                     <input type="search" id="upcoming-search" name="q" class="form-control bg-transparent border-glass"
                         placeholder="Search upcoming..." data-i18n-placeholder="upcoming.search" hx-get="/upcoming"
-                        hx-trigger="input changed delay:400ms, search" hx-target="#upcoming-list-area"
-                        hx-swap="innerHTML">
+                        hx-trigger="input changed delay:400ms, search" hx-target="#upcoming-list-area" hx-swap="innerHTML">
                 </div>
             </div>
         </div>
-        <!-- Card grid + pagination (replaced by HTMX on search/page click) -->
+
         <div id="upcoming-list-area">
-            {{if .UpcomingItems}}
-            <div class="row g-4 mb-4">
-                {{range .UpcomingItems}}
-                <div class="col-md-6 col-lg-4" data-aos="zoom-in">
-                    <div class="glass-card p-4 h-100">
-                        <div class="d-flex align-items-start mb-3 gap-3">
-                            <div class="flex-shrink-0">
-                                {{if .IconClass}}
-                                <i class="{{.IconClass}} fs-2 gradient-text"></i>
-                                {{else}}
-                                <i class="bx bx-rocket fs-2 gradient-text"></i>
-                                {{end}}
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="mb-1">
-                                    {{if eq .Type "project"}}
-                                    <span class="badge bg-primary me-1" data-i18n="upcoming.type.project">Future
-                                        Project</span>
-                                    {{else}}
-                                    <span class="badge bg-info text-dark me-1"
-                                        data-i18n="upcoming.type.announcement">Announcement</span>
-                                    {{end}}
-                                    {{if eq .Status "in-progress"}}
-                                    <span class="badge bg-success" data-i18n="upcoming.status.in_progress">In
-                                        Progress</span>
-                                    {{else if eq .Status "coming-soon"}}
-                                    <span class="badge bg-warning text-dark"
-                                        data-i18n="upcoming.status.coming_soon">Coming Soon</span>
-                                    {{else}}
-                                    <span class="badge bg-secondary" data-i18n="upcoming.status.planned">Planned</span>
-                                    {{end}}
-                                </div>
-                                <h5 class="fw-bold mb-0" data-translate>{{.Title}}</h5>
-                            </div>
-                        </div>
-                        {{if .Description}}
-                        <div class="truncate-wrapper">
-                            <p class="text-muted small mb-0 text-truncate-clamp" data-translate>{{.Description}}</p>
-                            <button class="btn btn-link btn-sm p-0 see-more-btn" style="display:none;"
-                                data-i18n="common.see_more">See more</button>
-                        </div>
-                        {{end}}
-                    </div>
-                </div>
-                {{end}}
-            </div>
-            {{else}}
-            <div class="text-center py-5" data-aos="fade-up">
-                <i class="bx bx-rocket display-3 text-muted mb-3 d-block"></i>
-                <p class="text-muted fs-5" data-i18n="upcoming.empty">No upcoming plans yet — stay tuned!</p>
-            </div>
-            {{end}}
-            {{if gt .UpcomingTotalPages 1}}
-            <nav aria-label="Upcoming pagination" class="d-flex justify-content-center mt-2">
-                <ul class="pagination pagination-sm gap-1 mb-0">
-                    <li class="page-item disabled">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"><i
-                                class="bx bx-chevron-left"></i></button>
-                    </li>
-                    {{range seq .UpcomingTotalPages}}
-                    {{$p := add . 1}}
-                    <li class="page-item {{if eq $p 1}}active{{end}}">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/upcoming?page={{$p}}" hx-include="#upcoming-search" hx-target="#upcoming-list-area"
-                            hx-swap="innerHTML">{{$p}}</button>
-                    </li>
-                    {{end}}
-                    <li class="page-item">
-                        <button class="page-link bg-transparent border-glass text-body rounded-3"
-                            hx-get="/upcoming?page=2" hx-include="#upcoming-search" hx-target="#upcoming-list-area"
-                            hx-swap="innerHTML"><i class="bx bx-chevron-right"></i></button>
-                    </li>
-                </ul>
-            </nav>
-            {{end}}
+            {{template "public_upcoming_grid" .}}
         </div>
     </div>
 </section>
 
-<!-- ======================= G. COMMENTS ======================= -->
+<!-- ======================= I. COMMENTS ======================= -->
 <section id="comments" class="section-padding">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.comments">Comments</h2>
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.comments">Comments</h2>
+        </div>
+
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-xl-8">
                 {{if .VisitorLoggedIn}}
-                <div class="glass-card p-4 mb-4" data-aos="fade-up">
-                    <form hx-post="/comments" hx-target="#comment-list" hx-swap="afterbegin"
-                        hx-on::after-request="this.reset()">
+                <div class="glass-card comment-composer interactive-panel p-4 mb-4" data-aos="fade-up">
+                    <form hx-post="/comments" hx-target="#comment-list" hx-swap="afterbegin" hx-on::after-request="this.reset()">
                         <div class="mb-3">
-                            <textarea class="form-control bg-transparent border-glass" name="body" rows="3"
-                                data-i18n-placeholder="comments.placeholder" placeholder="Leave a comment..."
-                                required></textarea>
+                            <textarea class="form-control bg-transparent border-glass" name="body" rows="4" data-i18n-placeholder="comments.placeholder" placeholder="Leave a comment..." required></textarea>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                             <a href="/auth/logout" class="btn btn-sm btn-outline-secondary">
                                 <i class="bx bx-log-out-circle me-1"></i><span data-i18n="comments.logout">Logout</span>
                             </a>
-                            <button type="submit" class="btn btn-gradient btn-sm">
+                            <button type="submit" class="btn btn-gradient btn-sm px-4">
                                 <i class="bx bx-send me-1"></i><span data-i18n="comments.post">Post Comment</span>
                             </button>
                         </div>
                     </form>
                 </div>
                 {{else}}
-                <div class="glass-card p-4 mb-4 text-center" data-aos="fade-up">
+                <div class="glass-card comment-signin interactive-panel p-4 mb-4 text-center" data-aos="fade-up">
                     <p class="text-muted mb-3" data-i18n="comments.sign_in">Sign in to leave a comment</p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="/auth/google" class="btn btn-outline-light btn-sm">
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/auth/google" class="btn btn-outline-light btn-sm px-4">
                             <i class="bxl bx-google me-2"></i>Google
                         </a>
-                        <a href="/auth/github" class="btn btn-outline-light btn-sm">
+                        <a href="/auth/github" class="btn btn-outline-light btn-sm px-4">
                             <i class="bxl bx-github me-2"></i>GitHub
                         </a>
                     </div>
                 </div>
                 {{end}}
-                <div id="comment-list" hx-get="/comments" hx-trigger="load" hx-swap="innerHTML"
+
+                <div id="comment-list" class="glass-card comment-feed-shell" hx-get="/comments" hx-trigger="load" hx-swap="innerHTML"
                     hx-on:htmx:responseError="(function(el){ el.innerHTML = '<div class=\'text-center py-4\'><i class=\'bx bx-error display-4 text-muted mb-3 d-block\'></i><p class=\'text-muted\' data-i18n=\'comments.unavailable\'></p></div>'; if(window.applyInlineTranslations) window.applyInlineTranslations(el); })(this)">
                     <div class="text-center py-4">
                         <div class="spinner-border spinner-border-sm text-muted" role="status">
@@ -709,89 +562,93 @@
     </div>
 </section>
 
-<!-- ======================= H. CONTACT ======================= -->
+<!-- ======================= J. CONTACT ======================= -->
 <section id="contact" class="section-padding bg-darker">
     <div class="container">
-        <h2 class="section-title text-center mb-5" data-aos="fade-up" data-i18n="section.contact">Get In Touch</h2>
-        <div class="row justify-content-center g-5">
-            <div class="col-lg-6" data-aos="fade-right">
-                <div class="glass-card p-4">
-                    <form hx-post="/contact" hx-target="#contact-result" hx-swap="innerHTML"
-                        hx-on::after-request="if(event.detail.successful) this.reset()">
-                        <div class="mb-3">
-                            <label for="contactName" class="form-label" data-i18n="contact.name">Name</label>
-                            <input type="text" class="form-control bg-transparent border-glass" id="contactName"
-                                name="name" required>
+        <div class="section-copydeck text-center mx-auto mb-5" data-aos="fade-up">
+            <h2 class="section-title" data-i18n="section.contact">Get In Touch</h2>
+        </div>
+
+        <div class="row justify-content-center g-4 align-items-stretch">
+            <div class="col-lg-7" data-aos="fade-right">
+                <div class="glass-card contact-form-shell interactive-panel p-4 h-100">
+                    <form hx-post="/contact" hx-target="#contact-result" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful) this.reset()">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="contactName" class="form-label" data-i18n="contact.name">Name</label>
+                                <input type="text" class="form-control bg-transparent border-glass" id="contactName" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactEmail" class="form-label" data-i18n="contact.email">Email</label>
+                                <input type="email" class="form-control bg-transparent border-glass" id="contactEmail" name="email" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="contactSubject" class="form-label" data-i18n="contact.subject">Subject</label>
+                                <input type="text" class="form-control bg-transparent border-glass" id="contactSubject" name="subject">
+                            </div>
+                            <div class="col-12">
+                                <label for="contactMessage" class="form-label" data-i18n="contact.message">Message</label>
+                                <textarea class="form-control bg-transparent border-glass" id="contactMessage" name="message" rows="6" required></textarea>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="contactEmail" class="form-label" data-i18n="contact.email">Email</label>
-                            <input type="email" class="form-control bg-transparent border-glass" id="contactEmail"
-                                name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="contactSubject" class="form-label" data-i18n="contact.subject">Subject</label>
-                            <input type="text" class="form-control bg-transparent border-glass" id="contactSubject"
-                                name="subject">
-                        </div>
-                        <div class="mb-3">
-                            <label for="contactMessage" class="form-label" data-i18n="contact.message">Message</label>
-                            <textarea class="form-control bg-transparent border-glass" id="contactMessage"
-                                name="message" rows="5" required></textarea>
-                        </div>
-                        <!-- Honeypot trap: hidden from real users, auto-filled by bots -->
-                        <input type="text" name="website" style="display:none !important" tabindex="-1"
-                            autocomplete="off" aria-hidden="true">
+                        <input type="text" name="website" style="display:none !important" tabindex="-1" autocomplete="off" aria-hidden="true">
                         {{if .HCaptchaEnabled}}
-                        <div class="mb-3">
+                        <div class="mt-4">
                             <div class="h-captcha" data-sitekey="{{.HCaptchaKey}}"></div>
                         </div>
                         {{end}}
-                        <button type="submit" class="btn btn-gradient w-100">
-                            <i class="bx bx-send me-2"></i><span data-i18n="contact.send">Send Message</span>
-                        </button>
+                        <div class="mt-4 d-flex flex-wrap gap-3 justify-content-between align-items-center">
+                            <p class="contact-note mb-0 text-muted">{{.Owner.Location}}</p>
+                            <button type="submit" class="btn btn-gradient px-4">
+                                <i class="bx bx-send me-2"></i><span data-i18n="contact.send">Send Message</span>
+                            </button>
+                        </div>
                     </form>
-                    <div id="contact-result"></div>
+                    <div id="contact-result" class="mt-3"></div>
                 </div>
             </div>
-            <div class="col-lg-4" data-aos="fade-left">
-                <div class="glass-card p-4 h-100 d-flex flex-column justify-content-center">
-                    <h5 class="mb-4 gradient-text" data-i18n="contact.info">Contact Info</h5>
+
+            <div class="col-lg-5" data-aos="fade-left">
+                <div class="glass-card contact-info-shell interactive-panel p-4 h-100 d-flex flex-column">
+                    <h3 class="cluster-title mb-4" data-i18n="contact.info">Contact Info</h3>
                     {{if .Owner.Email}}
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bx bx-envelope fs-4 gradient-text me-3"></i>
-                        <div>
+                    <a href="mailto:{{.Owner.Email}}" class="contact-line-item">
+                        <span class="contact-line-icon"><i class="bx bx-envelope"></i></span>
+                        <span>
                             <small class="text-muted d-block" data-i18n="about.email">Email</small>
-                            <a href="mailto:{{.Owner.Email}}" class="text-decoration-none">{{.Owner.Email}}</a>
-                        </div>
-                    </div>
+                            <strong>{{.Owner.Email}}</strong>
+                        </span>
+                    </a>
                     {{end}}
                     {{if .Owner.Phone}}
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bx bx-phone fs-4 gradient-text me-3"></i>
-                        <div>
+                    <a href="https://wa.me/{{.Owner.Phone}}" class="contact-line-item">
+                        <span class="contact-line-icon"><i class="bx bx-phone"></i></span>
+                        <span>
                             <small class="text-muted d-block" data-i18n="about.phone">Phone</small>
-                            <a href="https://wa.me/{{.Owner.Phone}}" class="text-decoration-none">{{.Owner.Phone}}</a>
-                        </div>
-                    </div>
+                            <strong>{{.Owner.Phone}}</strong>
+                        </span>
+                    </a>
                     {{end}}
                     {{if .Owner.Location}}
-                    <div class="d-flex align-items-center mb-4">
-                        <i class="bx bx-map fs-4 gradient-text me-3"></i>
-                        <div>
+                    <div class="contact-line-item">
+                        <span class="contact-line-icon"><i class="bx bx-map"></i></span>
+                        <span>
                             <small class="text-muted d-block" data-i18n="about.location">Location</small>
-                            <span>{{.Owner.Location}}</span>
-                        </div>
+                            <strong>{{.Owner.Location}}</strong>
+                        </span>
                     </div>
                     {{end}}
+
                     {{if .SocialLinks}}
-                    <hr class="border-glass">
-                    <div class="social-links d-flex gap-3 mt-3">
-                        {{range .SocialLinks}}
-                        <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="social-icon-link"
-                            title="{{.Platform}}">
-                            <i class="{{.IconClass}}"></i>
-                        </a>
-                        {{end}}
+                    <div class="contact-social-band mt-auto">
+                        <div class="hero-social-grid compact-social-grid mt-4">
+                            {{range .SocialLinks}}
+                            <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="social-brand-link" data-bs-toggle="tooltip" data-bs-placement="top" title="{{.Label}}">
+                                <span class="social-brand-icon"><i class="{{.IconClass}}"></i></span>
+                                <span class="social-brand-label">{{.Label}}</span>
+                            </a>
+                            {{end}}
+                        </div>
                     </div>
                     {{end}}
                 </div>
@@ -800,5 +657,19 @@
     </div>
 </section>
 
-<!-- ======================= I. FOOTER ======================= -->
+<!-- ======================= K. CERTIFICATE MODAL ======================= -->
+<div class="modal fade" id="certModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="certModalLabel"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="height:100vh; overflow:hidden;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================= L. FOOTER ======================= -->
 {{template "footer" .}}

@@ -51,16 +51,79 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         // Update the lang dropdown label with full localized language name.
         var langLabel = document.getElementById('langLabel');
+        var langFlag = document.getElementById('langFlag');
         if (langLabel) {
-            // Always show the short 2-letter code in the button to avoid overflow.
             langLabel.textContent = currentLang.toUpperCase();
         }
         // Mark active option in dropdown.
         document.querySelectorAll('.lang-option').forEach(function (opt) {
             opt.classList.toggle('active', opt.getAttribute('data-lang') === currentLang);
         });
+        if (langFlag) {
+            var activeOpt = document.querySelector('.lang-option[data-lang="' + currentLang + '"]');
+            langFlag.textContent = activeOpt ? (activeOpt.getAttribute('data-flag') || '🌐') : '🌐';
+        }
         // Update html lang attribute.
         document.documentElement.setAttribute('lang', currentLang);
+    }
+
+    function translateElements(elements, lang, originalAttr) {
+        if (!elements.length) return;
+
+        elements.forEach(function (el) {
+            if (!el.hasAttribute(originalAttr)) {
+                el.setAttribute(originalAttr, el.textContent.trim());
+            }
+        });
+
+        if (lang === contentLang) {
+            elements.forEach(function (el) {
+                el.textContent = el.getAttribute(originalAttr);
+            });
+            return;
+        }
+
+        if (!translateCache[lang]) translateCache[lang] = {};
+
+        var toFetch = [];
+        var toFetchEls = [];
+        elements.forEach(function (el) {
+            var orig = el.getAttribute(originalAttr);
+            if (!orig) return;
+            if (translateCache[lang][orig] !== undefined) {
+                el.textContent = translateCache[lang][orig];
+            } else {
+                toFetch.push(orig);
+                toFetchEls.push(el);
+            }
+        });
+
+        if (!toFetch.length) return;
+
+        fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texts: toFetch, from: contentLang, to: lang })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!Array.isArray(data.translations)) return;
+                if (lang !== currentLang) return;
+
+                data.translations.forEach(function (translated, idx) {
+                    var orig = toFetch[idx];
+                    var targetEl = toFetchEls[idx];
+                    if (!targetEl || !targetEl.isConnected) return;
+                    if (translated && translated.trim() !== orig) {
+                        translateCache[lang][orig] = translated;
+                        persistTranslateCache();
+                        targetEl.textContent = translated;
+                    }
+                });
+            })
+            .catch(function () {
+                // Silently fall back; original text stays.
+            });
     }
 
     // helper used by HTMX-injected fragments (error messages, comment batches)
@@ -80,74 +143,123 @@ document.addEventListener('DOMContentLoaded', function () {
     // expose for inline snippets in templates
     window.applyInlineTranslations = applyInlineTranslations;
 
+    function initTooltips(scope) {
+        if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
+        var root = scope || document;
+        root.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            if (!bootstrap.Tooltip.getInstance(el)) {
+                new bootstrap.Tooltip(el);
+            }
+        });
+    }
+
+    function initInteractivePanels(scope) {
+        var root = scope || document;
+        root.querySelectorAll('.interactive-panel').forEach(function (panel) {
+            if (panel.hasAttribute('data-interactive-init')) return;
+            panel.setAttribute('data-interactive-init', 'true');
+
+            panel.addEventListener('mousemove', function (e) {
+                var rect = panel.getBoundingClientRect();
+                var pointerX = ((e.clientX - rect.left) / rect.width) * 100;
+                var pointerY = ((e.clientY - rect.top) / rect.height) * 100;
+                panel.style.setProperty('--pointer-x', pointerX + '%');
+                panel.style.setProperty('--pointer-y', pointerY + '%');
+            });
+
+            panel.addEventListener('mouseleave', function () {
+                panel.style.removeProperty('--pointer-x');
+                panel.style.removeProperty('--pointer-y');
+            });
+        });
+    }
+
+    function animateCount(el) {
+        if (el.getAttribute('data-counted') === 'true') return;
+
+        var target = parseInt(el.getAttribute('data-count') || '0', 10);
+        if (!Number.isFinite(target)) return;
+
+        el.setAttribute('data-counted', 'true');
+        var duration = 900;
+        var start = null;
+
+        function frame(ts) {
+            if (!start) start = ts;
+            var progress = Math.min((ts - start) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = String(Math.round(target * eased));
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            }
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    function initCountUps() {
+        var counters = document.querySelectorAll('.count-up');
+        if (!counters.length) return;
+
+        var observer = new IntersectionObserver(function (entries, obs) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    animateCount(entry.target);
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(function (counter) {
+            if (counter.getAttribute('data-counted') !== 'true') {
+                observer.observe(counter);
+            }
+        });
+    }
+
+    function setExperienceToggleState(button, expanded) {
+        var label = button.querySelector('span');
+        var icon = button.querySelector('i');
+        var key = expanded ? 'common.see_less' : 'common.see_more';
+        var fallback = expanded ? 'See less' : 'See more';
+
+        if (label) {
+            label.setAttribute('data-i18n', key);
+            label.textContent = window.t(key, fallback);
+        }
+        if (icon) {
+            icon.className = expanded ? 'bx bx-chevron-up' : 'bx bx-chevron-down';
+        }
+        button.classList.toggle('is-open', expanded);
+    }
+
+    function initExperienceToggles(scope) {
+        var root = scope || document;
+        root.querySelectorAll('.experience-toggle').forEach(function (button) {
+            if (button.hasAttribute('data-toggle-init')) return;
+            button.setAttribute('data-toggle-init', 'true');
+
+            setExperienceToggleState(button, button.getAttribute('aria-expanded') === 'true');
+
+            var targetSelector = button.getAttribute('data-bs-target');
+            if (!targetSelector) return;
+
+            var target = document.querySelector(targetSelector);
+            if (!target) return;
+
+            target.addEventListener('show.bs.collapse', function () {
+                setExperienceToggleState(button, true);
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                setExperienceToggleState(button, false);
+            });
+        });
+    }
+
     // Translate elements that carry data-translate (DB-driven content).
     // Originals are stashed in data-translate-orig so we can restore on lang revert.
     function translateDynamicContent(lang) {
-        var elements = Array.from(document.querySelectorAll('[data-translate]'));
-        if (!elements.length) return;
-
-        // Stash originals on first encounter.
-        elements.forEach(function (el) {
-            if (!el.hasAttribute('data-translate-orig')) {
-                el.setAttribute('data-translate-orig', el.textContent.trim());
-            }
-        });
-
-        // Revert to original when switching back to the content language (EN).
-        // Use contentLang here, NOT defaultLang — the UI default preference may
-        // differ from the language the DB content is actually stored in.
-        if (lang === contentLang) {
-            elements.forEach(function (el) {
-                el.textContent = el.getAttribute('data-translate-orig');
-            });
-            return;
-        }
-
-        if (!translateCache[lang]) translateCache[lang] = {};
-
-        // Split into already-cached and needs-fetch.
-        var toFetch = [];
-        var toFetchEls = [];
-        elements.forEach(function (el) {
-            var orig = el.getAttribute('data-translate-orig');
-            if (!orig) return; // skip empty content
-            if (translateCache[lang][orig] !== undefined) {
-                el.textContent = translateCache[lang][orig];
-            } else {
-                toFetch.push(orig);
-                toFetchEls.push(el);
-            }
-        });
-
-        if (!toFetch.length) return;
-
-        fetch('/api/translate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // Always translate FROM contentLang (the DB storage language, 'en'),
-            // not from defaultLang (the UI default), which may be different.
-            body: JSON.stringify({ texts: toFetch, from: contentLang, to: lang })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (!Array.isArray(data.translations)) return;
-                // Guard: user may have switched language while this fetch was in-flight.
-                if (lang !== currentLang) return;
-                data.translations.forEach(function (translated, idx) {
-                    var orig = toFetch[idx];
-                    // Only cache & apply when MyMemory actually translated something.
-                    // If it echoed back the original (API error / rate-limit), skip
-                    // caching so the next language switch will retry the call.
-                    if (translated && translated.trim() !== orig) {
-                        translateCache[lang][orig] = translated;
-                        persistTranslateCache();
-                        toFetchEls[idx].textContent = translated;
-                    }
-                });
-            })
-            .catch(function () {
-                // Silently fall back; original text stays.
-            });
+        translateElements(Array.from(document.querySelectorAll('[data-translate]')), lang, 'data-translate-orig');
     }
 
     function setLanguage(lang) {
@@ -192,7 +304,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         translateDynamicContent(currentLang);
         initSeeMoreButtons();
-        swapThemeIcons(document.documentElement.getAttribute('data-bs-theme') || 'dark');
+        initExperienceToggles(document);
+        initTooltips(document);
+        initInteractivePanels(document);
+        if (typeof AOS !== 'undefined') {
+            AOS.refreshHard();
+        }
+        var activeTheme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+        swapThemeIcons(activeTheme);
+        syncThemeToggleState(activeTheme);
     });
 
     // ---------- Scroll Progress Bar ----------
@@ -283,13 +403,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ---------- 3D Tilt Effect ----------
-    var tiltElements = document.querySelectorAll('.about-image-wrapper');
+    var tiltElements = document.querySelectorAll('.hero-portrait-card');
     tiltElements.forEach(function(el) {
         el.addEventListener('mousemove', function(e) {
             var rect = el.getBoundingClientRect();
             var x = e.clientX - rect.left - rect.width/2;
             var y = e.clientY - rect.top - rect.height/2;
-            el.style.transform = 'perspective(800px) rotateX(' + (-y/15) + 'deg) rotateY(' + (x/15) + 'deg) scale(1.05)';
+            el.style.transform = 'perspective(1000px) rotateX(' + (-y / 28) + 'deg) rotateY(' + (x / 24) + 'deg) translateY(-4px)';
             el.style.transition = 'none';
         });
         el.addEventListener('mouseleave', function() {
@@ -364,35 +484,61 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ---------- Theme Toggle ----------
     var themeToggle = document.getElementById('themeToggle');
+    var themeToggleAnimationTimer = null;
     if (themeToggle) {
         var savedTheme = localStorage.getItem('portfolio-theme');
         if (savedTheme) {
             document.documentElement.setAttribute('data-bs-theme', savedTheme);
-            updateThemeIcon(savedTheme);
+            syncThemeToggleState(savedTheme);
         } else {
-            updateThemeIcon('dark');
+            syncThemeToggleState('dark');
         }
 
         themeToggle.addEventListener('click', function () {
             var current = document.documentElement.getAttribute('data-bs-theme');
             var next = current === 'dark' ? 'light' : 'dark';
+            animateThemeToggle(themeToggle, current, next);
             document.documentElement.setAttribute('data-bs-theme', next);
             localStorage.setItem('portfolio-theme', next);
-            updateThemeIcon(next);
+            syncThemeToggleState(next);
             swapThemeIcons(next);
         });
     }
 
-    function updateThemeIcon(theme) {
+    function animateThemeToggle(toggle, currentTheme, nextTheme) {
+        var thumb = toggle.querySelector('.theme-toggle-thumb');
+        var track = toggle.querySelector('.theme-toggle-track');
+        if (!thumb || !track) return;
+
+        var maxX = Math.max(track.clientWidth - thumb.clientWidth - 10, 0);
+        var startX = currentTheme === 'light' ? maxX : 0;
+        var endX = nextTheme === 'light' ? maxX : 0;
+        var bounceX = nextTheme === 'light' ? endX + 6 : Math.max(endX - 6, 0);
+        var atmosphereShift = nextTheme === 'light' ? '-6px' : '6px';
+
+        toggle.style.setProperty('--theme-toggle-start-x', startX + 'px');
+        toggle.style.setProperty('--theme-toggle-bounce-x', bounceX + 'px');
+        toggle.style.setProperty('--theme-toggle-end-x', endX + 'px');
+        toggle.style.setProperty('--theme-toggle-atmosphere-shift', atmosphereShift);
+
+        toggle.classList.remove('is-animating');
+        void toggle.offsetWidth;
+        toggle.classList.add('is-animating');
+
+        if (themeToggleAnimationTimer) {
+            window.clearTimeout(themeToggleAnimationTimer);
+        }
+        themeToggleAnimationTimer = window.setTimeout(function () {
+            toggle.classList.remove('is-animating');
+        }, 650);
+    }
+
+    function syncThemeToggleState(theme) {
         var toggle = document.getElementById('themeToggle');
         if (!toggle) return;
-        var icon = toggle.querySelector('i');
-        if (!icon) return;
-        if (theme === 'light') {
-            icon.className = 'bxf bx-moon';
-        } else {
-            icon.className = 'bxf bx-sun';
-        }
+        toggle.setAttribute('data-theme', theme);
+        toggle.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+        toggle.setAttribute('title', theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
     }
 
     // ---------- Theme-aware Icon Swapping ----------
@@ -411,6 +557,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Apply on initial load.
     var initialTheme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
     swapThemeIcons(initialTheme);
+    syncThemeToggleState(initialTheme);
+    initTooltips(document);
+    initInteractivePanels(document);
+    initCountUps();
+    initExperienceToggles(document);
 
     // ---------- See More / See Less Toggle ----------
     function initSeeMoreButtons() {
