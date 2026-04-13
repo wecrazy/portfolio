@@ -62,6 +62,7 @@ func registerPublicRoutes(
 	app.Get("/", handler.PortfolioPage(db))
 	app.Get("/resume", handler.ServeResumePDF(db))
 	app.Get("/resume/download", handler.DownloadResumePDF(db))
+	app.Get("/media/projects/:id/thumbnail", handler.ProjectThumbnail(db))
 	// HTMX partials for project + upcoming + certificate pagination/search
 	app.Get("/projects", handler.ProjectsPage(db))
 	app.Get("/upcoming", handler.UpcomingPage(db))

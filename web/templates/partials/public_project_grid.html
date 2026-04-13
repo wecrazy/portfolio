@@ -1,15 +1,18 @@
 {{define "public_project_grid"}}
 {{if .Projects}}
 <div class="row g-4 mb-4">
-    {{range $proj := .Projects}}
+    {{range $idx, $proj := .Projects}}
     <div class="col-md-6 col-xl-4" data-aos="fade-up">
         <article class="portfolio-card project-card interactive-panel h-100 d-flex flex-column">
             <div class="project-media">
-                <img src="{{if $proj.ThumbnailURL}}{{$proj.ThumbnailURL}}{{else}}/static/img/default-project.jpg{{end}}"
+                <img src="{{if $proj.ThumbnailURL}}/media/projects/{{$proj.ID}}/thumbnail?v={{$proj.UpdatedAt.Unix}}{{else}}/static/img/default-project.jpg{{end}}"
                     alt="{{$proj.Title}}"
                     class="img-fluid"
-                    loading="lazy"
-                    onerror="this.onerror=null;this.src='/static/img/default-project.jpg';">
+                    loading="{{if lt $idx 3}}eager{{else}}lazy{{end}}"
+                    fetchpriority="{{if lt $idx 3}}high{{else}}auto{{end}}"
+                    decoding="async"
+                    onload="var media=this.closest('.project-media');if(media){media.classList.add('is-loaded');}"
+                    onerror="var media=this.closest('.project-media');if(media){media.classList.add('is-error');}this.onerror=function(){if(media){media.classList.add('is-loaded');}this.onerror=null;};this.src='/static/img/default-project.jpg';">
             </div>
             <div class="project-body d-flex flex-column flex-grow-1">
                 <div class="project-header-row">

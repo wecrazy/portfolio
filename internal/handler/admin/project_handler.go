@@ -4,7 +4,9 @@ import (
 	"my-portfolio/internal/config"
 	appI18n "my-portfolio/internal/i18n"
 	"my-portfolio/internal/model"
+	"my-portfolio/pkg/asseturl"
 	"my-portfolio/pkg/pagination"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gosimple/slug"
@@ -64,6 +66,7 @@ func ProjectCreate(db *gorm.DB) fiber.Handler {
 		if err := c.Bind().Body(&project); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid form data")
 		}
+		project.ThumbnailURL = asseturl.NormalizeExternalImageURL(strings.TrimSpace(project.ThumbnailURL))
 		project.Slug = slug.Make(project.Title)
 		project.Featured = c.FormValue("featured") == "on"
 		if err := db.Create(&project).Error; err != nil {
@@ -84,6 +87,7 @@ func ProjectUpdate(db *gorm.DB) fiber.Handler {
 		if err := c.Bind().Body(&project); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid form data")
 		}
+		project.ThumbnailURL = asseturl.NormalizeExternalImageURL(strings.TrimSpace(project.ThumbnailURL))
 		project.Slug = slug.Make(project.Title)
 		project.Featured = c.FormValue("featured") == "on"
 		db.Save(&project)
