@@ -49,3 +49,4 @@ internal/config/my-portfolio.dev.yaml
 internal/config/my-portfolio.prod.yaml
 
 my_portfolio
+thumbnail.png
