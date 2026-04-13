@@ -12,7 +12,7 @@ func seedTechStacks(db *gorm.DB) {
 
 		// ===================== Languages =====================
 		{Name: "Go", Category: "Language", IconClass: "devicon-go-original-wordmark", IconURL: deviconCDN + "/go/go-original-wordmark.svg", Desc: "Primary backend language", SortOrder: 1},
-		{Name: "PHP", Category: "Language", IconClass: "devicon-php-plain", IconURL: "https://vite.dev/assets/vite-light.t8GCa_VF.svg", Desc: "Web & backend scripting", SortOrder: 2},
+		{Name: "PHP", Category: "Language", IconClass: "devicon-php-plain", IconURL: deviconCDN + "/php/php-original.svg", Desc: "Web & backend scripting", SortOrder: 2},
 		{Name: "JavaScript", Category: "Language", IconClass: "devicon-javascript-plain", IconURL: deviconCDN + "/javascript/javascript-plain.svg", Desc: "Frontend & backend scripting", SortOrder: 3},
 		{Name: "TypeScript", Category: "Language", IconClass: "devicon-typescript-plain", IconURL: deviconCDN + "/typescript/typescript-original.svg", Desc: "Typed JavaScript for scalable apps", SortOrder: 4},
 		{Name: "Python", Category: "Language", IconClass: "devicon-python-plain", IconURL: deviconCDN + "/python/python-original.svg", Desc: "Scripting & automation", SortOrder: 5},
