@@ -31,7 +31,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://demo.wecrazy.my.id:7997/welcome",
 			RepoURL:      "https://github.com/wecrazy/electric_payment",
-			ThumbnailURL: "https://demo.wecrazy.my.id:7997/assets/img/front-pages/landing-page/cta-dashboard.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/electric_payment/main/thumbnail.png",
 		},
 		{
 			Title:        "Cek Resi",
@@ -43,7 +43,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "http://demo.wecrazy.my.id:8900",
 			RepoURL:      "https://github.com/wecrazy/cek-kurir-resi",
-			ThumbnailURL: "https://github.com/wecrazy/cek-kurir-resi/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/cek-kurir-resi/main/thumbnail.png",
 		},
 		{
 			Title:        "Warning Letter (SP) Sounding System",
@@ -55,7 +55,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://www.youtube.com/watch?v=70WwpzFSYBI",
 			RepoURL:      "https://github.com/wecrazy/mini_pc_sounding_sp",
-			ThumbnailURL: "https://github.com/wecrazy/mini_pc_sounding_sp/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/mini_pc_sounding_sp/main/thumbnail.png",
 		},
 		{
 			Title:        "MS Daily Dashboard",
@@ -67,7 +67,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://www.youtube.com/shorts/9k9UMesK8GI",
 			RepoURL:      "https://github.com/wecrazy/ms-daily-dashboard",
-			ThumbnailURL: "https://github.com/wecrazy/ms-daily-dashboard/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/ms-daily-dashboard/main/thumbnail.png",
 		},
 		{
 			Title:        "MW Pending Error - TA",
@@ -79,7 +79,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://github.com/wecrazy/mw-error-pending-ta/blob/main/README.md",
 			RepoURL:      "https://github.com/wecrazy/mw-error-pending-ta",
-			ThumbnailURL: "https://github.com/wecrazy/mw-error-pending-ta/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/mw-error-pending-ta/main/thumbnail.png",
 		},
 		{
 			Title:        "Google Colab Projects",
@@ -102,7 +102,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "http://demo.wecrazy.my.id:8998/index.html",
 			RepoURL:      "https://github.com/wecrazy/toraya-maelo",
-			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/toraya-maelo/refs/heads/main/preview.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/toraya-maelo/main/preview.png",
 		},
 		{
 			Title:        "Call Center App",
@@ -114,7 +114,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://youtu.be/5GJU4x8dEok",
 			RepoURL:      "https://github.com/wecrazy/call-center-ms",
-			ThumbnailURL: "https://github.com/wecrazy/call-center-ms/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/call-center-ms/main/thumbnail.png",
 		},
 		{
 			Title:        "Rust Project",
@@ -138,7 +138,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://github.com/wecrazy/technical-assistance/blob/main/README.md",
 			RepoURL:      "https://github.com/wecrazy/technical-assistance.git",
-			ThumbnailURL: "https://github.com/wecrazy/technical-assistance/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/technical-assistance/main/thumbnail.png",
 		},
 		{
 			Title:        "Odoo Automations",
@@ -161,7 +161,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://youtu.be/JoFlvVV2C0A",
 			RepoURL:      "https://github.com/wecrazy/odoo_webview_tracker",
-			ThumbnailURL: "https://github.com/wecrazy/odoo_webview_tracker/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/odoo_webview_tracker/main/thumbnail.png",
 		},
 		{
 			Title:        "Report Generator",
@@ -184,7 +184,7 @@ func seedProjects(db *gorm.DB) {
 			Featured:     true,
 			LiveURL:      "https://wecrazy.my.id:6996",
 			RepoURL:      "https://github.com/wecrazy/portfolio",
-			ThumbnailURL: "https://github.com/wecrazy/portfolio/blob/main/thumbnail.png",
+			ThumbnailURL: "https://raw.githubusercontent.com/wecrazy/portfolio/main/thumbnail.png",
 		},
 	}
 	db.Create(&projects)

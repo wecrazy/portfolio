@@ -2274,6 +2274,36 @@ body.is-portfolio {
     aspect-ratio: 16 / 11;
 }
 
+.project-media {
+    isolation: isolate;
+    background:
+        radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.12), transparent 42%),
+        linear-gradient(135deg, rgba(65, 87, 136, 0.38), rgba(8, 12, 20, 0.96));
+}
+
+.project-media::before,
+.project-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+.project-media::before {
+    z-index: 0;
+    background:
+        linear-gradient(140deg, rgba(255, 255, 255, 0.1), transparent 52%),
+        radial-gradient(circle at 82% 22%, rgba(92, 215, 182, 0.2), transparent 28%);
+}
+
+.project-media::after {
+    z-index: 0;
+    background: linear-gradient(110deg, transparent 12%, rgba(255, 255, 255, 0.16) 45%, transparent 74%);
+    transform: translateX(-140%);
+    animation: project-thumb-shimmer 1.8s ease-in-out infinite;
+}
+
 .project-media img,
 .certificate-media img {
     width: 100%;
@@ -2282,9 +2312,38 @@ body.is-portfolio {
     transition: transform var(--transition), filter var(--transition);
 }
 
+.project-media img {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transition: transform var(--transition), filter var(--transition), opacity 0.35s ease;
+}
+
+.project-media.is-loaded::before,
+.project-media.is-loaded::after {
+    opacity: 0;
+}
+
+.project-media.is-loaded::after {
+    animation: none;
+}
+
+.project-media.is-loaded img {
+    opacity: 1;
+}
+
 .project-card:hover .project-media img,
 .certificate-card:hover .certificate-media img {
     transform: scale(1.04);
+}
+
+@keyframes project-thumb-shimmer {
+    0% {
+        transform: translateX(-140%);
+    }
+    100% {
+        transform: translateX(140%);
+    }
 }
 
 .project-body {
