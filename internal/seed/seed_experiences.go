@@ -19,25 +19,27 @@ func seedExperiences(db *gorm.DB) {
 	internStart := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
 	internEnd := time.Date(2021, time.February, 28, 0, 0, 0, 0, time.UTC)
 
-	csnaDesc := `* Led development of backend systems, web apps, and automation solutions with focus on scalability and reliability
-* Designed and customized Odoo ERP modules (automation, reporting, dashboards, integrations) for internal and client use
-* Acted as App Lead for Call Center, building system integrating CS dashboard with Odoo for task handling and communication flows
-* Developed Call Center app with WhatsApp Desktop integration for direct chat/call with customers
-* Supervised Technical Assistance division, creating validation systems and dashboards for technician visit data
-* Built technician tracking dashboards (PHP, DataTables.js, Leaflet.js) with performance metrics and geolocation
-* Engineered automated Warning Letter (SP) system with scheduled checks and multi-channel alerts (Email, WhatsApp, Telegram)
-* Developed multi-language chatbot integrated with WhatsApp, Telegram, Twilio for ticket status, reports, and internal tools
-* Built configurable chatbot dashboard for dynamic flows and automation without code changes
-* Automated technician payslip generation from Excel templates with delivery via Email/WhatsApp
-* Developed multi-app platform with role-based access using Go & Gin / Fiber.
-* Used PostgreSQL, MySQL, MongoDB, SQLite, Redis (caching) based on system needs
-* Implemented microservices communication using gRPC and Protocol Buffers
-* Managed Linux servers, Nginx, and deployment environments
-* Containerized apps using Podman/Docker
-* Documented APIs with Swagger/OpenAPI & Postman
-* Performed testing (k6, JMeter, Postman, Golang unit/integration)
-* Implemented observability with Grafana, Prometheus, Loki, Tempo
-* Built frontend apps using HTMX, React.js (Vite) and Next.js`
+	csnaDesc := `* Led development of scalable backend systems, web applications, and automation platforms, improving operational efficiency and system reliability
+* Designed and customized Odoo ERP modules (automation, reporting, dashboards, integrations) for internal and client workflows
+
+Technical Leadership
+* Technical Assistance Lead (Feb 2025 – Apr 2026): Built validation middleware and TA dashboard for managed service workflows, including AI-assisted photo validation and Odoo-based verification. Enabled error/pending tracking and performance visibility
+* Call Center Lead (Apr 2025 – Apr 2026): Led development of Call Center platform integrated with Odoo ERP, enabling task distribution, automated customer interaction (WhatsApp/call), and guided agent workflows. Delivered reporting and continuous improvements
+
+Key Contributions
+* Built multi-language chatbot platforms (WhatsApp, Telegram, Twilio, Whatsmeow) with configurable automation flows
+* Engineered automation systems including Warning Letter (SP) and technician payslip generation with multi-channel delivery
+* Developed multi-application platform with role-based access using Go (Gin/Fiber)
+
+Tech Stack
+* Languages: Go, PHP, JavaScript/TypeScript, Python
+* Backend & Architecture: Gin, Fiber, GORM, REST, gRPC, Microservices, Monolith, Monorepo
+* Data: PostgreSQL, MySQL, MongoDB, Redis, SQLite
+* Infra & DevOps: Docker/Podman, Linux, Nginx, CI/CD
+* Integration: Odoo, WhatsApp (Business API/Desktop), Telegram, Twilio, n8n, RabbitMQ, Email
+* Observability: Grafana, Prometheus, Loki, Tempo
+* Testing & Tools: Swagger/OpenAPI, Postman, k6, JMeter, Testify
+* Frontend: HTMX, React (Vite), Next.js`
 
 	distanEnrekangDesc := `* Supported the preparation and management of distribution reports for fertilizers and agricultural aid
 * Assisted in organizing and validating operational data

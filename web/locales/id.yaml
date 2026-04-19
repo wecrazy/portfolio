@@ -214,8 +214,11 @@ contact.send: "Kirim Pesan"
 contact.subject: "Subjek"
 
 experience.attachment: "Lampiran"
+experience.duration: "Durasi"
 experience.key_highlights: "Sorotan utama"
+experience.location: "Lokasi"
 experience.present: "Sekarang"
+experience.timeline: "Rentang waktu"
 
 footer.built_with: "Dibuat dengan"
 footer.rights: "Hak cipta dilindungi."

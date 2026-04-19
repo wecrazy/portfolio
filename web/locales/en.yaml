@@ -214,8 +214,11 @@ contact.send: "Send Message"
 contact.subject: "Subject"
 
 experience.attachment: "Attachment"
+experience.duration: "Duration"
 experience.key_highlights: "Selected highlights"
+experience.location: "Location"
 experience.present: "Present"
+experience.timeline: "Timeline"
 
 footer.built_with: "Built with"
 footer.rights: "All rights reserved."

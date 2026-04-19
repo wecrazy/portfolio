@@ -303,7 +303,7 @@
 
         <div class="experience-stack">
             {{range $exp := .Experiences}}
-            {{$bullets := experienceBullets $exp.Description}}
+            {{$sections := experienceSections $exp.Description}}
             <article class="portfolio-card experience-card interactive-panel" data-aos="fade-up">
                 {{if or $exp.ImageURL $exp.Image}}
                 <div class="experience-backdrop" aria-hidden="true">
@@ -316,30 +316,52 @@
                 {{end}}
                 <div class="experience-layout">
                     <div class="experience-intro">
-                        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
                             <span class="editorial-pill editorial-pill-solid" data-translate>{{$exp.Type}}</span>
                             {{if $exp.IsCurrent}}
                             <span class="editorial-pill editorial-pill-success" data-i18n="experience.present">Present</span>
                             {{end}}
                         </div>
-                        <h3 class="experience-title" data-translate>{{$exp.Title}}</h3>
-                        <p class="experience-org mb-3">{{$exp.Org}}</p>
-                        <div class="eyebrow-meta mb-3">
-                            <span class="meta-chip">
-                                <i class="bx bx-calendar me-1"></i>
-                                {{formatDate $exp.StartDate}} &ndash;
-                                {{if $exp.IsCurrent}}
-                                <span data-i18n="experience.present">Present</span>
-                                {{else if not (isZeroTime (derefTime $exp.EndDate))}}
-                                {{formatDate (derefTime $exp.EndDate)}}
-                                {{else}}
-                                <span data-i18n="experience.present">Present</span>
-                                {{end}}
-                            </span>
-                            {{if $exp.Location}}
-                            <span class="meta-chip"><i class="bx bx-map me-1"></i>{{$exp.Location}}</span>
+                        <div class="experience-heading-group">
+                            <h3 class="experience-title mb-0" data-translate>{{$exp.Title}}</h3>
+                            {{if $exp.Org}}
+                            <p class="experience-org mb-0">{{$exp.Org}}</p>
                             {{end}}
                         </div>
+
+                        <div class="experience-fact-grid">
+                            <div class="experience-fact-card">
+                                <span class="experience-fact-icon"><i class="bx bx-calendar-event"></i></span>
+                                <div class="experience-fact-copy">
+                                    <span class="experience-fact-label" data-i18n="experience.timeline">Timeline</span>
+                                    <strong class="experience-fact-value">
+                                        {{formatDate $exp.StartDate}} &ndash;
+                                        {{if $exp.IsCurrent}}
+                                        <span data-i18n="experience.present">Present</span>
+                                        {{else if not (isZeroTime (derefTime $exp.EndDate))}}
+                                        {{formatDate (derefTime $exp.EndDate)}}
+                                        {{else}}
+                                        <span data-i18n="experience.present">Present</span>
+                                        {{end}}
+                                    </strong>
+                                    {{$duration := experienceDuration $exp.StartDate $exp.EndDate $exp.IsCurrent}}
+                                    {{if $duration}}
+                                    <span class="experience-fact-note"><span data-i18n="experience.duration">Duration</span> · {{$duration}}</span>
+                                    {{end}}
+                                </div>
+                            </div>
+
+                            {{if $exp.Location}}
+                            <div class="experience-fact-card experience-fact-card-location">
+                                <span class="experience-fact-icon"><i class="bx bx-map"></i></span>
+                                <div class="experience-fact-copy">
+                                    <span class="experience-fact-label" data-i18n="experience.location">Location</span>
+                                    <strong class="experience-fact-value">{{$exp.Location}}</strong>
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+
                         {{if $exp.CertURL}}
                         <a href="{{$exp.CertURL}}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm">
                             <i class="bx bx-paperclip me-1"></i><span data-i18n="experience.attachment">Attachment</span>
@@ -348,29 +370,76 @@
                     </div>
 
                     <div class="experience-body">
-                        {{if gt (len $bullets) 0}}
-                        <div class="experience-list-shell">
-                            <ul class="experience-points list-unstyled mb-0">
-                                {{range $idx, $bullet := $bullets}}
-                                {{if lt $idx 6}}
-                                <li class="experience-point"><span class="experience-point-marker"></span><span data-translate>{{$bullet}}</span></li>
-                                {{end}}
-                                {{end}}
-                            </ul>
-                            {{if gt (len $bullets) 6}}
-                            <div class="collapse experience-collapse" id="experience-more-{{$exp.ID}}">
-                                <ul class="experience-points list-unstyled mb-0 mt-3">
-                                    {{range $idx, $bullet := $bullets}}
-                                    {{if ge $idx 6}}
-                                    <li class="experience-point"><span class="experience-point-marker"></span><span data-translate>{{$bullet}}</span></li>
+                        {{if gt (len $sections) 0}}
+                        <div class="experience-sections">
+                            {{range $sectionIndex, $section := $sections}}
+                            <section class="experience-section {{if gt (len $section.Groups) 0}}experience-section-groups{{end}}">
+                                <div class="experience-section-heading">
+                                    <span class="experience-section-line"></span>
+                                    {{if $section.Title}}
+                                    <h4 class="experience-section-title mb-0" data-translate>{{$section.Title}}</h4>
+                                    {{else}}
+                                    <h4 class="experience-section-title mb-0" data-i18n="experience.key_highlights">Selected highlights</h4>
                                     {{end}}
+                                </div>
+
+                                {{if gt (len $section.Groups) 0}}
+                                <div class="experience-group-grid">
+                                    {{range $group := $section.Groups}}
+                                    <div class="experience-group-card">
+                                        <h5 class="experience-group-label" data-translate>{{$group.Label}}</h5>
+                                        <div class="experience-tag-cloud">
+                                            {{range $value := $group.Values}}
+                                            <span class="experience-tag" data-translate>{{$value}}</span>
+                                            {{end}}
+                                        </div>
+                                    </div>
                                     {{end}}
-                                </ul>
-                            </div>
-                            <button class="btn btn-link btn-sm experience-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#experience-more-{{$exp.ID}}" aria-expanded="false">
-                                <span data-i18n="common.see_more">See more</span>
-                                <i class="bx bx-chevron-down"></i>
-                            </button>
+                                </div>
+                                {{else}}
+                                {{$collapseID := printf "experience-more-%d-%d" $exp.ID $sectionIndex}}
+                                <div class="experience-list-shell">
+                                    <ul class="experience-points list-unstyled mb-0">
+                                        {{range $itemIndex, $item := $section.Items}}
+                                        {{if lt $itemIndex 4}}
+                                        <li class="experience-point">
+                                            <span class="experience-point-marker"></span>
+                                            <div class="experience-point-copy">
+                                                {{if $item.Title}}
+                                                <strong class="experience-point-title" data-translate>{{$item.Title}}</strong>
+                                                {{end}}
+                                                <span data-translate>{{$item.Body}}</span>
+                                            </div>
+                                        </li>
+                                        {{end}}
+                                        {{end}}
+                                    </ul>
+                                    {{if gt (len $section.Items) 4}}
+                                    <div class="collapse experience-collapse" id="{{$collapseID}}">
+                                        <ul class="experience-points list-unstyled mb-0 mt-3">
+                                            {{range $itemIndex, $item := $section.Items}}
+                                            {{if ge $itemIndex 4}}
+                                            <li class="experience-point">
+                                                <span class="experience-point-marker"></span>
+                                                <div class="experience-point-copy">
+                                                    {{if $item.Title}}
+                                                    <strong class="experience-point-title" data-translate>{{$item.Title}}</strong>
+                                                    {{end}}
+                                                    <span data-translate>{{$item.Body}}</span>
+                                                </div>
+                                            </li>
+                                            {{end}}
+                                            {{end}}
+                                        </ul>
+                                    </div>
+                                    <button class="btn btn-link btn-sm experience-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#{{$collapseID}}" aria-expanded="false">
+                                        <span data-i18n="common.see_more">See more</span>
+                                        <i class="bx bx-chevron-down"></i>
+                                    </button>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </section>
                             {{end}}
                         </div>
                         {{else if $exp.Description}}

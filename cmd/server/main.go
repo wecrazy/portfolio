@@ -136,32 +136,174 @@ func initTemplates(cfg config.TypeMyPortfolio) *html.Engine {
 	return engine
 }
 
-func experienceBullets(raw string) []string {
+type experienceSection struct {
+	Title  string
+	Items  []experienceSectionItem
+	Groups []experienceTagGroup
+}
+
+type experienceSectionItem struct {
+	Title string
+	Body  string
+}
+
+type experienceTagGroup struct {
+	Label  string
+	Values []string
+}
+
+func isExperienceBulletLine(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	return strings.HasPrefix(trimmed, "*") || strings.HasPrefix(trimmed, "-") || strings.HasPrefix(trimmed, "•")
+}
+
+func trimExperienceBullet(line string) string {
+	trimmed := strings.TrimSpace(line)
+	if trimmed == "" {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimLeft(trimmed, "*-•"))
+}
+
+func parseExperienceTagGroup(raw string) (experienceTagGroup, bool) {
+	separator := strings.Index(raw, ":")
+	if separator <= 0 {
+		return experienceTagGroup{}, false
+	}
+
+	label := strings.TrimSpace(raw[:separator])
+	valuesRaw := strings.TrimSpace(raw[separator+1:])
+	if label == "" || valuesRaw == "" {
+		return experienceTagGroup{}, false
+	}
+	if len([]rune(label)) > 28 || strings.ContainsAny(label, "()") || !strings.Contains(valuesRaw, ",") {
+		return experienceTagGroup{}, false
+	}
+
+	values := splitCSVItems(valuesRaw)
+	if len(values) < 2 {
+		return experienceTagGroup{}, false
+	}
+
+	return experienceTagGroup{Label: label, Values: values}, true
+}
+
+func parseExperienceSectionItem(raw string) experienceSectionItem {
+	item := experienceSectionItem{Body: raw}
+	separator := strings.Index(raw, ":")
+	if separator <= 0 {
+		return item
+	}
+
+	title := strings.TrimSpace(raw[:separator])
+	body := strings.TrimSpace(raw[separator+1:])
+	if title == "" || body == "" || len([]rune(title)) > 72 {
+		return item
+	}
+
+	item.Title = title
+	item.Body = body
+	return item
+}
+
+func experienceSections(raw string) []experienceSection {
 	normalized := strings.ReplaceAll(raw, "\r\n", "\n")
 	lines := strings.Split(normalized, "\n")
-	items := make([]string, 0, len(lines))
-	foundListMarker := false
+	sections := make([]experienceSection, 0, 4)
+	current := experienceSection{}
+	foundBullets := false
+
+	flushCurrent := func() {
+		if len(current.Items) == 0 && len(current.Groups) == 0 {
+			return
+		}
+		sections = append(sections, current)
+		current = experienceSection{}
+	}
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" {
 			continue
 		}
-		if strings.HasPrefix(trimmed, "*") || strings.HasPrefix(trimmed, "-") || strings.HasPrefix(trimmed, "•") {
-			foundListMarker = true
-			trimmed = strings.TrimSpace(strings.TrimLeft(trimmed, "*-•"))
-			if trimmed == "" {
+
+		if isExperienceBulletLine(trimmed) {
+			foundBullets = true
+			content := trimExperienceBullet(trimmed)
+			if content == "" {
 				continue
 			}
-			items = append(items, trimmed)
+
+			if group, ok := parseExperienceTagGroup(content); ok {
+				if len(current.Items) > 0 {
+					title := current.Title
+					flushCurrent()
+					current.Title = title
+				}
+				current.Groups = append(current.Groups, group)
+				continue
+			}
+
+			if len(current.Groups) > 0 {
+				title := current.Title
+				flushCurrent()
+				current.Title = title
+			}
+			current.Items = append(current.Items, parseExperienceSectionItem(content))
+			continue
 		}
+
+		flushCurrent()
+		current = experienceSection{Title: trimmed}
 	}
 
-	if !foundListMarker {
+	flushCurrent()
+
+	if !foundBullets {
 		return nil
 	}
 
-	return items
+	return sections
+}
+
+func experienceDuration(start time.Time, end *time.Time, isCurrent bool) string {
+	if start.IsZero() {
+		return ""
+	}
+
+	finish := time.Now()
+	if !isCurrent && end != nil && !end.IsZero() {
+		finish = *end
+	}
+	if finish.Before(start) {
+		return ""
+	}
+
+	years := finish.Year() - start.Year()
+	months := int(finish.Month()) - int(start.Month())
+	if finish.Day() < start.Day() {
+		months--
+	}
+	if months < 0 {
+		years--
+		months += 12
+	}
+	if years < 0 {
+		years = 0
+	}
+
+	parts := make([]string, 0, 2)
+	if years > 0 {
+		parts = append(parts, fmt.Sprintf("%dy", years))
+	}
+	if months > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", months))
+	}
+	if len(parts) == 0 {
+		return "1m"
+	}
+
+	return strings.Join(parts, " ")
 }
 
 func splitCSVItems(raw string) []string {
@@ -200,7 +342,8 @@ func addTemplateFuncs(engine *html.Engine, cfg config.TypeMyPortfolio) {
 	engine.AddFunc("hasSuffix", strings.HasSuffix)
 	engine.AddFunc("split", strings.Split)
 	engine.AddFunc("csvItems", splitCSVItems)
-	engine.AddFunc("experienceBullets", experienceBullets)
+	engine.AddFunc("experienceSections", experienceSections)
+	engine.AddFunc("experienceDuration", experienceDuration)
 	engine.AddFunc("join", strings.Join)
 	engine.AddFunc("safeHTML", func(s string) template.HTML { return template.HTML(s) })
 	engine.AddFunc("formatDate", func(t time.Time) string { return t.Format("Jan 2006") })
